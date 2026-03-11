@@ -15,11 +15,12 @@ COPY package.json bun.lock* ./
 RUN bun install --frozen-lockfile
 
 # Install the correct Chromium for this Playwright version
-RUN bunx playwright install chromium
+# Cache-bust: 2026-03-11
+RUN bunx playwright install --with-deps chromium
 
-# Copy source (ARG busts cache when incremented)
-ARG CACHEBUST=2
+# Copy source
 COPY . .
+RUN ls public/
 
 EXPOSE 3000
 CMD ["bun", "src/index.ts"]
