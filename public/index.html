@@ -5,6 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>xtrct — Web Scraper API</title>
   <meta name="description" content="Extract anything. Get clean data. Auto-escalating scraper API with Cloudflare bypass, 9 output formats, and 20 zero-config presets." />
+  <link rel="canonical" href="https://xtrct.io" />
+  <!-- Open Graph -->
+  <meta property="og:type"        content="website" />
+  <meta property="og:url"         content="https://xtrct.io" />
+  <meta property="og:title"       content="xtrct — Web Scraper API" />
+  <meta property="og:description" content="Extract anything. Get clean data. Auto-escalating scraper API with Cloudflare bypass, 9 output formats, and 20 zero-config presets." />
+  <meta property="og:image"       content="https://xtrct.io/og.png" />
+  <!-- Twitter Card -->
+  <meta name="twitter:card"        content="summary_large_image" />
+  <meta name="twitter:title"       content="xtrct — Web Scraper API" />
+  <meta name="twitter:description" content="Extract anything. Get clean data. Auto-escalating scraper API with Cloudflare bypass, 9 output formats, and 20 zero-config presets." />
+  <meta name="twitter:image"       content="https://xtrct.io/og.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -547,10 +559,10 @@
           <span class="text-muted text-sm">/ mo</span>
         </div>
         <p class="text-xs text-muted mb-6">10,000 credits + 7-day free trial</p>
-        <a href="/checkout/starter" class="block w-full text-center py-2.5 rounded-xl font-semibold text-sm text-white transition-all hover:opacity-90 mb-6"
+        <button onclick="openCheckout('starter')" class="block w-full text-center py-2.5 rounded-xl font-semibold text-sm text-white transition-all hover:opacity-90 mb-6 cursor-pointer"
            style="background:linear-gradient(135deg,#7c3aed,#5b21b6);">
           Start free trial
-        </a>
+        </button>
         <ul class="space-y-2.5 text-sm text-muted">
           <li class="flex gap-2"><span class="text-green-400">✓</span> 10,000 credits / month</li>
           <li class="flex gap-2"><span class="text-green-400">✓</span> All formats &amp; presets</li>
@@ -569,9 +581,9 @@
           <span class="text-muted text-sm">/ mo</span>
         </div>
         <p class="text-xs text-muted mb-6">50,000 credits + 7-day free trial</p>
-        <a href="/checkout/growth" class="block w-full text-center py-2.5 rounded-xl font-semibold text-sm border border-accent text-bright hover:bg-accent/10 transition-all mb-6">
+        <button onclick="openCheckout('growth')" class="block w-full text-center py-2.5 rounded-xl font-semibold text-sm border border-accent text-bright hover:bg-accent/10 transition-all mb-6 cursor-pointer">
           Start free trial
-        </a>
+        </button>
         <ul class="space-y-2.5 text-sm text-muted">
           <li class="flex gap-2"><span class="text-green-400">✓</span> 50,000 credits / month</li>
           <li class="flex gap-2"><span class="text-green-400">✓</span> All formats &amp; presets</li>
@@ -599,12 +611,87 @@
   </div>
 </section>
 
+<!-- DOCS -->
+<section id="docs" class="py-24 px-6" style="background:#0b0916;">
+  <div class="max-w-4xl mx-auto">
+    <div class="text-center mb-14">
+      <p class="text-sm font-semibold text-accent uppercase tracking-widest mb-3">Docs</p>
+      <h2 class="font-display font-bold text-4xl text-text">Quick reference</h2>
+      <p class="text-muted mt-3">Full API reference at <a href="https://api.xtrct.io/v1/presets" class="text-bright hover:underline">api.xtrct.io</a>.</p>
+    </div>
+
+    <div class="space-y-6">
+
+      <!-- Auth -->
+      <div class="rounded-2xl border border-border p-6" style="background:#0f0d1a;">
+        <h3 class="font-display font-semibold text-text mb-3">Authentication</h3>
+        <p class="text-sm text-muted mb-3">Pass your API key in the <code class="text-bright">X-API-Key</code> header on every request.</p>
+        <div class="code-block p-4 text-xs"><pre><span class="k">-H</span> <span class="s">"X-API-Key: x_live_your_key_here"</span></pre></div>
+      </div>
+
+      <!-- POST /v1/scrape -->
+      <div class="rounded-2xl border border-border p-6" style="background:#0f0d1a;">
+        <h3 class="font-display font-semibold text-text mb-1">POST /v1/scrape</h3>
+        <p class="text-sm text-muted mb-4">Scrape a single URL.</p>
+        <div class="code-block p-4 text-xs mb-4"><pre><span class="g">{
+  <span class="k">"url"</span>:      <span class="s">"https://example.com"</span>,        <span class="c">// required</span>
+  <span class="k">"output"</span>:   <span class="s">"markdown"</span>,                  <span class="c">// html | cleaned_html | markdown | text | screenshot | pdf | links | metadata | structured</span>
+  <span class="k">"strategy"</span>: <span class="s">"auto"</span>,                    <span class="c">// auto | http | playwright | flaresolverr</span>
+  <span class="k">"wait"</span>:     <span class="kw">true</span>,                        <span class="c">// false = async (returns job_id)</span>
+  <span class="k">"preset"</span>:   <span class="s">"amazon-product"</span>,            <span class="c">// optional — overrides output & selectors</span>
+  <span class="k">"selectors"</span>: { <span class="s">"title"</span>: <span class="s">"h1"</span> },          <span class="c">// for output: "structured"</span>
+  <span class="k">"timeout"</span>:  <span class="m">30000</span>,                       <span class="c">// ms, default 30000</span>
+  <span class="k">"webhook_url"</span>: <span class="s">"https://your.site/hook"</span>  <span class="c">// optional async callback</span>
+}</span></pre></div>
+      </div>
+
+      <!-- POST /v1/batch -->
+      <div class="rounded-2xl border border-border p-6" style="background:#0f0d1a;">
+        <h3 class="font-display font-semibold text-text mb-1">POST /v1/batch</h3>
+        <p class="text-sm text-muted mb-4">Submit up to 50 URLs in one request.</p>
+        <div class="code-block p-4 text-xs"><pre><span class="g">{
+  <span class="k">"urls"</span>:    [<span class="s">"https://a.com"</span>, <span class="s">"https://b.com"</span>],
+  <span class="k">"output"</span>: <span class="s">"markdown"</span>
+}</span>
+<span class="c"># GET /v1/batch/:batch_id  — poll progress</span></pre></div>
+      </div>
+
+      <!-- Response shape -->
+      <div class="rounded-2xl border border-border p-6" style="background:#0f0d1a;">
+        <h3 class="font-display font-semibold text-text mb-3">Response shape</h3>
+        <div class="code-block p-4 text-xs"><pre><span class="g">{
+  <span class="k">"job_id"</span>:        <span class="s">"uuid"</span>,
+  <span class="k">"status"</span>:        <span class="s">"done"</span>,           <span class="c">// pending | running | done | failed</span>
+  <span class="k">"strategy_used"</span>: <span class="s">"http"</span>,
+  <span class="k">"credits_used"</span>:  <span class="m">1</span>,
+  <span class="k">"duration_ms"</span>:   <span class="m">612</span>,
+  <span class="k">"result"</span>: {
+    <span class="k">"markdown"</span>: <span class="s">"# Page title..."</span>   <span class="c">// key matches output format</span>
+  }
+}</span></pre></div>
+      </div>
+
+      <!-- Credits -->
+      <div class="rounded-2xl border border-border p-6" style="background:#0f0d1a;">
+        <h3 class="font-display font-semibold text-text mb-3">Credit costs</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          <div><p class="text-muted text-xs mb-1">HTTP scrape</p><p class="text-bright font-mono">1 credit</p></div>
+          <div><p class="text-muted text-xs mb-1">Playwright / PDF</p><p class="text-bright font-mono">3 credits</p></div>
+          <div><p class="text-muted text-xs mb-1">JS challenge bypass</p><p class="text-bright font-mono">5 credits</p></div>
+          <div><p class="text-muted text-xs mb-1">+ residential proxy</p><p class="text-bright font-mono">+10 credits</p></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
 <!-- FOOTER -->
 <footer class="border-t border-border py-12 px-6">
   <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-start justify-between gap-8">
     <div>
       <a href="/" class="font-display font-bold text-xl text-text tracking-tight">xtrct<span class="text-accent">.</span></a>
-      <p class="text-muted text-sm mt-2 max-w-xs">Extract anything. Get clean data. Extract anything. Zero infrastructure.</p>
+      <p class="text-muted text-sm mt-2 max-w-xs">Extract anything. Get clean data. Zero infrastructure.</p>
     </div>
     <div class="grid grid-cols-2 md:grid-cols-3 gap-8 text-sm">
       <div>
@@ -635,12 +722,58 @@
     </div>
   </div>
   <div class="max-w-6xl mx-auto mt-10 pt-6 border-t border-border flex flex-col md:flex-row items-center justify-between text-xs text-muted gap-2">
-    <p>© 2025 xtrct. All rights reserved.</p>
+    <p>© 2026 xtrct. All rights reserved.</p>
     <p>Reliable · Fast · Scalable</p>
   </div>
 </footer>
 
+<!-- Checkout modal -->
+<div id="checkout-modal" style="display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);" onclick="if(event.target===this)closeCheckout()">
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(420px,90vw);background:#0f0d1a;border:1px solid #1e1a2e;border-radius:16px;padding:32px;">
+    <h3 class="font-display font-bold text-xl text-text mb-2">Start your free trial</h3>
+    <p class="text-sm text-muted mb-6">Enter your email — we'll create your account and redirect you to checkout.</p>
+    <input id="checkout-email" type="email" placeholder="you@company.com"
+      style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid #1e1a2e;background:#07060f;color:#ede9fe;font-size:14px;outline:none;margin-bottom:12px;"
+      onkeydown="if(event.key==='Enter')submitCheckout()" />
+    <p id="checkout-error" style="color:#f87171;font-size:12px;margin-bottom:8px;display:none;"></p>
+    <button onclick="submitCheckout()" id="checkout-btn"
+      style="width:100%;padding:11px;border-radius:10px;background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;font-weight:600;font-size:14px;cursor:pointer;border:none;">
+      Continue to checkout
+    </button>
+    <button onclick="closeCheckout()" style="width:100%;padding:8px;margin-top:8px;background:none;border:none;color:#6d6880;font-size:13px;cursor:pointer;">Cancel</button>
+  </div>
+</div>
+
 <script>
+  let _checkoutTier = '';
+
+  function openCheckout(tier) {
+    _checkoutTier = tier;
+    document.getElementById('checkout-email').value = '';
+    document.getElementById('checkout-error').style.display = 'none';
+    document.getElementById('checkout-modal').style.display = 'block';
+    setTimeout(() => document.getElementById('checkout-email').focus(), 50);
+  }
+
+  function closeCheckout() {
+    document.getElementById('checkout-modal').style.display = 'none';
+  }
+
+  async function submitCheckout() {
+    const email = document.getElementById('checkout-email').value.trim();
+    const errEl = document.getElementById('checkout-error');
+    const btn   = document.getElementById('checkout-btn');
+    if (!email.includes('@')) {
+      errEl.textContent = 'Please enter a valid email.';
+      errEl.style.display = 'block';
+      return;
+    }
+    errEl.style.display = 'none';
+    btn.textContent = 'Redirecting…';
+    btn.disabled = true;
+    window.location.href = `https://api.xtrct.io/checkout/${_checkoutTier}?email=${encodeURIComponent(email)}`;
+  }
+
   // Tab switching
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {

@@ -9,10 +9,23 @@ import { proxyRoutes } from './api/routes/proxy.ts';
 import { sql } from './db/index.ts';
 import { pool } from './browser/pool.ts';
 import { presetsRoutes } from './api/routes/presets.ts';
+import path from 'path';
+
+const PUBLIC_DIR = path.join(import.meta.dir, '../public');
+
+function serveHtml(file: string) {
+  return Bun.file(path.join(PUBLIC_DIR, file));
+}
 
 export function createServer() {
   return new Elysia()
     .use(cors())
+
+    // ─── Landing page & static files ─────────────────────────────────────────
+    .get('/',            () => serveHtml('index.html'))
+    .get('/sitemap.xml', () => Bun.file(path.join(PUBLIC_DIR, 'sitemap.xml')))
+    .get('/robots.txt',  () => Bun.file(path.join(PUBLIC_DIR, 'robots.txt')))
+    .get('/og.png',      () => Bun.file(path.join(PUBLIC_DIR, 'og.png')))
 
     // ─── Health ──────────────────────────────────────────────────────────────
     .get('/health', async () => {
