@@ -1,6 +1,3 @@
-# Railway deployment — uses Dockerfile directly.
-# For local development with FlareSolverr, use docker-compose.yml instead:
-#   docker compose up
 [build]
 builder = "dockerfile"
 dockerfilePath = "Dockerfile"
@@ -8,13 +5,6 @@ dockerfilePath = "Dockerfile"
 [deploy]
 startCommand = "bun src/index.ts"
 healthcheckPath = "/health"
-healthcheckTimeout = 30
+healthcheckTimeout = 60
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
-
-[[services]]
-name = "api"
-
-[[services]]
-name = "flaresolverr"
-image = "ghcr.io/flaresolverr/flaresolverr:latest"
