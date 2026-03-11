@@ -151,10 +151,11 @@
   <div class="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
     <a href="/" class="font-display font-bold text-xl text-text tracking-tight">xtrct<span class="text-accent">.</span></a>
     <div class="hidden md:flex items-center gap-7 text-sm text-muted">
-      <a href="#features" class="hover:text-text transition-colors">Features</a>
-      <a href="#presets"  class="hover:text-text transition-colors">Presets</a>
-      <a href="#pricing"  class="hover:text-text transition-colors">Pricing</a>
-      <a href="#docs"     class="hover:text-text transition-colors">Docs</a>
+      <a href="#features"    class="hover:text-text transition-colors">Features</a>
+      <a href="#presets"     class="hover:text-text transition-colors">Presets</a>
+      <a href="#playground"  class="hover:text-text transition-colors">Try it</a>
+      <a href="#pricing"     class="hover:text-text transition-colors">Pricing</a>
+      <a href="#docs"        class="hover:text-text transition-colors">Docs</a>
     </div>
     <div class="flex items-center gap-3">
       <a href="#pricing" class="text-sm text-muted hover:text-text transition-colors hidden sm:inline">Sign in</a>
@@ -611,6 +612,65 @@
   </div>
 </section>
 
+<!-- PLAYGROUND -->
+<section id="playground" class="py-24 px-6">
+  <div class="max-w-4xl mx-auto">
+    <div class="text-center mb-12">
+      <p class="text-sm font-semibold text-accent uppercase tracking-widest mb-3">Try it live</p>
+      <h2 class="font-display font-bold text-4xl text-text">Paste any URL. Get data back.</h2>
+      <p class="text-muted mt-3">No setup. Runs against the live API.</p>
+    </div>
+
+    <div class="rounded-2xl border border-border overflow-hidden" style="background:#0f0d1a;">
+      <!-- Input bar -->
+      <div class="p-5 border-b border-border">
+        <div class="flex flex-col sm:flex-row gap-3">
+          <input id="pg-url" type="url" placeholder="https://example.com/any-page"
+            style="flex:1;padding:10px 14px;border-radius:10px;border:1px solid #1e1a2e;background:#07060f;color:#ede9fe;font-size:14px;outline:none;font-family:inherit;"
+            onkeydown="if(event.key==='Enter')runPlayground()" />
+          <select id="pg-format"
+            style="padding:10px 14px;border-radius:10px;border:1px solid #1e1a2e;background:#07060f;color:#a78bfa;font-size:13px;font-family:'JetBrains Mono',monospace;outline:none;cursor:pointer;">
+            <option value="markdown">markdown</option>
+            <option value="text">text</option>
+            <option value="metadata">metadata</option>
+            <option value="links">links</option>
+            <option value="html">html</option>
+          </select>
+          <button onclick="runPlayground()" id="pg-btn"
+            style="padding:10px 24px;border-radius:10px;background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;font-weight:600;font-size:14px;cursor:pointer;border:none;white-space:nowrap;">
+            Scrape →
+          </button>
+        </div>
+        <p id="pg-error" style="color:#f87171;font-size:12px;margin-top:8px;display:none;"></p>
+      </div>
+
+      <!-- Output -->
+      <div id="pg-output" style="display:none;">
+        <div class="flex items-center justify-between px-5 py-3 border-b border-border">
+          <div class="flex items-center gap-3 text-xs text-muted font-mono">
+            <span id="pg-meta-status" class="text-green-400"></span>
+            <span id="pg-meta-strategy"></span>
+            <span id="pg-meta-credits"></span>
+            <span id="pg-meta-ms"></span>
+          </div>
+        </div>
+        <pre id="pg-result" class="p-5 text-xs overflow-x-auto"
+          style="font-family:'JetBrains Mono',monospace;color:#c4b5fd;line-height:1.7;max-height:400px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;"></pre>
+      </div>
+
+      <!-- Idle state -->
+      <div id="pg-idle" class="flex items-center justify-center py-16 text-muted text-sm">
+        Results will appear here
+      </div>
+    </div>
+
+    <p class="text-center text-xs text-muted mt-4">
+      Free — 500 credits/month. No credit card required.
+      <a href="#pricing" class="text-bright hover:underline ml-1">Get more credits →</a>
+    </p>
+  </div>
+</section>
+
 <!-- DOCS -->
 <section id="docs" class="py-24 px-6" style="background:#0b0916;">
   <div class="max-w-4xl mx-auto">
@@ -783,6 +843,139 @@
       document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
     });
   });
+
+  // Playground
+  async function runPlayground() {
+    const url    = document.getElementById('pg-url').value.trim();
+    const format = document.getElementById('pg-format').value;
+    const errEl  = document.getElementById('pg-error');
+    const btn    = document.getElementById('pg-btn');
+
+    errEl.style.display = 'none';
+    if (!url.startsWith('http')) {
+      errEl.textContent = 'Please enter a valid URL starting with https://';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    // Get or fetch API key
+    let apiKey = localStorage.getItem('xtrct_key');
+    if (!apiKey) {
+      apiKey = await promptForKey();
+      if (!apiKey) return;
+    }
+
+    btn.textContent = 'Scraping…';
+    btn.disabled = true;
+    document.getElementById('pg-idle').style.display = 'none';
+    document.getElementById('pg-output').style.display = 'none';
+
+    try {
+      const res = await fetch('https://api.xtrct.io/v1/scrape', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
+        body: JSON.stringify({ url, output: format, strategy: 'auto', wait: true }),
+      });
+      const d = await res.json();
+
+      if (d.status === 'failed' || d.error) {
+        throw new Error(d.error || 'Scrape failed');
+      }
+
+      // Show meta
+      document.getElementById('pg-meta-status').textContent   = '✓ ' + d.status;
+      document.getElementById('pg-meta-strategy').textContent = d.strategy_used || '';
+      document.getElementById('pg-meta-credits').textContent  = d.credits_used + ' credit' + (d.credits_used !== 1 ? 's' : '');
+      document.getElementById('pg-meta-ms').textContent       = d.duration_ms + 'ms';
+
+      // Show result
+      const result = d.result || {};
+      const value  = result[format] ?? JSON.stringify(result, null, 2);
+      const text   = typeof value === 'string' ? value : JSON.stringify(value, null, 2);
+      document.getElementById('pg-result').textContent = text.slice(0, 8000) + (text.length > 8000 ? '\n\n…truncated' : '');
+      document.getElementById('pg-output').style.display = 'block';
+
+    } catch (e) {
+      // If auth error, clear stored key and retry
+      if (e.message?.includes('401') || e.message?.includes('key')) {
+        localStorage.removeItem('xtrct_key');
+      }
+      errEl.textContent = e.message || 'Something went wrong';
+      errEl.style.display = 'block';
+      document.getElementById('pg-idle').style.display = 'flex';
+    } finally {
+      btn.textContent = 'Scrape →';
+      btn.disabled = false;
+    }
+  }
+
+  async function promptForKey() {
+    return new Promise(resolve => {
+      // Reuse the checkout modal but for signup
+      const modal = document.getElementById('checkout-modal');
+      const emailInput = document.getElementById('checkout-email');
+      const errEl = document.getElementById('checkout-error');
+      const btn = document.getElementById('checkout-btn');
+
+      // Override the modal heading temporarily
+      modal.querySelector('h3').textContent = 'Get your free API key';
+      modal.querySelector('p').textContent = 'Enter your email to get 500 free credits instantly.';
+      btn.textContent = 'Get free key';
+      errEl.style.display = 'none';
+      emailInput.value = '';
+      modal.style.display = 'block';
+      setTimeout(() => emailInput.focus(), 50);
+
+      const originalSubmit = window.submitCheckout;
+      window.submitCheckout = async function() {
+        const email = emailInput.value.trim();
+        if (!email.includes('@')) {
+          errEl.textContent = 'Please enter a valid email.';
+          errEl.style.display = 'block';
+          return;
+        }
+        errEl.style.display = 'none';
+        btn.textContent = 'Getting key…';
+        btn.disabled = true;
+        try {
+          const res = await fetch('https://api.xtrct.io/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+          });
+          const d = await res.json();
+          if (!d.key) throw new Error('No key returned');
+          localStorage.setItem('xtrct_key', d.key);
+          closeCheckout();
+          // Restore modal
+          modal.querySelector('h3').textContent = 'Start your free trial';
+          modal.querySelector('p').textContent = 'Enter your email — we\'ll create your account and redirect you to checkout.';
+          btn.textContent = 'Continue to checkout';
+          btn.disabled = false;
+          window.submitCheckout = originalSubmit;
+          resolve(d.key);
+        } catch(e) {
+          errEl.textContent = 'Something went wrong. Try again.';
+          errEl.style.display = 'block';
+          btn.textContent = 'Get free key';
+          btn.disabled = false;
+        }
+      };
+
+      // Handle cancel
+      const originalClose = window.closeCheckout;
+      window.closeCheckout = function() {
+        modal.style.display = 'none';
+        modal.querySelector('h3').textContent = 'Start your free trial';
+        modal.querySelector('p').textContent = 'Enter your email — we\'ll create your account and redirect you to checkout.';
+        btn.textContent = 'Continue to checkout';
+        btn.disabled = false;
+        window.submitCheckout = originalSubmit;
+        window.closeCheckout = originalClose;
+        resolve(null);
+      };
+    });
+  }
 
   // Smooth scroll
   document.querySelectorAll('a[href^="#"]').forEach(a => {
