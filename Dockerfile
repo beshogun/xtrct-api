@@ -14,12 +14,8 @@ ENV PATH="/root/.bun/bin:$PATH"
 COPY package.json bun.lock* ./
 RUN bun install --frozen-lockfile
 
-# Copy source and static files explicitly
-COPY src/ ./src/
-COPY public/ ./public/
-
-# Verify public files exist
-RUN echo "=== Public files ===" && ls -la public/
+# Copy source
+COPY . .
 
 # Tell Playwright where Chromium lives (pre-installed in this image)
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
