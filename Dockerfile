@@ -17,7 +17,8 @@ RUN bun install --frozen-lockfile
 # Install the correct Chromium for this Playwright version
 RUN bunx playwright install chromium
 
-# Copy source
+# Copy source (ARG busts cache when incremented)
+ARG CACHEBUST=2
 COPY . .
 
 EXPOSE 3000
