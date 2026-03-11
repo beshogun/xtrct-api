@@ -35,7 +35,7 @@ export class HttpScraper {
 
     let res: Response;
     try {
-      res = await fetch(url, {
+      const fetchOpts: RequestInit = {
         method: 'GET',
         headers: {
           'User-Agent': HttpScraper.UA,
@@ -46,12 +46,11 @@ export class HttpScraper {
           ...(cookieHeader ? { Cookie: cookieHeader } : {}),
           ...opts.headers,
         },
-        // @ts-ignore Bun-specific options
-        tls: { rejectUnauthorized: false },
-        ...(proxy ? { proxy } : {}),
         signal: AbortSignal.timeout(opts.timeout ?? 30_000),
         redirect: 'follow',
-      });
+      };
+      if (proxy) (fetchOpts as Record<string, unknown>).proxy = proxy;
+      res = await fetch(url, fetchOpts);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       const isNetworkError = msg.includes('ECONNREFUSED') || msg.includes('ETIMEDOUT') || msg.includes('ECONNRESET') || msg.includes('fetch failed');
