@@ -1,5 +1,5 @@
 # Use official Playwright image — includes Chromium pre-installed
-FROM mcr.microsoft.com/playwright:v1.44.0-jammy
+FROM mcr.microsoft.com/playwright:v1.58.2-jammy
 
 WORKDIR /app
 
@@ -14,11 +14,11 @@ ENV PATH="/root/.bun/bin:$PATH"
 COPY package.json bun.lock* ./
 RUN bun install --frozen-lockfile
 
+# Install the correct Chromium for this Playwright version
+RUN bunx playwright install chromium
+
 # Copy source
 COPY . .
-
-# Tell Playwright where Chromium lives (pre-installed in this image)
-ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
 EXPOSE 3000
 CMD ["bun", "src/index.ts"]

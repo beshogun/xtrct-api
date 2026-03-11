@@ -10,6 +10,7 @@ import { sql } from './db/index.ts';
 import { pool } from './browser/pool.ts';
 import { presetsRoutes } from './api/routes/presets.ts';
 import path from 'path';
+import { sendApiKey } from './email.ts';
 
 const PUBLIC_DIR = path.join(import.meta.dir, '../public');
 
@@ -23,9 +24,12 @@ export function createServer() {
 
     // ─── Landing page & static files ─────────────────────────────────────────
     .get('/',            () => serveHtml('index.html'))
-    .get('/sitemap.xml', () => Bun.file(path.join(PUBLIC_DIR, 'sitemap.xml')))
-    .get('/robots.txt',  () => Bun.file(path.join(PUBLIC_DIR, 'robots.txt')))
-    .get('/og.png',      () => Bun.file(path.join(PUBLIC_DIR, 'og.png')))
+    .get('/sitemap.xml',  () => Bun.file(path.join(PUBLIC_DIR, 'sitemap.xml')))
+    .get('/robots.txt',   () => Bun.file(path.join(PUBLIC_DIR, 'robots.txt')))
+    .get('/og.png',       () => Bun.file(path.join(PUBLIC_DIR, 'og.png')))
+    .get('/dashboard',    () => serveHtml('dashboard.html'))
+    .get('/privacy',      () => serveHtml('privacy.html'))
+    .get('/terms',        () => serveHtml('terms.html'))
 
     // ─── Health ──────────────────────────────────────────────────────────────
     .get('/health', async () => {
@@ -49,14 +53,33 @@ export function createServer() {
       const [existing] = await sql`
         SELECT key FROM api_keys WHERE email = ${email.toLowerCase()} AND active = true LIMIT 1
       `;
-      if (existing) return { key: existing.key, existing: true };
+      if (existing) {
+        sendApiKey(email.toLowerCase(), existing.key, true).catch(() => {});
+        return { key: existing.key, existing: true };
+      }
 
       const [row] = await sql`
         INSERT INTO api_keys (name, email, tier, credits_remaining)
         VALUES (${name?.trim() ?? null}, ${email.toLowerCase()}, 'free', 500)
         RETURNING key
       `;
+      sendApiKey(email.toLowerCase(), row.key, false).catch(() => {});
       return { key: row.key };
+    })
+
+    // ─── Key recovery ─────────────────────────────────────────────────────────
+    .post('/keys/recover', async ({ body, set }) => {
+      const { email } = body as { email?: string };
+      if (!email?.includes('@')) {
+        set.status = 400;
+        return { error: 'Valid email required.' };
+      }
+      const [row] = await sql`
+        SELECT key FROM api_keys WHERE email = ${email.toLowerCase()} AND active = true LIMIT 1
+      `;
+      // Always return success to avoid email enumeration
+      if (row) sendApiKey(email.toLowerCase(), row.key, true).catch(() => {});
+      return { message: 'If an account exists for that email, your API key has been sent.' };
     })
 
     // ─── Key rotation ────────────────────────────────────────────────────────

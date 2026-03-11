@@ -5,6 +5,7 @@ import { sql } from '../../db/index.ts';
 import { resetPeriodCredits } from '../../billing/credits.ts';
 import { addProxyCredits } from '../../billing/proxy-credits.ts';
 import { TIER_CREDITS, type Tier } from '../../db/index.ts';
+import { sendWelcomePaid } from '../../email.ts';
 
 export const billingRoutes = new Elysia()
 
@@ -104,6 +105,7 @@ export const billingRoutes = new Elysia()
             stripe_subscription_id = ${subscriptionId}
           WHERE email = ${email.toLowerCase()}
         `;
+        sendWelcomePaid(email.toLowerCase(), existing.key as string, tier, credits).catch(() => {});
         return successPage(existing.key as string, tier, true);
       }
 
@@ -112,6 +114,7 @@ export const billingRoutes = new Elysia()
         VALUES (${email.toLowerCase()}, ${tier}, ${credits}, ${customerId}, ${subscriptionId})
         RETURNING key
       `;
+      sendWelcomePaid(email.toLowerCase(), row.key as string, tier, credits).catch(() => {});
       return successPage(row.key as string, tier, false);
     } catch (e) {
       set.status = 500;

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard — xtrct</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{bg:'#07060f',surface:'#0f0d1a',border:'#1e1a2e',accent:'#7c3aed',bright:'#a78bfa',text:'#ede9fe',muted:'#6d6880'},fontFamily:{display:['"Plus Jakarta Sans"','system-ui','sans-serif'],mono:['"JetBrains Mono"','monospace']}}}}</script>
+  <style>body{background:#07060f;color:#ede9fe;font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}</style>
+</head>
+<body>
+<nav style="background:rgba(7,6,15,.9);backdrop-filter:blur(16px);border-bottom:1px solid #1e1a2e;" class="sticky top-0 z-50">
+  <div class="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
+    <a href="/" class="font-display font-bold text-xl text-text tracking-tight">xtrct<span style="color:#7c3aed">.</span></a>
+    <a href="/" class="text-sm text-muted hover:text-text transition-colors">← Back to site</a>
+  </div>
+</nav>
+
+<div class="max-w-4xl mx-auto px-6 py-16">
+
+  <!-- Key input -->
+  <div id="login-view">
+    <h1 class="font-display font-bold text-3xl text-text mb-2">Your dashboard</h1>
+    <p class="text-muted mb-8">Enter your API key to view your usage and credits.</p>
+    <div class="flex gap-3 max-w-lg">
+      <input id="key-input" type="text" placeholder="x_live_..."
+        style="flex:1;padding:10px 14px;border-radius:10px;border:1px solid #1e1a2e;background:#0f0d1a;color:#ede9fe;font-family:'JetBrains Mono',monospace;font-size:13px;outline:none;"
+        onkeydown="if(event.key==='Enter')loadDashboard()"/>
+      <button onclick="loadDashboard()"
+        style="padding:10px 24px;border-radius:10px;background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;font-weight:600;font-size:14px;cursor:pointer;border:none;">
+        View
+      </button>
+    </div>
+    <p id="login-error" style="color:#f87171;font-size:13px;margin-top:8px;display:none;"></p>
+    <p class="text-xs text-muted mt-4">Lost your key? <a href="#" onclick="recoverKey()" class="text-bright hover:underline">Recover by email →</a></p>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dash-view" style="display:none;">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="font-display font-bold text-3xl text-text mb-1">Dashboard</h1>
+        <p id="dash-email" class="text-muted text-sm"></p>
+      </div>
+      <button onclick="logout()" class="text-sm text-muted hover:text-text transition-colors">Sign out</button>
+    </div>
+
+    <!-- Stats cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div style="background:#0f0d1a;border:1px solid #1e1a2e;border-radius:14px;padding:20px;">
+        <p class="text-xs text-muted mb-2">Credits remaining</p>
+        <p id="stat-credits" class="font-display font-bold text-2xl text-text">—</p>
+      </div>
+      <div style="background:#0f0d1a;border:1px solid #1e1a2e;border-radius:14px;padding:20px;">
+        <p class="text-xs text-muted mb-2">Plan</p>
+        <p id="stat-tier" class="font-display font-bold text-2xl text-text capitalize">—</p>
+      </div>
+      <div style="background:#0f0d1a;border:1px solid #1e1a2e;border-radius:14px;padding:20px;">
+        <p class="text-xs text-muted mb-2">Jobs this month</p>
+        <p id="stat-jobs" class="font-display font-bold text-2xl text-text">—</p>
+      </div>
+      <div style="background:#0f0d1a;border:1px solid #1e1a2e;border-radius:14px;padding:20px;">
+        <p class="text-xs text-muted mb-2">Success rate</p>
+        <p id="stat-success" class="font-display font-bold text-2xl text-text">—</p>
+      </div>
+    </div>
+
+    <!-- API Key -->
+    <div style="background:#0f0d1a;border:1px solid #1e1a2e;border-radius:14px;padding:20px 24px;margin-bottom:24px;">
+      <p class="text-xs text-muted mb-2 uppercase tracking-widest">API Key</p>
+      <div class="flex items-center gap-3">
+        <code id="dash-key" style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#a78bfa;flex:1;word-break:break-all;"></code>
+        <button onclick="copyKey()" id="copy-btn" class="text-xs text-muted hover:text-text transition-colors whitespace-nowrap">Copy</button>
+      </div>
+    </div>
+
+    <!-- Upgrade CTA for free -->
+    <div id="upgrade-cta" style="display:none;background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.3);border-radius:14px;padding:20px 24px;margin-bottom:24px;">
+      <p class="font-semibold text-text mb-1">You're on the free plan</p>
+      <p class="text-sm text-muted mb-3">Upgrade to unlock proxy access, higher rate limits, and more credits.</p>
+      <a href="/#pricing" style="display:inline-block;padding:8px 20px;border-radius:8px;background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;font-size:13px;font-weight:600;">Upgrade →</a>
+    </div>
+
+    <!-- Recent jobs -->
+    <div style="background:#0f0d1a;border:1px solid #1e1a2e;border-radius:14px;overflow:hidden;">
+      <div style="padding:16px 24px;border-bottom:1px solid #1e1a2e;">
+        <p class="font-semibold text-text text-sm">Recent jobs</p>
+      </div>
+      <div id="jobs-table">
+        <div class="flex items-center justify-center py-12 text-muted text-sm">Loading…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recover modal -->
+<div id="recover-modal" style="display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);">
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(400px,90vw);background:#0f0d1a;border:1px solid #1e1a2e;border-radius:16px;padding:32px;">
+    <h3 class="font-display font-bold text-xl text-text mb-2">Recover your key</h3>
+    <p class="text-sm text-muted mb-5">We'll email your API key to your registered address.</p>
+    <input id="recover-email" type="email" placeholder="you@example.com"
+      style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid #1e1a2e;background:#07060f;color:#ede9fe;font-size:14px;outline:none;margin-bottom:10px;"
+      onkeydown="if(event.key==='Enter')submitRecover()"/>
+    <p id="recover-msg" style="font-size:12px;margin-bottom:8px;display:none;"></p>
+    <button onclick="submitRecover()" id="recover-btn"
+      style="width:100%;padding:11px;border-radius:10px;background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;font-weight:600;font-size:14px;cursor:pointer;border:none;">
+      Send key
+    </button>
+    <button onclick="document.getElementById('recover-modal').style.display='none'" style="width:100%;padding:8px;margin-top:8px;background:none;border:none;color:#6d6880;font-size:13px;cursor:pointer;">Cancel</button>
+  </div>
+</div>
+
+<script>
+  const API = 'https://api.xtrct.io';
+  let currentKey = '';
+
+  // Auto-load from localStorage
+  window.addEventListener('load', () => {
+    const saved = localStorage.getItem('xtrct_key');
+    if (saved) { document.getElementById('key-input').value = saved; loadDashboard(); }
+  });
+
+  async function loadDashboard() {
+    const key = document.getElementById('key-input').value.trim();
+    if (!key) return;
+    const errEl = document.getElementById('login-error');
+    errEl.style.display = 'none';
+
+    try {
+      const [usageRes, jobsRes] = await Promise.all([
+        fetch(`${API}/v1/usage`, { headers: { 'X-API-Key': key } }),
+        fetch(`${API}/v1/jobs?limit=10`, { headers: { 'X-API-Key': key } }),
+      ]);
+
+      if (!usageRes.ok) { errEl.textContent = 'Invalid API key.'; errEl.style.display = 'block'; return; }
+
+      const usage = await usageRes.json();
+      const jobsData = await jobsRes.json().catch(() => ({ jobs: [] }));
+
+      currentKey = key;
+      localStorage.setItem('xtrct_key', key);
+
+      document.getElementById('login-view').style.display = 'none';
+      document.getElementById('dash-view').style.display = 'block';
+
+      document.getElementById('dash-email').textContent = usage.email || '';
+      document.getElementById('dash-key').textContent = key;
+      document.getElementById('stat-credits').textContent = (usage.credits_remaining ?? 0).toLocaleString();
+      document.getElementById('stat-tier').textContent = usage.tier || 'free';
+
+      const jobs = jobsData.jobs || [];
+      const done = jobs.filter(j => j.status === 'done').length;
+      document.getElementById('stat-jobs').textContent = jobs.length;
+      document.getElementById('stat-success').textContent = jobs.length ? Math.round(done/jobs.length*100)+'%' : '—';
+
+      if ((usage.tier || 'free') === 'free') document.getElementById('upgrade-cta').style.display = 'block';
+
+      renderJobs(jobs);
+    } catch(e) {
+      errEl.textContent = 'Could not connect. Try again.';
+      errEl.style.display = 'block';
+    }
+  }
+
+  function renderJobs(jobs) {
+    const el = document.getElementById('jobs-table');
+    if (!jobs.length) { el.innerHTML = '<div class="flex items-center justify-center py-12 text-muted text-sm">No jobs yet</div>'; return; }
+    el.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead><tr style="border-bottom:1px solid #1e1a2e;">
+        <th style="text-align:left;padding:10px 24px;color:#6d6880;font-weight:500;">URL</th>
+        <th style="text-align:left;padding:10px 16px;color:#6d6880;font-weight:500;">Status</th>
+        <th style="text-align:left;padding:10px 16px;color:#6d6880;font-weight:500;">Strategy</th>
+        <th style="text-align:right;padding:10px 24px;color:#6d6880;font-weight:500;">Credits</th>
+      </tr></thead>
+      <tbody>${jobs.map(j => `<tr style="border-bottom:1px solid #1e1a2e;">
+        <td style="padding:10px 24px;color:#a78bfa;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+          <a href="${j.url}" target="_blank" style="color:#a78bfa;text-decoration:none;" title="${j.url}">${j.url.replace(/^https?:\/\//,'').slice(0,40)}</a>
+        </td>
+        <td style="padding:10px 16px;color:${j.status==='done'?'#4ade80':j.status==='failed'?'#f87171':'#facc15'}">${j.status}</td>
+        <td style="padding:10px 16px;color:#6d6880;font-family:'JetBrains Mono',monospace;">${j.strategy_used||'—'}</td>
+        <td style="padding:10px 24px;text-align:right;color:#6d6880;">${j.credits_cost??'—'}</td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+  }
+
+  function logout() {
+    localStorage.removeItem('xtrct_key');
+    currentKey = '';
+    document.getElementById('dash-view').style.display = 'none';
+    document.getElementById('login-view').style.display = 'block';
+    document.getElementById('key-input').value = '';
+  }
+
+  function copyKey() {
+    navigator.clipboard.writeText(currentKey);
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 2000);
+  }
+
+  function recoverKey() { document.getElementById('recover-modal').style.display = 'block'; }
+
+  async function submitRecover() {
+    const email = document.getElementById('recover-email').value.trim();
+    const msg = document.getElementById('recover-msg');
+    const btn = document.getElementById('recover-btn');
+    if (!email.includes('@')) { msg.style.color='#f87171'; msg.textContent='Enter a valid email.'; msg.style.display='block'; return; }
+    btn.textContent = 'Sending…'; btn.disabled = true;
+    const res = await fetch(`${API}/keys/recover`, {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email }),
+    });
+    const d = await res.json();
+    msg.style.color = '#4ade80';
+    msg.textContent = d.message || 'Sent!';
+    msg.style.display = 'block';
+    btn.textContent = 'Sent';
+  }
+</script>
+</body>
+</html>
