@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>xtrct — Web Scraper API</title>
+  <meta name="description" content="Extract anything. Get clean data. Auto-escalating scraper API with Cloudflare bypass, 9 output formats, and 20 zero-config presets." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg:      '#07060f',
+            surface: '#0f0d1a',
+            card:    '#14111f',
+            border:  '#1e1a2e',
+            accent:  '#7c3aed',
+            bright:  '#a78bfa',
+            text:    '#ede9fe',
+            muted:   '#6d6880',
+          },
+          fontFamily: {
+            display: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            sans:    ['Inter', 'system-ui', 'sans-serif'],
+            mono:    ['"JetBrains Mono"', 'monospace'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      background-color: #07060f;
+      color: #ede9fe;
+      font-family: 'Inter', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .grad {
+      background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 50%, #c4b5fd 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-bg {
+      background-image:
+        radial-gradient(ellipse 70% 55% at 65% 40%, rgba(124,58,237,0.18) 0%, transparent 70%),
+        radial-gradient(circle at 1px 1px, rgba(124,58,237,0.10) 1px, transparent 0);
+      background-size: 100% 100%, 32px 32px;
+    }
+
+    .code-block {
+      background: #0a0812;
+      border: 1px solid #1e1a2e;
+      border-radius: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.75;
+      overflow-x: auto;
+    }
+    .code-block .k  { color: #a78bfa; }
+    .code-block .s  { color: #c4b5fd; }
+    .code-block .g  { color: #86efac; }
+    .code-block .m  { color: #67e8f9; }
+    .code-block .c  { color: #4a4560; }
+    .code-block .kw { color: #f0abfc; }
+    .code-block .hl { color: #fde68a; }
+
+    .tab-btn { cursor: pointer; transition: color 0.15s, border-color 0.15s; }
+    .tab-btn.active { color: #a78bfa; border-bottom-color: #7c3aed; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .marquee-wrap { overflow: hidden; }
+    .marquee-track {
+      display: flex;
+      width: max-content;
+      animation: marquee 40s linear infinite;
+    }
+    .marquee-track:hover { animation-play-state: paused; }
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    .bento-card { transition: border-color .2s, box-shadow .2s; }
+    .bento-card:hover {
+      border-color: #3b1f6e;
+      box-shadow: 0 0 0 1px rgba(124,58,237,.15), 0 8px 32px rgba(124,58,237,.08);
+    }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 12px; border-radius: 999px;
+      border: 1px solid rgba(124,58,237,.4);
+      background: rgba(124,58,237,.12);
+      font-size: 12px; font-weight: 500; color: #c4b5fd;
+    }
+    .badge-dot {
+      width: 6px; height: 6px; border-radius: 50%; background: #7c3aed;
+      animation: blink 2s infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    .preset-chip {
+      white-space: nowrap; padding: 8px 16px; border-radius: 999px;
+      border: 1px solid #1e1a2e; background: #0f0d1a;
+      font-size: 13px; color: #c4b5fd; font-weight: 500;
+    }
+
+    .pricing-popular {
+      border-color: #7c3aed;
+      box-shadow: 0 0 0 1px rgba(124,58,237,.3), 0 16px 48px rgba(124,58,237,.15);
+    }
+
+    .step-line { position: relative; }
+    .step-line::before {
+      content: ''; position: absolute;
+      left: 19px; top: 40px; bottom: -20px;
+      width: 2px;
+      background: linear-gradient(to bottom, #3b1f6e, transparent);
+    }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #2a2040; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="sticky top-0 z-50 border-b border-border" style="background:rgba(7,6,15,.85);backdrop-filter:blur(16px);">
+  <div class="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+    <a href="/" class="font-display font-bold text-xl text-text tracking-tight">xtrct<span class="text-accent">.</span></a>
+    <div class="hidden md:flex items-center gap-7 text-sm text-muted">
+      <a href="#features" class="hover:text-text transition-colors">Features</a>
+      <a href="#presets"  class="hover:text-text transition-colors">Presets</a>
+      <a href="#pricing"  class="hover:text-text transition-colors">Pricing</a>
+      <a href="#docs"     class="hover:text-text transition-colors">Docs</a>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="#pricing" class="text-sm text-muted hover:text-text transition-colors hidden sm:inline">Sign in</a>
+      <a href="#pricing" class="px-4 py-1.5 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90"
+         style="background:linear-gradient(135deg,#7c3aed,#5b21b6);">Get API key</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero-bg min-h-[92vh] flex items-center">
+  <div class="max-w-6xl mx-auto px-6 py-24 grid lg:grid-cols-2 gap-16 items-center">
+    <div>
+      <div class="badge mb-7"><span class="badge-dot"></span> Live — 99.9% uptime</div>
+      <h1 class="font-display font-extrabold text-5xl md:text-6xl leading-[1.08] text-text mb-5">
+        Extract anything.<br>Get <span class="grad">clean data</span>
+      </h1>
+      <p class="text-lg text-muted leading-relaxed mb-8 max-w-md">
+        One API endpoint. 9 output formats. Automatic Cloudflare bypass.
+        Zero-config presets for 20 popular sites. Just send a URL.
+      </p>
+      <div class="flex flex-wrap gap-3 mb-10">
+        <a href="#pricing" class="px-6 py-3 rounded-xl font-semibold text-white transition-all hover:opacity-90"
+           style="background:linear-gradient(135deg,#7c3aed,#5b21b6);">Start free — 500 credits</a>
+        <a href="#features" class="px-6 py-3 rounded-xl font-semibold text-muted border border-border hover:text-text hover:border-accent transition-all">See how it works</a>
+      </div>
+      <div class="flex items-center gap-5 text-sm text-muted">
+        <span class="flex items-center gap-1.5"><span class="text-green-400">✓</span> No credit card</span>
+        <span class="flex items-center gap-1.5"><span class="text-green-400">✓</span> 7-day trial</span>
+        <span class="flex items-center gap-1.5"><span class="text-green-400">✓</span> Cancel anytime</span>
+      </div>
+    </div>
+
+    <!-- Terminal -->
+    <div class="code-block p-5 text-xs md:text-sm" style="box-shadow:0 24px 64px rgba(124,58,237,.18);">
+      <div class="flex items-center gap-2 mb-4 pb-3" style="border-bottom:1px solid #1e1a2e;">
+        <span class="w-2.5 h-2.5 rounded-full" style="background:#ef4444aa;"></span>
+        <span class="w-2.5 h-2.5 rounded-full" style="background:#eab308aa;"></span>
+        <span class="w-2.5 h-2.5 rounded-full" style="background:#22c55eaa;"></span>
+        <span class="ml-2 text-muted text-xs">terminal</span>
+      </div>
+<pre><span class="c"># Scrape anything — clean markdown back in seconds</span>
+
+<span class="m">curl</span> <span class="kw">-X POST</span> https://api.xtrct.io/v1/scrape \
+  <span class="k">-H</span> <span class="s">"X-API-Key: x_live_a8f2k9x1m3p7q4r6"</span> \
+  <span class="k">-H</span> <span class="s">"Content-Type: application/json"</span> \
+  <span class="k">-d</span> <span class="s">'{
+    "url": "https://techcrunch.com/2025/ai-news",
+    "output": "markdown",
+    "wait": true
+  }'</span>
+
+<span class="c"># Response (avg 850ms)</span>
+<span class="g">{
+  "status": "done",
+  "strategy_used": "http",
+  "credits_used": 1,
+  "result": {
+    "markdown": "# AI startup raises $40M...\n..."
+  }
+}</span></pre>
+    </div>
+  </div>
+</section>
+
+<!-- LOGO BAR -->
+<section class="border-y border-border py-8">
+  <div class="max-w-5xl mx-auto px-6">
+    <p class="text-center text-xs text-muted mb-6 tracking-widest uppercase">Works with every major site</p>
+    <div class="flex flex-wrap justify-center gap-x-10 gap-y-3 text-sm font-medium" style="color:#3b3554;">
+      <span>Amazon</span><span>LinkedIn</span><span>Rightmove</span><span>Indeed</span>
+      <span>Zillow</span><span>TrustPilot</span><span>Reddit</span><span>TechCrunch</span>
+      <span>GitHub</span><span>YouTube</span><span>Hacker News</span><span>RemoteOK</span>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="py-24 px-6">
+  <div class="max-w-4xl mx-auto">
+    <div class="text-center mb-16">
+      <p class="text-sm font-semibold text-accent uppercase tracking-widest mb-3">How it works</p>
+      <h2 class="font-display font-bold text-4xl text-text">One request. Always data back.</h2>
+      <p class="text-muted mt-3 max-w-xl mx-auto">xtrct automatically picks the cheapest strategy that works — you never worry about Cloudflare, JS rendering, or proxies.</p>
+    </div>
+    <div>
+      <div class="relative flex gap-6 pb-12 step-line">
+        <div class="flex-none w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style="background:#7c3aed;">1</div>
+        <div class="pt-1.5">
+          <h3 class="font-display font-semibold text-lg text-text mb-1">POST a URL</h3>
+          <p class="text-muted text-sm leading-relaxed max-w-lg">Send any URL with your desired output format — markdown, HTML, JSON, screenshot, PDF, links, metadata, or structured data. Optionally specify a preset or let xtrct auto-detect from the domain.</p>
+        </div>
+      </div>
+      <div class="relative flex gap-6 pb-12 step-line">
+        <div class="flex-none w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style="background:#6d28d9;">2</div>
+        <div class="pt-1.5">
+          <h3 class="font-display font-semibold text-lg text-text mb-1">Auto-escalation kicks in</h3>
+          <p class="text-muted text-sm leading-relaxed max-w-lg">7-step smart routing: plain HTTP → datacenter proxy → residential proxy → stealth browser → stealth + proxy → stealth + residential → JS-challenge bypass. Stops at the first step that works. Most requests succeed at step 1 and cost 1 credit.</p>
+        </div>
+      </div>
+      <div class="relative flex gap-6 pb-4">
+        <div class="flex-none w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style="background:#5b21b6;">3</div>
+        <div class="pt-1.5">
+          <h3 class="font-display font-semibold text-lg text-text mb-1">Clean data returned</h3>
+          <p class="text-muted text-sm leading-relaxed max-w-lg">Get back the exact format you asked for. Sync (<code class="text-bright text-xs">wait=true</code>) or async with webhooks. The response tells you which strategy was used and how many credits were consumed.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES BENTO -->
+<section id="features" class="py-20 px-6" style="background:#0b0916;">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-14">
+      <p class="text-sm font-semibold text-accent uppercase tracking-widest mb-3">Features</p>
+      <h2 class="font-display font-bold text-4xl text-text">Everything you need. Nothing you don't.</h2>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+      <!-- LARGE: Auto-escalation -->
+      <div class="bento-card lg:col-span-2 rounded-2xl border border-border p-7" style="background:#0f0d1a;">
+        <div class="flex items-start gap-4 mb-5">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0" style="background:rgba(124,58,237,.15);">⚡</div>
+          <div>
+            <h3 class="font-display font-bold text-lg text-text mb-1">7-Step Auto-Escalation</h3>
+            <p class="text-sm text-muted">Never write retry logic again. xtrct escalates from fast &amp; cheap to powerful &amp; stealth automatically.</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+          <div class="flex items-center gap-2 px-3 py-2 rounded-lg" style="background:#0a0812;border:1px solid #1e1a2e;">
+            <span style="color:#4ade80;">①</span><span class="text-muted">HTTP, no proxy</span><span class="ml-auto" style="color:#4ade80;">1 cr</span>
+          </div>
+          <div class="flex items-center gap-2 px-3 py-2 rounded-lg" style="background:#0a0812;border:1px solid #1e1a2e;">
+            <span style="color:#facc15;">②</span><span class="text-muted">HTTP + datacenter</span><span class="ml-auto" style="color:#facc15;">3 cr</span>
+          </div>
+          <div class="flex items-center gap-2 px-3 py-2 rounded-lg" style="background:#0a0812;border:1px solid #1e1a2e;">
+            <span style="color:#60a5fa;">③</span><span class="text-muted">HTTP + residential</span><span class="ml-auto" style="color:#fb923c;">11 cr</span>
+          </div>
+          <div class="flex items-center gap-2 px-3 py-2 rounded-lg" style="background:#0a0812;border:1px solid #1e1a2e;">
+            <span style="color:#60a5fa;">④</span><span class="text-muted">Stealth browser</span><span class="ml-auto" style="color:#facc15;">3 cr</span>
+          </div>
+          <div class="flex items-center gap-2 px-3 py-2 rounded-lg" style="background:#0a0812;border:1px solid #1e1a2e;">
+            <span style="color:#c084fc;">⑤</span><span class="text-muted">Stealth + DC proxy</span><span class="ml-auto" style="color:#fb923c;">5 cr</span>
+          </div>
+          <div class="flex items-center gap-2 px-3 py-2 rounded-lg" style="background:#0a0812;border:1px solid #1e1a2e;">
+            <span style="color:#c084fc;">⑥⑦</span><span class="text-muted">+ residential / Flare</span><span class="ml-auto" style="color:#f87171;">5+ cr</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 9 Output Formats -->
+      <div class="bento-card rounded-2xl border border-border p-7" style="background:#0f0d1a;">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl mb-4" style="background:rgba(124,58,237,.15);">🗂</div>
+        <h3 class="font-display font-bold text-lg text-text mb-2">9 Output Formats</h3>
+        <p class="text-sm text-muted mb-4">Get exactly the format your pipeline needs.</p>
+        <div class="flex flex-wrap gap-1.5">
+          <span class="px-2 py-0.5 rounded text-xs font-mono" style="background:#14111f;border:1px solid #1e1a2e;color:#a78bfa;">markdown</span>
+          <span class="px-2 py-0.5 rounded text-xs font-mono" style="background:#14111f;border:1px solid #1e1a2e;color:#a78bfa;">html</span>
+          <span class="px-2 py-0.5 rounded text-xs font-mono" style="background:#14111f;border:1px solid #1e1a2e;color:#a78bfa;">cleaned_html</span>
+          <span class="px-2 py-0.5 rounded text-xs font-mono" style="background:#14111f;border:1px solid #1e1a2e;color:#a78bfa;">text</span>
+          <span class="px-2 py-0.5 rounded text-xs font-mono" style="background:#14111f;border:1px solid #1e1a2e;color:#a78bfa;">screenshot</span>
+          <span class="px-2 py-0.5 rounded text-xs font-mono" style="background:#14111f;border:1px solid #1e1a2e;color:#a78bfa;">pdf</span>
+          <span class="px-2 py-0.5 rounded text-xs font-mono" style="background:#14111f;border:1px solid #1e1a2e;color:#a78bfa;">links</span>
+          <span class="px-2 py-0.5 rounded text-xs font-mono" style="background:#14111f;border:1px solid #1e1a2e;color:#a78bfa;">metadata</span>
+          <span class="px-2 py-0.5 rounded text-xs font-mono" style="background:#14111f;border:1px solid #1e1a2e;color:#a78bfa;">structured</span>
+        </div>
+      </div>
+
+      <!-- Cloudflare -->
+      <div class="bento-card rounded-2xl border border-border p-7" style="background:#0f0d1a;">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl mb-4" style="background:rgba(124,58,237,.15);">🛡</div>
+        <h3 class="font-display font-bold text-lg text-text mb-2">Cloudflare Bypass</h3>
+        <p class="text-sm text-muted">Multi-layer bot detection bypass. Defeats JS challenges, browser fingerprinting, and behavioural analysis — without you writing a single line of anti-bot code.</p>
+      </div>
+
+      <!-- Proxies -->
+      <div class="bento-card rounded-2xl border border-border p-7" style="background:#0f0d1a;">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl mb-4" style="background:rgba(124,58,237,.15);">🌐</div>
+        <h3 class="font-display font-bold text-lg text-text mb-2">Smart Proxy Pool</h3>
+        <p class="text-sm text-muted leading-relaxed">Datacenter and residential proxies with EMA health tracking and 5-min failure blacklist. Only used when needed — saves credits.</p>
+      </div>
+
+      <!-- Batch -->
+      <div class="bento-card rounded-2xl border border-border p-7" style="background:#0f0d1a;">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl mb-4" style="background:rgba(124,58,237,.15);">📦</div>
+        <h3 class="font-display font-bold text-lg text-text mb-2">Batch Endpoint</h3>
+        <p class="text-sm text-muted">Submit up to 50 URLs in one request. Track progress by <code class="text-bright text-xs">batch_id</code>. Built for bulk pipelines.</p>
+      </div>
+
+      <!-- Webhooks -->
+      <div class="bento-card rounded-2xl border border-border p-7" style="background:#0f0d1a;">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl mb-4" style="background:rgba(124,58,237,.15);">🔔</div>
+        <h3 class="font-display font-bold text-lg text-text mb-2">HMAC Webhooks</h3>
+        <p class="text-sm text-muted">Get notified on job completion. 3-attempt retry with backoff. HMAC-signed payloads you can verify.</p>
+      </div>
+
+      <!-- Sync -->
+      <div class="bento-card rounded-2xl border border-border p-7" style="background:#0f0d1a;">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl mb-4" style="background:rgba(124,58,237,.15);">⚡</div>
+        <h3 class="font-display font-bold text-lg text-text mb-2">Sync or Async</h3>
+        <p class="text-sm text-muted">Add <code class="text-bright text-xs">wait=true</code> for an immediate inline response, or use the job queue with webhooks for long-running scrapes.</p>
+      </div>
+
+      <!-- Rate limits -->
+      <div class="bento-card rounded-2xl border border-border p-7" style="background:#0f0d1a;">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl mb-4" style="background:rgba(124,58,237,.15);">🚦</div>
+        <h3 class="font-display font-bold text-lg text-text mb-2">Fair Rate Limiting</h3>
+        <p class="text-sm text-muted">Per-tier sliding window limits. Queue depth guards. Global overload protection. Predictable behaviour under load.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CODE EXAMPLES -->
+<section class="py-20 px-6">
+  <div class="max-w-5xl mx-auto">
+    <div class="text-center mb-12">
+      <p class="text-sm font-semibold text-accent uppercase tracking-widest mb-3">Examples</p>
+      <h2 class="font-display font-bold text-4xl text-text">Simple by design</h2>
+    </div>
+    <div class="flex border-b border-border mb-6 gap-1 overflow-x-auto">
+      <button class="tab-btn active px-4 py-2.5 text-sm font-medium border-b-2 border-transparent -mb-px text-muted" data-tab="scrape">Scrape</button>
+      <button class="tab-btn px-4 py-2.5 text-sm font-medium border-b-2 border-transparent -mb-px text-muted" data-tab="preset">Preset</button>
+      <button class="tab-btn px-4 py-2.5 text-sm font-medium border-b-2 border-transparent -mb-px text-muted" data-tab="structured">Structured</button>
+      <button class="tab-btn px-4 py-2.5 text-sm font-medium border-b-2 border-transparent -mb-px text-muted" data-tab="batch">Batch</button>
+      <button class="tab-btn px-4 py-2.5 text-sm font-medium border-b-2 border-transparent -mb-px text-muted" data-tab="screenshot">Screenshot</button>
+    </div>
+
+    <div id="tab-scrape" class="tab-panel active code-block p-5">
+<pre><span class="c"># Turn any article into clean Markdown</span>
+<span class="m">curl</span> <span class="kw">-s -X POST</span> https://api.xtrct.io/v1/scrape \
+  <span class="k">-H</span> <span class="s">"X-API-Key: x_live_a8f2k9x1m3p7q4r6"</span> \
+  <span class="k">-H</span> <span class="s">"Content-Type: application/json"</span> \
+  <span class="k">-d</span> <span class="s">'{"url":"https://techcrunch.com/article","output":"markdown","wait":true}'</span>
+
+<span class="g">{
+  "id": "job_abc123",
+  "status": "done",
+  "strategy_used": "http",
+  "credits_used": 1,
+  "result": { "markdown": "# AI startup raises $40M..." }
+}</span></pre>
+    </div>
+
+    <div id="tab-preset" class="tab-panel code-block p-5">
+<pre><span class="c"># Amazon product — structured data, zero config</span>
+<span class="m">curl</span> <span class="kw">-s -X POST</span> https://api.xtrct.io/v1/scrape \
+  <span class="k">-H</span> <span class="s">"X-API-Key: x_live_a8f2k9x1m3p7q4r6"</span> \
+  <span class="k">-H</span> <span class="s">"Content-Type: application/json"</span> \
+  <span class="k">-d</span> <span class="s">'{"url":"https://amazon.com/dp/B0CXYZ","preset":"amazon-product","wait":true}'</span>
+
+<span class="g">{
+  "result": {
+    "structured": {
+      "title": "Wireless Earbuds Pro",
+      "price": "£49.99",
+      "rating": 4.6,
+      "review_count": 12847,
+      "asin": "B0CXYZ",
+      "availability": "In Stock"
+    }
+  }
+}</span></pre>
+    </div>
+
+    <div id="tab-structured" class="tab-panel code-block p-5">
+<pre><span class="c"># Custom CSS selectors — extract exactly what you need</span>
+<span class="m">curl</span> <span class="kw">-s -X POST</span> https://api.xtrct.io/v1/scrape \
+  <span class="k">-H</span> <span class="s">"X-API-Key: x_live_a8f2k9x1m3p7q4r6"</span> \
+  <span class="k">-H</span> <span class="s">"Content-Type: application/json"</span> \
+  <span class="k">-d</span> <span class="s">'{
+    "url": "https://example.com/product",
+    "output": "structured",
+    "selectors": {
+      "title": "h1.product-title",
+      "price": "span.price",
+      "images": "img.gallery@src",
+      "all_reviews": "all:.review-text"
+    },
+    "wait": true
+  }'</span></pre>
+    </div>
+
+    <div id="tab-batch" class="tab-panel code-block p-5">
+<pre><span class="c"># Submit 50 URLs in one shot</span>
+<span class="m">curl</span> <span class="kw">-s -X POST</span> https://api.xtrct.io/v1/batch \
+  <span class="k">-H</span> <span class="s">"X-API-Key: x_live_a8f2k9x1m3p7q4r6"</span> \
+  <span class="k">-H</span> <span class="s">"Content-Type: application/json"</span> \
+  <span class="k">-d</span> <span class="s">'{"urls":["https://a.com","https://b.com"],"output":"markdown"}'</span>
+
+<span class="c"># Poll progress</span>
+<span class="m">curl</span> https://api.xtrct.io/v1/batch/<span class="hl">batch_x7k2m</span> \
+  <span class="k">-H</span> <span class="s">"X-API-Key: x_live_a8f2k9x1m3p7q4r6"</span>
+
+<span class="g">{"total":50,"done":48,"running":2,"failed":0,"pending":0}</span></pre>
+    </div>
+
+    <div id="tab-screenshot" class="tab-panel code-block p-5">
+<pre><span class="c"># Full-page screenshot → R2 signed URL</span>
+<span class="m">curl</span> <span class="kw">-s -X POST</span> https://api.xtrct.io/v1/scrape \
+  <span class="k">-H</span> <span class="s">"X-API-Key: x_live_a8f2k9x1m3p7q4r6"</span> \
+  <span class="k">-H</span> <span class="s">"Content-Type: application/json"</span> \
+  <span class="k">-d</span> <span class="s">'{"url":"https://example.com","output":"screenshot","wait":true}'</span>
+
+<span class="g">{
+  "status": "done",
+  "strategy_used": "playwright",
+  "credits_used": 3,
+  "result": {
+    "screenshot": "https://r2.xtrct.io/screenshots/2025/01/job_abc.png?..."
+  }
+}</span></pre>
+    </div>
+  </div>
+</section>
+
+<!-- PRESETS MARQUEE -->
+<section id="presets" class="py-20 overflow-hidden" style="background:#0b0916;">
+  <div class="max-w-6xl mx-auto px-6 text-center mb-10">
+    <p class="text-sm font-semibold text-accent uppercase tracking-widest mb-3">Presets</p>
+    <h2 class="font-display font-bold text-4xl text-text">20 zero-config presets</h2>
+    <p class="text-muted mt-3 max-w-xl mx-auto">Auto-detected from the URL. Send a Rightmove link and get a structured property object back — no selectors needed.</p>
+  </div>
+
+  <div class="marquee-wrap mb-3">
+    <div class="marquee-track">
+      <div class="flex gap-3 pr-3">
+        <div class="preset-chip">🛒 amazon-product</div><div class="preset-chip">🛍 ebay-listing</div>
+        <div class="preset-chip">🧶 etsy-product</div><div class="preset-chip">🏪 shopify-product</div>
+        <div class="preset-chip">💼 indeed-job</div><div class="preset-chip">💼 linkedin-job</div>
+        <div class="preset-chip">💬 glassdoor-job</div><div class="preset-chip">🌍 remoteok-listing</div>
+        <div class="preset-chip">🏠 rightmove-property</div><div class="preset-chip">🏡 zillow-listing</div>
+      </div>
+      <div class="flex gap-3 pr-3" aria-hidden="true">
+        <div class="preset-chip">🛒 amazon-product</div><div class="preset-chip">🛍 ebay-listing</div>
+        <div class="preset-chip">🧶 etsy-product</div><div class="preset-chip">🏪 shopify-product</div>
+        <div class="preset-chip">💼 indeed-job</div><div class="preset-chip">💼 linkedin-job</div>
+        <div class="preset-chip">💬 glassdoor-job</div><div class="preset-chip">🌍 remoteok-listing</div>
+        <div class="preset-chip">🏠 rightmove-property</div><div class="preset-chip">🏡 zillow-listing</div>
+      </div>
+    </div>
+  </div>
+  <div class="marquee-wrap">
+    <div class="marquee-track" style="animation-direction:reverse;animation-duration:34s;">
+      <div class="flex gap-3 pr-3">
+        <div class="preset-chip">🏠 zoopla-property</div><div class="preset-chip">📰 article</div>
+        <div class="preset-chip">🔥 hn-post</div><div class="preset-chip">📣 reddit-post</div>
+        <div class="preset-chip">🔍 google-serp</div><div class="preset-chip">📋 yellow-pages</div>
+        <div class="preset-chip">🏨 tripadvisor-hotel</div><div class="preset-chip">⭐ trustpilot-company</div>
+        <div class="preset-chip">🐦 twitter-profile</div><div class="preset-chip">▶ youtube-video</div>
+      </div>
+      <div class="flex gap-3 pr-3" aria-hidden="true">
+        <div class="preset-chip">🏠 zoopla-property</div><div class="preset-chip">📰 article</div>
+        <div class="preset-chip">🔥 hn-post</div><div class="preset-chip">📣 reddit-post</div>
+        <div class="preset-chip">🔍 google-serp</div><div class="preset-chip">📋 yellow-pages</div>
+        <div class="preset-chip">🏨 tripadvisor-hotel</div><div class="preset-chip">⭐ trustpilot-company</div>
+        <div class="preset-chip">🐦 twitter-profile</div><div class="preset-chip">▶ youtube-video</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing" class="py-24 px-6">
+  <div class="max-w-5xl mx-auto">
+    <div class="text-center mb-14">
+      <p class="text-sm font-semibold text-accent uppercase tracking-widest mb-3">Pricing</p>
+      <h2 class="font-display font-bold text-4xl text-text">Pay for what you use</h2>
+      <p class="text-muted mt-3">Credits roll over. Proxy costs only apply when a proxy is actually needed. Cancel any time.</p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-5 items-start">
+
+      <!-- Free -->
+      <div class="rounded-2xl border border-border p-7" style="background:#0f0d1a;">
+        <p class="text-sm font-semibold text-muted mb-1">Free</p>
+        <div class="flex items-baseline gap-1 mb-1">
+          <span class="font-display font-extrabold text-4xl text-text">$0</span>
+        </div>
+        <p class="text-xs text-muted mb-6">500 credits / month, forever</p>
+        <a href="/signup" class="block w-full text-center py-2.5 rounded-xl font-semibold text-sm border border-border text-text hover:border-accent transition-all mb-6">
+          Get started free
+        </a>
+        <ul class="space-y-2.5 text-sm text-muted">
+          <li class="flex gap-2"><span class="text-green-400">✓</span> 500 credits / month</li>
+          <li class="flex gap-2"><span class="text-green-400">✓</span> All 9 output formats</li>
+          <li class="flex gap-2"><span class="text-green-400">✓</span> All 20 presets</li>
+          <li class="flex gap-2"><span class="text-green-400">✓</span> 10 req / minute</li>
+          <li class="flex gap-2"><span class="text-muted">–</span> No proxy access</li>
+          <li class="flex gap-2"><span class="text-muted">–</span> No webhooks</li>
+        </ul>
+      </div>
+
+      <!-- Starter -->
+      <div class="rounded-2xl border p-7 pricing-popular relative" style="background:#0f0d1a;">
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-xs font-bold text-white" style="background:#7c3aed;">Most popular</div>
+        <p class="text-sm font-semibold text-accent mb-1">Starter</p>
+        <div class="flex items-baseline gap-1 mb-1">
+          <span class="font-display font-extrabold text-4xl text-text">$29</span>
+          <span class="text-muted text-sm">/ mo</span>
+        </div>
+        <p class="text-xs text-muted mb-6">10,000 credits + 7-day free trial</p>
+        <a href="/checkout/starter" class="block w-full text-center py-2.5 rounded-xl font-semibold text-sm text-white transition-all hover:opacity-90 mb-6"
+           style="background:linear-gradient(135deg,#7c3aed,#5b21b6);">
+          Start free trial
+        </a>
+        <ul class="space-y-2.5 text-sm text-muted">
+          <li class="flex gap-2"><span class="text-green-400">✓</span> 10,000 credits / month</li>
+          <li class="flex gap-2"><span class="text-green-400">✓</span> All formats &amp; presets</li>
+          <li class="flex gap-2"><span class="text-green-400">✓</span> 60 req / minute</li>
+          <li class="flex gap-2"><span class="text-green-400">✓</span> Datacenter proxies</li>
+          <li class="flex gap-2"><span class="text-green-400">✓</span> HMAC webhooks</li>
+          <li class="flex gap-2"><span class="text-green-400">✓</span> Batch endpoint</li>
+        </ul>
+      </div>
+
+      <!-- Growth -->
+      <div class="rounded-2xl border border-border p-7" style="background:#0f0d1a;">
+        <p class="text-sm font-semibold text-muted mb-1">Growth</p>
+        <div class="flex items-baseline gap-1 mb-1">
+          <span class="font-display font-extrabold text-4xl text-text">$99</span>
+          <span class="text-muted text-sm">/ mo</span>
+        </div>
+        <p class="text-xs text-muted mb-6">50,000 credits + 7-day free trial</p>
+        <a href="/checkout/growth" class="block w-full text-center py-2.5 rounded-xl font-semibold text-sm border border-accent text-bright hover:bg-accent/10 transition-all mb-6">
+          Start free trial
+        </a>
+        <ul class="space-y-2.5 text-sm text-muted">
+          <li class="flex gap-2"><span class="text-green-400">✓</span> 50,000 credits / month</li>
+          <li class="flex gap-2"><span class="text-green-400">✓</span> All formats &amp; presets</li>
+          <li class="flex gap-2"><span class="text-green-400">✓</span> 200 req / minute</li>
+          <li class="flex gap-2"><span class="text-green-400">✓</span> Residential proxies</li>
+          <li class="flex gap-2"><span class="text-green-400">✓</span> Priority queue</li>
+          <li class="flex gap-2"><span class="text-green-400">✓</span> SLA + dedicated support</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- Credit cost breakdown -->
+    <div class="mt-10 rounded-2xl border border-border p-6" style="background:#0f0d1a;">
+      <p class="font-semibold text-text mb-4 text-sm">Credit costs per request</p>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm">
+        <div><p class="text-muted mb-1">HTTP scrape</p><p class="text-bright font-mono font-semibold">1 credit</p></div>
+        <div><p class="text-muted mb-1">JS rendering / PDF</p><p class="text-bright font-mono font-semibold">3 credits</p></div>
+        <div><p class="text-muted mb-1">Challenge bypass</p><p class="text-bright font-mono font-semibold">5 credits</p></div>
+        <div><p class="text-muted mb-1">Premium routing</p><p class="text-bright font-mono font-semibold">+10 credits</p></div>
+      </div>
+    </div>
+
+    <p class="text-center text-xs text-muted mt-6">Need more? <a href="mailto:hello@xtrct.io" class="text-bright hover:underline">Contact us</a> for enterprise pricing with SLA and dedicated infrastructure.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="border-t border-border py-12 px-6">
+  <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-start justify-between gap-8">
+    <div>
+      <a href="/" class="font-display font-bold text-xl text-text tracking-tight">xtrct<span class="text-accent">.</span></a>
+      <p class="text-muted text-sm mt-2 max-w-xs">Extract anything. Get clean data. Extract anything. Zero infrastructure.</p>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-8 text-sm">
+      <div>
+        <p class="font-semibold text-text mb-3">Product</p>
+        <ul class="space-y-2 text-muted">
+          <li><a href="#features" class="hover:text-text transition-colors">Features</a></li>
+          <li><a href="#presets"  class="hover:text-text transition-colors">Presets</a></li>
+          <li><a href="#pricing"  class="hover:text-text transition-colors">Pricing</a></li>
+          <li><a href="/v1/presets" class="hover:text-text transition-colors">Preset API</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="font-semibold text-text mb-3">Developers</p>
+        <ul class="space-y-2 text-muted">
+          <li><a href="#docs"   class="hover:text-text transition-colors">Documentation</a></li>
+          <li><a href="/v1/usage" class="hover:text-text transition-colors">Usage API</a></li>
+          <li><a href="/health" class="hover:text-text transition-colors">Status</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="font-semibold text-text mb-3">Company</p>
+        <ul class="space-y-2 text-muted">
+          <li><a href="mailto:hello@xtrct.io" class="hover:text-text transition-colors">Contact</a></li>
+          <li><a href="/privacy" class="hover:text-text transition-colors">Privacy</a></li>
+          <li><a href="/terms"   class="hover:text-text transition-colors">Terms</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="max-w-6xl mx-auto mt-10 pt-6 border-t border-border flex flex-col md:flex-row items-center justify-between text-xs text-muted gap-2">
+    <p>© 2025 xtrct. All rights reserved.</p>
+    <p>Reliable · Fast · Scalable</p>
+  </div>
+</footer>
+
+<script>
+  // Tab switching
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // Smooth scroll
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    });
+  });
+</script>
+</body>
+</html>
