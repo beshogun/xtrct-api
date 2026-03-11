@@ -74,9 +74,7 @@ export const scrapeRoutes = new Elysia()
     }
 
     // ─── Free tier: no proxy access ────────────────────────────────────────────
-    if (apiKey.tier === 'free' && proxy_tier !== 'none') {
-      proxy_tier = 'none' as typeof proxy_tier;
-    }
+    const effective_proxy_tier = (apiKey.tier === 'free' && proxy_tier !== 'none') ? 'none' as typeof proxy_tier : proxy_tier;
 
     // ─── Validation ────────────────────────────────────────────────────────────
 
@@ -119,7 +117,7 @@ export const scrapeRoutes = new Elysia()
           selectors:         resolvedSelectors,
           timeout,
           presetApplied,
-          proxyTier:         proxy_tier,
+          proxyTier:         effective_proxy_tier,
         })},
         ${priority}, ${webhook_url ?? null}
       )
