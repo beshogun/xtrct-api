@@ -10,13 +10,13 @@ RUN apt-get update && apt-get install -y unzip curl && rm -rf /var/lib/apt/lists
 RUN curl -fsSL https://bun.sh/install | bash
 ENV PATH="/root/.bun/bin:$PATH"
 
-# Install dependencies
+# Ensure Playwright finds browsers from the base image
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+
+# Install dependencies (playwright@1.58.2 matches base image)
 COPY package.json bun.lock* ./
 RUN bun install --frozen-lockfile
-
-# Install the correct Chromium for this Playwright version
-# Cache-bust: 2026-03-11
-RUN bunx playwright install --with-deps chromium
 
 # Copy source
 COPY . .

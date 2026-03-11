@@ -15,7 +15,7 @@
     "elysia": "^1.1.27",
     "linkedom": "^0.18.4",
     "node-html-parser": "^6.1.13",
-    "playwright": "^1.44.1",
+    "playwright": "1.58.2",
     "postgres": "^3.4.4",
     "resend": "^6.9.3",
     "stripe": "^16.0.0",
