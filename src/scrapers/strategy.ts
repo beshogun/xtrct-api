@@ -112,9 +112,31 @@ async function runForced(url: string, opts: RunOptions, strategy: Strategy): Pro
   }
 
   if (strategy === 'playwright') {
-    const proxy = proxyManager.getProxy();
-    const { result, page, context, release } = await playwrightScraper.fetchWithProxy(url, proxy, opts);
-    return { ...result, strategyUsed: 'playwright', proxyUsed: proxy, proxyTier: proxy ? 'datacenter' : 'none', playwright: { page, context, release } };
+    // Try playwright with escalating proxies, then fall through to FlareSolverr on CF block
+    const dcProxy  = proxyManager.getDatacenterProxy();
+    const resProxy = proxyManager.getResidentialProxy();
+    for (const [proxy, tier] of [[null, 'none'], [dcProxy, 'datacenter'], [resProxy, 'residential']] as [string | null, ProxyTier][]) {
+      if (proxy === undefined) continue;
+      const r = await tryPlaywright(url, proxy, opts);
+      if (r) return { ...r.result, strategyUsed: 'playwright', proxyUsed: proxy, proxyTier: tier, playwright: { page: r.page, context: r.context, release: r.release } };
+    }
+    // All playwright attempts blocked by CF — escalate to FlareSolverr + cookie handoff
+    if (await flareScraper.isAvailable()) {
+      process.stderr.write(`  [strategy] Playwright blocked → FlareSolverr SPA handoff (forced playwright mode)\n`);
+      const flareProxy = resProxy ?? dcProxy ?? null;
+      const flareResult = await flareScraper.fetch(url, opts.timeout, flareProxy);
+      if (flareResult.html.length > 50_000) {
+        return { ...flareResult, strategyUsed: 'flaresolverr', proxyUsed: flareProxy, proxyTier: flareProxy === resProxy ? 'residential' : flareProxy ? 'datacenter' : 'none' };
+      }
+      const cfCookies = flareResult.cookies.map(c => ({ name: c.name, value: c.value, domain: c.domain }));
+      const pwResult = await tryPlaywright(url, flareProxy, { ...opts, cookies: [...(opts.cookies ?? []), ...cfCookies] });
+      if (pwResult) {
+        const proxyTier: ProxyTier = flareProxy === resProxy ? 'residential' : flareProxy ? 'datacenter' : 'none';
+        return { ...pwResult.result, strategyUsed: 'playwright', proxyUsed: flareProxy, proxyTier, playwright: { page: pwResult.page, context: pwResult.context, release: pwResult.release } };
+      }
+      return { ...flareResult, strategyUsed: 'flaresolverr', proxyUsed: flareProxy, proxyTier: flareProxy === resProxy ? 'residential' : flareProxy ? 'datacenter' : 'none' };
+    }
+    throw new Error('Cloudflare JS challenge blocked all Playwright attempts and FlareSolverr is not available');
   }
 
   if (strategy === 'flaresolverr') {
