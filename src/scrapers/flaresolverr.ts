@@ -37,7 +37,18 @@ export class FlareSolverrScraper {
 
   async fetch(url: string, timeout = 60_000, proxyUrl?: string | null): Promise<FlareResult> {
     const body: Record<string, unknown> = { cmd: 'request.get', url, maxTimeout: timeout };
-    if (proxyUrl) body.proxy = { url: proxyUrl };
+    if (proxyUrl) {
+      // FlareSolverr requires credentials separate from the server URL
+      try {
+        const u = new URL(proxyUrl);
+        const proxy: Record<string, string> = { url: `${u.protocol}//${u.host}` };
+        if (u.username) proxy.username = decodeURIComponent(u.username);
+        if (u.password) proxy.password = decodeURIComponent(u.password);
+        body.proxy = proxy;
+      } catch {
+        body.proxy = { url: proxyUrl };
+      }
+    }
 
     const res = await fetch(`${FLARESOLVERR_URL}/v1`, {
       method: 'POST',
