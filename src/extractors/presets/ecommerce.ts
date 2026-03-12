@@ -1013,6 +1013,435 @@ export const coolblueNlProduct: ScrapePreset = {
   },
 };
 
+// ─── ES Retailer Presets ───────────────────────────────────────────────────────
+
+export const pcComponentesProduct: ScrapePreset = {
+  id: 'pc-componentes',
+  name: 'PcComponentes (ES) Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, brand and images from a PcComponentes Spain product page.',
+  matchDomains: ['pccomponentes.com'],
+  strategy: 'playwright',
+  waitFor: { type: 'selector', value: '.pdp-price__current-price' },
+  currency: 'EUR',
+  outputFormats: ['structured'],
+  selectors: {
+    title:  '.pdp-title h1',
+    price:  '.pdp-price__current-price',
+    brand:  '.brand-logo img@alt',
+    images: 'all:.pdp-gallery img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price: parsePrice(raw.price as string | null),
+    };
+  },
+};
+
+export const elCorteInglesProduct: ScrapePreset = {
+  id: 'el-corte-ingles',
+  name: 'El Corte Inglés (ES) Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, brand, image and availability from an El Corte Inglés product page via schema.org JSON-LD.',
+  matchDomains: ['elcorteingles.es'],
+  strategy: 'http',
+  currency: 'EUR',
+  outputFormats: ['structured'],
+  selectors: {
+    // Falls back to visible HTML if JSON-LD extraction is handled upstream
+    title:        'h1[itemprop="name"], h1.product-title, [class*="product-name"] h1',
+    price:        '[itemprop="price"]@content, [class*="price-sale"], span[class*="current-price"]',
+    original_price: 'del[itemprop="price"], [class*="price-old"], [class*="price-before"]',
+    in_stock:     '[itemprop="availability"][content="http://schema.org/InStock"], button[class*="add-to-cart"]:not([disabled])',
+    brand:        '[itemprop="brand"] [itemprop="name"], a[class*="brand-name"]',
+    images:       'all:[itemprop="image"]@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+    };
+  },
+};
+
+export const amazonEsProduct: ScrapePreset = {
+  id: 'amazon-es',
+  name: 'Amazon Spain Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, rating, availability and images from an Amazon Spain product page.',
+  matchDomains: ['amazon.es'],
+  strategy: 'http',
+  currency: 'EUR',
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'span#productTitle',
+    price:          '#priceblock_ourprice, .a-price .a-offscreen',
+    original_price: 'span.a-price.a-text-price span.a-offscreen',
+    rating:         'span.a-icon-alt',
+    review_count:   'span#acrCustomerReviewText',
+    availability:   'div#availability span',
+    brand:          'a#bylineInfo',
+    asin:           'input#ASIN@value',
+    images:         'all:img.a-dynamic-image@src',
+    bullet_points:  'all:#feature-bullets .a-list-item',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      rating:         parseRating(raw.rating as string | null),
+      review_count:   parseCount(raw.review_count as string | null),
+    };
+  },
+};
+
+export const mediaMarktEsProduct: ScrapePreset = {
+  id: 'media-markt-es',
+  name: 'MediaMarkt Spain Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, availability and images from a MediaMarkt Spain product page.',
+  matchDomains: ['mediamarkt.es'],
+  strategy: 'playwright',
+  waitFor: { type: 'selector', value: '[data-test="mms-pdp-price"], [data-test="mms-pdp-product-name"]' },
+  currency: 'EUR',
+  outputFormats: ['structured'],
+  selectors: {
+    title:          '[data-test="mms-pdp-product-name"] h1, [data-test="product-title"] h1',
+    price:          '[data-test="mms-pdp-price"] [class*="Price__Wrapper"], [data-test="mms-pdp-price"]',
+    original_price: '[data-test="mms-pdp-price"] [class*="StrikePrice"], s[class*="Price"]',
+    in_stock:       '[data-test="add-to-cart"]:not([disabled]), [data-test="product-delivery-info"]:not([class*="unavailable"])',
+    brand:          '[data-test="product-brand"], [class*="BrandName"]',
+    images:         'all:[class*="GalleryImage"] img@src, all:[data-test="gallery-item"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+    };
+  },
+};
+
+// ─── IT Retailer Presets ───────────────────────────────────────────────────────
+
+export const unieuroItProduct: ScrapePreset = {
+  id: 'unieuro-it',
+  name: 'Unieuro (IT) Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, availability and images from a Unieuro Italy product page.',
+  matchDomains: ['unieuro.it'],
+  strategy: 'playwright',
+  waitFor: { type: 'selector', value: '.price .pdp-price, h1.pdp-title' },
+  currency: 'EUR',
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1.pdp-title, h1[class*="pdp-title"], [class*="product-title"] h1',
+    price:          '.price .pdp-price, [class*="pdp-price"], [itemprop="price"]@content',
+    original_price: 'del[class*="price"], [class*="price-before"], [class*="original-price"]',
+    in_stock:       'button[class*="add-to-cart"]:not([disabled]), [itemprop="availability"][content="http://schema.org/InStock"]',
+    brand:          '[itemprop="brand"] [itemprop="name"], a[class*="brand-name"]',
+    images:         'all:.pdp-gallery img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+    };
+  },
+};
+
+export const mediaworldItProduct: ScrapePreset = {
+  id: 'mediaworld-it',
+  name: 'MediaWorld (IT) Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, availability and images from a MediaWorld Italy product page.',
+  matchDomains: ['mediaworld.it'],
+  strategy: 'playwright',
+  // Same React platform as MediaMarkt/Saturn DE
+  waitFor: { type: 'selector', value: '[data-test="mms-select-price"], [class*="Price__Wrapper"]' },
+  currency: 'EUR',
+  outputFormats: ['structured'],
+  selectors: {
+    title:          '[data-test="product-title"] h1, h1[class*="Styled-sc"], [class*="ProductHeader"] h1',
+    price:          '[data-test="mms-select-price"] [class*="Price__Wrapper"], [class*="PriceBox__price"], [data-test="product-price"]',
+    original_price: '[data-test="mms-select-price"] [class*="StrikePrice"], [class*="strike-price"], s[class*="Price"]',
+    in_stock:       '[data-test="add-to-cart"]:not([disabled]), [class*="AddToCart"]:not([disabled]), [data-test="product-delivery-info"]:not([class*="unavailable"])',
+    brand:          '[data-test="product-brand"], [class*="BrandName"], [class*="brand-logo"] img@alt',
+    sku:            '[data-test="product-article-number"], [class*="ArticleNumber"]',
+    images:         'all:[class*="GalleryImage"] img@src, all:[data-test="gallery-item"] img@src, all:[class*="product-image"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+    };
+  },
+};
+
+export const amazonItProduct: ScrapePreset = {
+  id: 'amazon-it',
+  name: 'Amazon Italy Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, rating, availability and images from an Amazon Italy product page.',
+  matchDomains: ['amazon.it'],
+  strategy: 'http',
+  currency: 'EUR',
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'span#productTitle',
+    price:          '#priceblock_ourprice, .a-price .a-offscreen',
+    original_price: 'span.a-price.a-text-price span.a-offscreen',
+    rating:         'span.a-icon-alt',
+    review_count:   'span#acrCustomerReviewText',
+    availability:   'div#availability span',
+    brand:          'a#bylineInfo',
+    asin:           'input#ASIN@value',
+    images:         'all:img.a-dynamic-image@src',
+    bullet_points:  'all:#feature-bullets .a-list-item',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      rating:         parseRating(raw.rating as string | null),
+      review_count:   parseCount(raw.review_count as string | null),
+    };
+  },
+};
+
+// ─── IN Retailer Presets ───────────────────────────────────────────────────────
+
+export const flipkartProduct: ScrapePreset = {
+  id: 'flipkart',
+  name: 'Flipkart (IN) Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, availability and images from a Flipkart India product page.',
+  matchDomains: ['flipkart.com'],
+  strategy: 'playwright',
+  waitFor: { type: 'selector', value: '._30jeq3._16Jk6d, ._35KyD6 h1' },
+  currency: 'INR',
+  outputFormats: ['structured'],
+  selectors: {
+    title:    '._35KyD6 h1, h1[class*="title"], [class*="B_NuCI"]',
+    price:    '._30jeq3._16Jk6d, [class*="_30jeq3"], [class*="CEmiEU"] [class*="Nx9bqj"]',
+    out_of_stock: '._16FRp0, [class*="out-of-stock"], [class*="_16FRp0"]',
+    images:   'all:._396cs4._2amPTt._3sGedP img@src, all:[class*="product-img"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:        parsePrice(raw.price as string | null),
+      in_stock:     !(raw.out_of_stock),
+    };
+  },
+};
+
+export const amazonInProduct: ScrapePreset = {
+  id: 'amazon-in',
+  name: 'Amazon India Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, rating, availability and images from an Amazon India product page.',
+  matchDomains: ['amazon.in'],
+  strategy: 'http',
+  currency: 'INR',
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'span#productTitle',
+    price:          '#priceblock_ourprice, .a-price .a-offscreen',
+    original_price: 'span.a-price.a-text-price span.a-offscreen',
+    rating:         'span.a-icon-alt',
+    review_count:   'span#acrCustomerReviewText',
+    availability:   'div#availability span',
+    brand:          'a#bylineInfo',
+    asin:           'input#ASIN@value',
+    images:         'all:img.a-dynamic-image@src',
+    bullet_points:  'all:#feature-bullets .a-list-item',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      rating:         parseRating(raw.rating as string | null),
+      review_count:   parseCount(raw.review_count as string | null),
+    };
+  },
+};
+
+export const cromaProduct: ScrapePreset = {
+  id: 'croma',
+  name: 'Croma (IN) Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, availability and images from a Croma India product page.',
+  matchDomains: ['croma.com'],
+  strategy: 'playwright',
+  waitFor: { type: 'selector', value: 'span.amount, h1.pd-title' },
+  currency: 'INR',
+  outputFormats: ['structured'],
+  selectors: {
+    title:    'h1.pd-title, h1[class*="product-title"], [class*="product-name"] h1',
+    price:    'span.amount, [class*="pdp-price"] span, [itemprop="price"]@content',
+    in_stock: 'button[class*="add-to-cart"]:not([disabled]), [itemprop="availability"][content="http://schema.org/InStock"]',
+    brand:    '[itemprop="brand"] [itemprop="name"], a[class*="brand"]',
+    images:   'all:[class*="pdp-gallery"] img@src, all:[class*="product-image"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:    parsePrice(raw.price as string | null),
+      in_stock: !!(raw.in_stock),
+    };
+  },
+};
+
+// ─── JP Retailer Presets ───────────────────────────────────────────────────────
+
+export const amazonJpProduct: ScrapePreset = {
+  id: 'amazon-jp',
+  name: 'Amazon Japan Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, rating, availability and images from an Amazon Japan product page.',
+  matchDomains: ['amazon.co.jp'],
+  strategy: 'http',
+  currency: 'JPY',
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'span#productTitle',
+    price:          '#priceblock_ourprice, .a-price .a-offscreen',
+    original_price: 'span.a-price.a-text-price span.a-offscreen',
+    rating:         'span.a-icon-alt',
+    review_count:   'span#acrCustomerReviewText',
+    availability:   'div#availability span',
+    brand:          'a#bylineInfo',
+    asin:           'input#ASIN@value',
+    images:         'all:img.a-dynamic-image@src',
+    bullet_points:  'all:#feature-bullets .a-list-item',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      rating:         parseRating(raw.rating as string | null),
+      review_count:   parseCount(raw.review_count as string | null),
+    };
+  },
+};
+
+export const yodobashiProduct: ScrapePreset = {
+  id: 'yodobashi',
+  name: 'Yodobashi Camera (JP) Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, availability and images from a Yodobashi Camera product page.',
+  matchDomains: ['yodobashi.com'],
+  strategy: 'http',
+  currency: 'JPY',
+  outputFormats: ['structured'],
+  selectors: {
+    title:    'h1.review_product_name_link, h1[class*="product_name"], [class*="productName"] h1',
+    price:    '.price_normal .price, [class*="price_normal"] [class*="price"], [class*="BottomBox"] strong[class*="price"]',
+    in_stock: '[class*="addToCart"]:not([disabled]), [class*="cart_btn"]:not([class*="disable"]), [class*="stock--available"]',
+    brand:    '[class*="manufacturer"] a, [class*="brandName"] a',
+    images:   'all:.jis_image img@src, all:[class*="jis_image"] img@src, all:[class*="productImage"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:    parsePrice(raw.price as string | null),
+      in_stock: !!(raw.in_stock),
+    };
+  },
+};
+
+export const bicCameraProduct: ScrapePreset = {
+  id: 'bic-camera',
+  name: 'Bic Camera (JP) Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, availability and images from a Bic Camera product page.',
+  matchDomains: ['biccamera.com'],
+  strategy: 'http',
+  currency: 'JPY',
+  outputFormats: ['structured'],
+  selectors: {
+    title:    'h1.item_title, h1[class*="item_title"], [class*="product-title"] h1',
+    price:    '.priceNormal, [class*="priceNormal"], [class*="selling-price"] strong',
+    in_stock: '[class*="addToCart"]:not([disabled]), button[class*="cart"]:not([disabled]), [class*="stock-info"]:not([class*="sold"])',
+    brand:    '[class*="maker_name"] a, [class*="brandName"], [itemprop="brand"] span',
+    images:   'all:[class*="item_img"] img@src, all:[class*="product_img"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:    parsePrice(raw.price as string | null),
+      in_stock: !!(raw.in_stock),
+    };
+  },
+};
+
+// ─── CA Retailer Presets ───────────────────────────────────────────────────────
+
+export const memoryExpressProduct: ScrapePreset = {
+  id: 'memory-express',
+  name: 'Memory Express (CA) Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, availability and images from a Memory Express Canada product page.',
+  matchDomains: ['memoryexpress.com'],
+  strategy: 'http',
+  currency: 'CAD',
+  outputFormats: ['structured'],
+  selectors: {
+    title:    '.PI_ProductName, [class*="ProductName"], h1[class*="product-name"]',
+    price:    '.PIEndPrice, [class*="PIEndPrice"], [itemprop="price"]@content',
+    in_stock: '[class*="AddToCart"]:not([disabled]), [itemprop="availability"][content="http://schema.org/InStock"], [class*="stock-available"]',
+    brand:    '[class*="ProductBrand"] a, [itemprop="brand"] span, [class*="brand-name"]',
+    sku:      '[class*="ProductSKU"], span[itemprop="sku"], [class*="product-code"]',
+    images:   'all:[class*="ProductImages"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:    parsePrice(raw.price as string | null),
+      in_stock: !!(raw.in_stock),
+    };
+  },
+};
+
+export const mikesComputerShopProduct: ScrapePreset = {
+  id: 'mikes-computer-shop',
+  name: "Mike's Computer Shop (CA) Product",
+  category: 'ecommerce',
+  description: "Extracts product title, price, availability and images from a Mike's Computer Shop Canada product page.",
+  matchDomains: ['mikescomputershop.com'],
+  strategy: 'http',
+  currency: 'CAD',
+  outputFormats: ['structured'],
+  selectors: {
+    title:    'h1.product-title, h1[class*="product-title"], [itemprop="name"]',
+    price:    '.product-price .price, [class*="product-price"] .price, [itemprop="price"]@content',
+    in_stock: 'button[class*="add-to-cart"]:not([disabled]), [itemprop="availability"][content="http://schema.org/InStock"], [class*="in-stock"]',
+    brand:    '[itemprop="brand"] span, a[class*="brand"], [class*="manufacturer-name"]',
+    sku:      '[itemprop="sku"], [class*="product-sku"], span[class*="model-number"]',
+    images:   'all:[class*="product-images"] img@src, all:[class*="image-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:    parsePrice(raw.price as string | null),
+      in_stock: !!(raw.in_stock),
+    };
+  },
+};
+
 // ─── Shared helpers ────────────────────────────────────────────────────────────
 
 /** Parse a price string like "$1,234.56" or "£999" into a number. */

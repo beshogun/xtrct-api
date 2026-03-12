@@ -18,6 +18,8 @@ export interface ScrapePreset {
   strategy: 'http' | 'playwright' | 'auto';
   waitFor?: WaitFor;
   outputFormats: OutputFormat[];
+  /** ISO 4217 currency code for the market this preset targets (e.g. 'GBP', 'EUR', 'USD'). */
+  currency?: string;
   /** Selector map using the all: and @attr syntax from extractors/structured.ts */
   selectors: Record<string, string>;
   /**
@@ -67,6 +69,26 @@ import {
   // NL retailers
   bolComProduct,
   coolblueNlProduct,
+  // ES retailers
+  pcComponentesProduct,
+  elCorteInglesProduct,
+  amazonEsProduct,
+  mediaMarktEsProduct,
+  // IT retailers
+  unieuroItProduct,
+  mediaworldItProduct,
+  amazonItProduct,
+  // IN retailers
+  flipkartProduct,
+  amazonInProduct,
+  cromaProduct,
+  // JP retailers
+  amazonJpProduct,
+  yodobashiProduct,
+  bicCameraProduct,
+  // CA retailers
+  memoryExpressProduct,
+  mikesComputerShopProduct,
 } from './ecommerce.ts';
 import { indeedJob, linkedinJob, glassdoorJob, remoteokListing } from './jobs.ts';
 import { rightmoveProperty, zillowListing, zooplaProperty } from './realestate.ts';
@@ -122,6 +144,31 @@ export const PRESETS: Record<string, ScrapePreset> = {
   // ecommerce — NL retailers
   'bol-com':       bolComProduct,
   'coolblue-nl':   coolblueNlProduct,
+
+  // ecommerce — ES retailers
+  'pc-componentes':   pcComponentesProduct,
+  'el-corte-ingles':  elCorteInglesProduct,
+  'amazon-es':        amazonEsProduct,
+  'media-markt-es':   mediaMarktEsProduct,
+
+  // ecommerce — IT retailers
+  'unieuro-it':    unieuroItProduct,
+  'mediaworld-it': mediaworldItProduct,
+  'amazon-it':     amazonItProduct,
+
+  // ecommerce — IN retailers
+  'flipkart':   flipkartProduct,
+  'amazon-in':  amazonInProduct,
+  'croma':      cromaProduct,
+
+  // ecommerce — JP retailers
+  'amazon-jp':   amazonJpProduct,
+  'yodobashi':   yodobashiProduct,
+  'bic-camera':  bicCameraProduct,
+
+  // ecommerce — CA retailers
+  'memory-express':       memoryExpressProduct,
+  'mikes-computer-shop':  mikesComputerShopProduct,
 
   // jobs
   'indeed-job':        indeedJob,
