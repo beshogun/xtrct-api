@@ -29,7 +29,45 @@ export interface ScrapePreset {
 
 // ─── Import all preset groups ──────────────────────────────────────────────────
 
-import { amazonProduct, ebayListing, etsyProduct, shopifyProduct } from './ecommerce.ts';
+import {
+  amazonProduct,
+  ebayListing,
+  etsyProduct,
+  shopifyProduct,
+  currysProduct,
+  johnLewisProduct,
+  argosProduct,
+  aoProduct,
+  veryProduct,
+  scanProduct,
+  overclockerProduct,
+  boxProduct,
+  laptopsDirectProduct,
+  ebuyerProduct,
+  // US retailers
+  bestBuyProduct,
+  walmartProduct,
+  neweggProduct,
+  adoramaProduct,
+  targetUsProduct,
+  // AU retailers
+  jbHifiAuProduct,
+  harveyNormanAuProduct,
+  theGoodGuysProduct,
+  // DE retailers
+  mediamarktDeProduct,
+  saturnDeProduct,
+  notebooksbilligerDeProduct,
+  cyberportDeProduct,
+  alternateDeProduct,
+  // FR retailers
+  fnacFrProduct,
+  dartyFrProduct,
+  boulangerFrProduct,
+  // NL retailers
+  bolComProduct,
+  coolblueNlProduct,
+} from './ecommerce.ts';
 import { indeedJob, linkedinJob, glassdoorJob, remoteokListing } from './jobs.ts';
 import { rightmoveProperty, zillowListing, zooplaProperty } from './realestate.ts';
 import { genericArticle, hnPost, redditPost } from './news.ts';
@@ -39,11 +77,51 @@ import { twitterProfile, youtubeVideo } from './social.ts';
 // ─── Registry ─────────────────────────────────────────────────────────────────
 
 export const PRESETS: Record<string, ScrapePreset> = {
-  // ecommerce
+  // ecommerce — global
   'amazon-product':    amazonProduct,
   'ebay-listing':      ebayListing,
   'etsy-product':      etsyProduct,
   'shopify-product':   shopifyProduct,
+
+  // ecommerce — UK retailers
+  'currys-product':        currysProduct,
+  'johnlewis-product':     johnLewisProduct,
+  'argos-product':         argosProduct,
+  'ao-product':            aoProduct,
+  'very-product':          veryProduct,
+  'scan-product':          scanProduct,
+  'overclockers-product':  overclockerProduct,
+  'box-product':           boxProduct,
+  'laptopsdirect-product': laptopsDirectProduct,
+  'ebuyer-product':        ebuyerProduct,
+
+  // ecommerce — US retailers
+  'best-buy':    bestBuyProduct,
+  'walmart':     walmartProduct,
+  'newegg':      neweggProduct,
+  'adorama':     adoramaProduct,
+  'target-us':   targetUsProduct,
+
+  // ecommerce — AU retailers
+  'jb-hifi-au':          jbHifiAuProduct,
+  'harvey-norman-au':    harveyNormanAuProduct,
+  'the-good-guys':       theGoodGuysProduct,
+
+  // ecommerce — DE retailers
+  'mediamarkt-de':          mediamarktDeProduct,
+  'saturn-de':              saturnDeProduct,
+  'notebooksbilliger-de':   notebooksbilligerDeProduct,
+  'cyberport-de':           cyberportDeProduct,
+  'alternate-de':           alternateDeProduct,
+
+  // ecommerce — FR retailers
+  'fnac-fr':       fnacFrProduct,
+  'darty-fr':      dartyFrProduct,
+  'boulanger-fr':  boulangerFrProduct,
+
+  // ecommerce — NL retailers
+  'bol-com':       bolComProduct,
+  'coolblue-nl':   coolblueNlProduct,
 
   // jobs
   'indeed-job':        indeedJob,
