@@ -1458,7 +1458,7 @@ export const amazonUkCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers product listings from an Amazon UK category or search results page.',
   matchDomains: [],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: '[data-asin]' },
   outputFormats: ['structured'],
   selectors: {
@@ -1476,7 +1476,7 @@ export const currysCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers product listings from a Currys category page.',
   matchDomains: [],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'network_idle' },
   outputFormats: ['structured'],
   selectors: {
@@ -1495,7 +1495,7 @@ export const argosCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers product listings from an Argos category page.',
   matchDomains: [],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'network_idle' },
   outputFormats: ['structured'],
   selectors: {
@@ -1512,7 +1512,7 @@ export const johnLewisCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers product listings from a John Lewis category page.',
   matchDomains: [],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'network_idle' },
   outputFormats: ['structured'],
   selectors: {
@@ -1529,7 +1529,7 @@ export const aoCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers product listings from an AO.com category page.',
   matchDomains: [],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'network_idle' },
   outputFormats: ['structured'],
   selectors: {
@@ -1594,7 +1594,7 @@ export const veryCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers product listings from a Very.co.uk category page.',
   matchDomains: [],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: '[data-testid="product-block"], [class*="ProductBlock"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -1613,7 +1613,7 @@ export const asosProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price, brand, images and availability from an ASOS product page.',
   matchDomains: ['asos.com'],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: '[data-testid="product-title"], h1[class*="product-hero-title"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -1641,7 +1641,7 @@ export const nextProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price, availability, and images from a Next product page.',
   matchDomains: ['next.co.uk'],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'h1[data-testid="product-title"], h1[class*="ProductTitle"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -1669,7 +1669,7 @@ export const marksAndSpencerProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price, availability and images from a Marks & Spencer product page.',
   matchDomains: ['marksandspencer.com'],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'h1[data-testid="product-title"], [class*="ProductTitle"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -1696,7 +1696,7 @@ export const zalandoUkProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price, brand and images from a Zalando UK product page.',
   matchDomains: ['zalando.co.uk'],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'h1[class*="title"], [data-testid="product-name"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -1725,7 +1725,7 @@ export const dunelmProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price, availability and images from a Dunelm product page.',
   matchDomains: ['dunelm.com'],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'h1[class*="product-title"], [data-testid="product-title"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -1752,7 +1752,7 @@ export const wayfairUkProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price, availability and images from a Wayfair UK product page.',
   matchDomains: ['wayfair.co.uk'],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'h1[data-hb-id="ProductDetailTitle"], [class*="ProductDetailTitle"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -1779,7 +1779,7 @@ export const bAndQProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price, availability and images from a B&Q product page.',
   matchDomains: ['diy.com'],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'h1[data-testid="product-title"], [class*="ProductTitle"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -1806,7 +1806,7 @@ export const ikeaUkProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price, availability and images from an IKEA UK product page.',
   matchDomains: ['ikea.com/gb'],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'h1[class*="pip-header-section__title"], [class*="product-name"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -1834,7 +1834,7 @@ export const bootsProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price, availability and images from a Boots product page.',
   matchDomains: ['boots.com'],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'h1[class*="product-title"], [data-testid="product-title"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -1861,7 +1861,7 @@ export const superdrugProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price, availability and images from a Superdrug product page.',
   matchDomains: ['superdrug.com'],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'h1[class*="product-title"], [data-testid="product-title"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -1888,7 +1888,7 @@ export const lookfantasticProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price, availability and images from a Lookfantastic product page.',
   matchDomains: ['lookfantastic.com'],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'h1[class*="product-title"], [data-product-title]' },
   outputFormats: ['structured'],
   selectors: {
@@ -1917,7 +1917,7 @@ export const sportsDirectProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price, availability and images from a Sports Direct product page.',
   matchDomains: ['sportsdirect.com'],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'h1[class*="product-title"], [itemprop="name"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -1944,7 +1944,7 @@ export const jdSportsProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price, availability and images from a JD Sports product page.',
   matchDomains: ['jdsports.co.uk'],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'h1[class*="prod-title"], [data-e2e="product-title"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -1971,7 +1971,7 @@ export const decathlonUkProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price, availability and images from a Decathlon UK product page.',
   matchDomains: ['decathlon.co.uk'],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'h1[class*="product-title"], [data-testid="product-name"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -2000,7 +2000,7 @@ export const smythsToysProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price, availability and images from a Smyths Toys product page.',
   matchDomains: ['smythstoys.com'],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'h1[class*="product-title"], [class*="productTitle"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -2056,7 +2056,7 @@ export const petsAtHomeProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price, availability and images from a Pets at Home product page.',
   matchDomains: ['petsathome.com'],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'h1[data-testid="product-name"], [class*="ProductName"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -2085,7 +2085,7 @@ export const asosCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from an ASOS category/sale page.',
   matchDomains: [],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'a[href*="/prd/"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -2102,7 +2102,7 @@ export const nextCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a Next category page.',
   matchDomains: [],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'a[href*="/style/"], a[href*="/p/"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -2119,7 +2119,7 @@ export const marksAndSpencerCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from an M&S category page.',
   matchDomains: [],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'a[href*="/p/"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -2136,7 +2136,7 @@ export const zalandoUkCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a Zalando UK category page.',
   matchDomains: [],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'a[href*="/_/"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -2155,7 +2155,7 @@ export const bootsCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a Boots category page.',
   matchDomains: [],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'a[href*="/product/"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -2172,7 +2172,7 @@ export const superdrugCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a Superdrug category page.',
   matchDomains: [],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'a[href*="/p/"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -2189,7 +2189,7 @@ export const lookfantasticCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a Lookfantastic category page.',
   matchDomains: [],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'a[href*="/products/"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -2208,7 +2208,7 @@ export const sportsDirectCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a Sports Direct category page.',
   matchDomains: [],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'a[href*="/product/"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -2225,7 +2225,7 @@ export const jdSportsCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a JD Sports category page.',
   matchDomains: [],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'a[href*="/product/"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -2242,7 +2242,7 @@ export const decathlonUkCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a Decathlon UK category page.',
   matchDomains: [],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'a[href*="/p-"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -2261,7 +2261,7 @@ export const smythsCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a Smyths Toys category page.',
   matchDomains: [],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'a[href*="/product/"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -2278,7 +2278,7 @@ export const waterstonesCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a Waterstones category page.',
   matchDomains: [],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'a[href*="/book/"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -2295,7 +2295,7 @@ export const petsAtHomeCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a Pets at Home category page.',
   matchDomains: [],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'a[href*="/product/"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -2314,7 +2314,7 @@ export const dunelmCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a Dunelm category page.',
   matchDomains: [],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'a[href*="/product/"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -2331,7 +2331,7 @@ export const wayfairUkCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a Wayfair UK category page.',
   matchDomains: [],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'a[href*="/pdp/"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -2348,7 +2348,7 @@ export const bAndQCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a B&Q category page.',
   matchDomains: [],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'a[href*="/products/"]' },
   outputFormats: ['structured'],
   selectors: {
