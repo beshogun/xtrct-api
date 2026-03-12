@@ -122,6 +122,23 @@ import {
   waterstonesBooksProduct,
   // UK Pets
   petsAtHomeProduct,
+  // Category listings — fashion, beauty, sports, toys, books, pets, home
+  asosCategory,
+  nextCategory,
+  marksAndSpencerCategory,
+  zalandoUkCategory,
+  bootsCategory,
+  superdrugCategory,
+  lookfantasticCategory,
+  sportsDirectCategory,
+  jdSportsCategory,
+  decathlonUkCategory,
+  smythsCategory,
+  waterstonesCategory,
+  petsAtHomeCategory,
+  dunelmCategory,
+  wayfairUkCategory,
+  bAndQCategory,
 } from './ecommerce.ts';
 import { indeedJob, linkedinJob, glassdoorJob, remoteokListing } from './jobs.ts';
 import { rightmoveProperty, zillowListing, zooplaProperty } from './realestate.ts';
@@ -242,6 +259,32 @@ export const PRESETS: Record<string, ScrapePreset> = {
   'scan-category':         scanCategory,
   'laptopsdirect-category': laptopsDirectCategory,
   'very-category':         veryCategory,
+
+  // ecommerce — UK fashion category pages
+  'asos-category':               asosCategory,
+  'next-category':               nextCategory,
+  'marks-and-spencer-category':  marksAndSpencerCategory,
+  'zalando-uk-category':         zalandoUkCategory,
+
+  // ecommerce — UK beauty category pages
+  'boots-category':         bootsCategory,
+  'superdrug-category':     superdrugCategory,
+  'lookfantastic-category': lookfantasticCategory,
+
+  // ecommerce — UK sports category pages
+  'sports-direct-category':  sportsDirectCategory,
+  'jd-sports-category':      jdSportsCategory,
+  'decathlon-uk-category':   decathlonUkCategory,
+
+  // ecommerce — UK toys/books/pets category pages
+  'smyths-category':        smythsCategory,
+  'waterstones-category':   waterstonesCategory,
+  'pets-at-home-category':  petsAtHomeCategory,
+
+  // ecommerce — UK home category pages
+  'dunelm-category':      dunelmCategory,
+  'wayfair-uk-category':  wayfairUkCategory,
+  'b-and-q-category':     bAndQCategory,
 
   // jobs
   'indeed-job':        indeedJob,
