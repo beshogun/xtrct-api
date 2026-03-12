@@ -66,6 +66,21 @@ class BrowserPool {
     const entry = this.pickBrowser();
     const vp = randomViewport();
 
+    // Parse proxy credentials out of the URL — Playwright requires them separately
+    let proxyConfig: { server: string; username?: string; password?: string } | undefined;
+    if (opts.proxy) {
+      try {
+        const u = new URL(opts.proxy);
+        proxyConfig = {
+          server: `${u.protocol}//${u.host}`,
+          ...(u.username ? { username: decodeURIComponent(u.username) } : {}),
+          ...(u.password ? { password: decodeURIComponent(u.password) } : {}),
+        };
+      } catch {
+        proxyConfig = { server: opts.proxy };
+      }
+    }
+
     const context = await entry.browser.newContext({
       userAgent: randomUA(),
       viewport: vp,
@@ -73,7 +88,7 @@ class BrowserPool {
       timezoneId: 'Europe/London',
       extraHTTPHeaders: opts.headers ?? {},
       ignoreHTTPSErrors: true,
-      ...(opts.proxy ? { proxy: { server: opts.proxy } } : {}),
+      ...(proxyConfig ? { proxy: proxyConfig } : {}),
     });
 
     await applyStealthContext(context);
