@@ -1,5 +1,11 @@
-import { chromium, type Browser, type BrowserContext, type Page } from 'playwright';
+import { type Browser, type BrowserContext, type Page } from 'playwright';
+import { chromium as chromiumExtra } from 'playwright-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { applyStealthContext, randomUA, randomViewport } from './stealth.ts';
+
+// Apply stealth plugin — patches 30+ fingerprints (webdriver, chrome runtime,
+// navigator.plugins, WebGL, codec, iframe contentWindow, etc.)
+chromiumExtra.use(StealthPlugin());
 
 const POOL_SIZE = parseInt(process.env.BROWSER_POOL_SIZE ?? '3', 10);
 const RECYCLE_INTERVAL_MS = 30 * 60 * 1000; // recycle browsers every 30 min
@@ -25,7 +31,7 @@ class BrowserPool {
   }
 
   private async launchBrowser(): Promise<PoolEntry> {
-    const browser = await chromium.launch({
+    const browser = await chromiumExtra.launch({
       headless: true,
       args: [
         '--no-sandbox',
