@@ -1479,13 +1479,14 @@ export const currysCategory: ScrapePreset = {
   description: 'Discovers product listings from a Currys category page.',
   matchDomains: [],
   strategy: 'playwright',
-  waitFor: { type: 'selector', value: '[data-component="ProductCard"], [class*="product-card"], article[class*="ProductCard"]' },
+  waitFor: { type: 'selector', value: 'a[href*="/products/"], [class*="productItem"], [class*="ProductCard"]' },
   outputFormats: ['structured'],
   selectors: {
-    all_titles: 'all:[data-component="ProductCard"] [data-component="Title"], all:article[class*="product-card"] h3, all:[class*="ProductCard"] h3',
-    all_urls:   'all:[data-component="ProductCard"] a[data-component="Link"]@href, all:article[class*="product-card"] a@href, all:[class*="ProductCard"] a[class*="link"]@href',
-    all_prices: 'all:[data-component="ProductCard"] [data-component="PriceBlock"] [class*="current"], all:article[class*="product-card"] [class*="price-current"]',
-    all_images: 'all:[data-component="ProductCard"] img@src, all:article[class*="product-card"] img@src',
+    // Currys 2025/2026 — product items in li with hashed class names; anchor to the product link
+    all_titles: 'all:a[href*="/products/"] [class*="Title"], all:a[href*="/products/"] h2, all:a[href*="/products/"] h3, all:a[href*="/products/"] p[class*="name"], all:a[href*="/products/"] span[class*="name"]',
+    all_urls:   'all:a[href*="/products/"]@href',
+    all_prices: 'all:a[href*="/products/"] [class*="price__current"], all:a[href*="/products/"] [class*="priceNow"], all:a[href*="/products/"] [class*="price-now"], all:a[href*="/products/"] span[class*="price"]',
+    all_images: 'all:a[href*="/products/"] img@src',
   },
 };
 
@@ -1496,13 +1497,13 @@ export const argosCategory: ScrapePreset = {
   description: 'Discovers product listings from an Argos category page.',
   matchDomains: [],
   strategy: 'playwright',
-  waitFor: { type: 'selector', value: '[data-test="product-card"], [class*="ProductCard"]' },
+  waitFor: { type: 'selector', value: 'a[href*="/product/"], [data-test="product-card"]' },
   outputFormats: ['structured'],
   selectors: {
-    all_titles: 'all:[data-test="product-card"] [data-test="product-title"], all:[data-test="product-card"] h3',
-    all_urls:   'all:[data-test="product-card"] a[data-test="component-link"]@href, all:[data-test="product-card"] a@href',
-    all_prices: 'all:[data-test="product-card"] [data-test="price-display"], all:[data-test="product-card"] [class*="PriceDisplay"]',
-    all_images: 'all:[data-test="product-card"] img[data-test="product-tile-image"]@src, all:[data-test="product-card"] img@src',
+    all_titles: 'all:a[href*="/product/"] [data-test="product-title"], all:a[href*="/product/"] h3, all:a[href*="/product/"] [class*="Title"]',
+    all_urls:   'all:a[href*="/product/"]@href',
+    all_prices: 'all:a[href*="/product/"] [data-test="price-display"], all:a[href*="/product/"] [class*="price"]',
+    all_images: 'all:a[href*="/product/"] img[data-test="product-tile-image"]@src, all:a[href*="/product/"] img@src',
   },
 };
 
@@ -1513,13 +1514,13 @@ export const johnLewisCategory: ScrapePreset = {
   description: 'Discovers product listings from a John Lewis category page.',
   matchDomains: [],
   strategy: 'playwright',
-  waitFor: { type: 'selector', value: '[data-testid="product-card-anchor"], [class*="ProductCard"]' },
+  waitFor: { type: 'selector', value: 'a[data-testid="product-card-anchor"], a[href*="/p/"]' },
   outputFormats: ['structured'],
   selectors: {
-    all_titles: 'all:[data-testid="product-card-anchor"] [class*="ProductTitle"], all:[data-testid="product-card-anchor"] h2, all:[class*="ProductCard"] h2',
-    all_urls:   'all:a[data-testid="product-card-anchor"]@href, all:[class*="ProductCard"] a[data-testid]@href',
-    all_prices: 'all:[data-testid="product-card-anchor"] [data-testid="price"], all:[data-testid="product-card-anchor"] [class*="price"]',
-    all_images: 'all:[data-testid="product-card-anchor"] img@src, all:[class*="ProductCard"] img@src',
+    all_titles: 'all:a[data-testid="product-card-anchor"] h2, all:a[data-testid="product-card-anchor"] [class*="title"], all:a[href*="/p/"] h2',
+    all_urls:   'all:a[data-testid="product-card-anchor"]@href, all:a[href*="/p/"]@href',
+    all_prices: 'all:a[data-testid="product-card-anchor"] [data-testid="price"], all:a[data-testid="product-card-anchor"] [class*="price"]',
+    all_images: 'all:a[data-testid="product-card-anchor"] img@src, all:a[href*="/p/"] img@src',
   },
 };
 
@@ -1530,13 +1531,13 @@ export const aoCategory: ScrapePreset = {
   description: 'Discovers product listings from an AO.com category page.',
   matchDomains: [],
   strategy: 'playwright',
-  waitFor: { type: 'selector', value: '[class*="product-tile"], [class*="ProductTile"], [data-testid="product-tile"]' },
+  waitFor: { type: 'selector', value: 'a[href*="/product/"], [class*="product-tile"]' },
   outputFormats: ['structured'],
   selectors: {
-    all_titles: 'all:[class*="product-tile"] [class*="product-name"], all:[class*="product-tile"] h2, all:[data-testid="product-tile"] h3',
-    all_urls:   'all:[class*="product-tile"] a@href, all:[data-testid="product-tile"] a@href',
-    all_prices: 'all:[class*="product-tile"] [class*="price"], all:[data-testid="product-tile"] [class*="price"]',
-    all_images: 'all:[class*="product-tile"] img@src, all:[data-testid="product-tile"] img@src',
+    all_titles: 'all:a[href*="/product/"] h2, all:a[href*="/product/"] h3, all:a[href*="/product/"] [class*="name"], all:a[href*="/product/"] [class*="title"]',
+    all_urls:   'all:a[href*="/product/"]@href',
+    all_prices: 'all:a[href*="/product/"] [class*="price"], all:a[href*="/product/"] [class*="Price"]',
+    all_images: 'all:a[href*="/product/"] img@src',
   },
 };
 
