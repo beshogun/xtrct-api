@@ -10,6 +10,7 @@ import { sql } from './db/index.ts';
 import { pool } from './browser/pool.ts';
 import { presetsRoutes } from './api/routes/presets.ts';
 import path from 'path';
+import { createHash } from 'crypto';
 import { sendApiKey } from './email.ts';
 
 const PUBLIC_DIR = path.join(import.meta.dir, '../public');
@@ -34,6 +35,21 @@ export function createServer() {
     .get('/blog/scrape-cloudflare-protected-sites', () => serveHtml('blog/scrape-cloudflare-protected-sites.html'))
     .get('/blog/extract-data-from-any-website-api', () => serveHtml('blog/extract-data-from-any-website-api.html'))
     .get('/blog/web-scraping-api-vs-diy',           () => serveHtml('blog/web-scraping-api-vs-diy.html'))
+
+    // ─── eBay Marketplace Account Deletion (GDPR compliance) ─────────────────
+    // GET: eBay challenge verification
+    .get('/ebay/account-deletion', ({ query }) => {
+      const challengeCode = (query as any).challenge_code
+      if (!challengeCode) return new Response('OK', { status: 200 })
+      const token = process.env.EBAY_DELETION_TOKEN ?? 'magpie-ebay-2026'
+      const endpoint = 'https://xtrct.io/ebay/account-deletion'
+      const hash = createHash('sha256')
+        .update(challengeCode + token + endpoint)
+        .digest('hex')
+      return Response.json({ challengeResponse: hash })
+    })
+    // POST: actual deletion notifications (log and acknowledge)
+    .post('/ebay/account-deletion', () => new Response('OK', { status: 200 }))
 
     // ─── Health ──────────────────────────────────────────────────────────────
     .get('/health', async () => {
