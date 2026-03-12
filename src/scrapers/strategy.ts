@@ -87,6 +87,8 @@ async function tryPlaywright(
       if (proxyUrl) proxyManager.markFailed(proxyUrl);
       return null;
     }
+    // Playwright navigation timeouts → try next step (e.g. with proxy)
+    if (e instanceof Error && e.message.includes('Timeout') && e.message.includes('exceeded')) return null;
     throw e;
   }
 }
@@ -186,9 +188,15 @@ async function runAuto(url: string, opts: RunOptions): Promise<StrategyResult> {
   }
 
   // ── Playwright steps ────────────────────────────────────────────────────────
-  for (const step of playwrightSteps) {
+  const totalTimeout = opts.timeout ?? 30_000;
+  for (let i = 0; i < playwrightSteps.length; i++) {
+    const step = playwrightSteps[i];
+    // Cap early steps (no proxy, datacenter) at 20s so we escalate to residential quickly.
+    // Give the last Playwright step the full timeout.
+    const isLastPw = i === playwrightSteps.length - 1;
+    const stepTimeout = isLastPw ? totalTimeout : Math.min(totalTimeout, 20_000);
     process.stderr.write(`  [strategy] step ${stepNum}: ${step.label}\n`);
-    const r = await tryPlaywright(url, step.proxyUrl, opts);
+    const r = await tryPlaywright(url, step.proxyUrl, { ...opts, timeout: stepTimeout });
     if (r) {
       return {
         ...r.result,
