@@ -1477,7 +1477,7 @@ export const currysCategory: ScrapePreset = {
   description: 'Discovers product listings from a Currys category page.',
   matchDomains: [],
   strategy: 'auto',
-  waitFor: { type: 'network_idle' },
+  waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
     // Currys 2025/2026 — anchor links to product pages under /products/
@@ -1496,7 +1496,7 @@ export const argosCategory: ScrapePreset = {
   description: 'Discovers product listings from an Argos category page.',
   matchDomains: [],
   strategy: 'auto',
-  waitFor: { type: 'network_idle' },
+  waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
     all_titles: 'all:[href^="/product/"] [data-test="product-title"], all:[href^="/product/"] h3, all:[href^="/product/"] [class*="Title"]',
@@ -1513,7 +1513,7 @@ export const johnLewisCategory: ScrapePreset = {
   description: 'Discovers product listings from a John Lewis category page.',
   matchDomains: [],
   strategy: 'auto',
-  waitFor: { type: 'network_idle' },
+  waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
     all_titles: 'all:a[data-testid="product-card-anchor"] h2, all:a[data-testid="product-card-anchor"] [class*="title"]',
@@ -1530,7 +1530,7 @@ export const aoCategory: ScrapePreset = {
   description: 'Discovers product listings from an AO.com category page.',
   matchDomains: [],
   strategy: 'auto',
-  waitFor: { type: 'network_idle' },
+  waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
     all_titles: 'all:[href^="/product/"] h2, all:[href^="/product/"] h3, all:[href^="/product/"] [class*="name"]',
