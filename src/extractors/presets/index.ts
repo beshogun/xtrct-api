@@ -99,6 +99,29 @@ import {
   scanCategory,
   laptopsDirectCategory,
   veryCategory,
+  // UK Fashion
+  asosProduct,
+  nextProduct,
+  marksAndSpencerProduct,
+  zalandoUkProduct,
+  // UK Home & Garden
+  dunelmProduct,
+  wayfairUkProduct,
+  bAndQProduct,
+  ikeaUkProduct,
+  // UK Health & Beauty
+  bootsProduct,
+  superdrugProduct,
+  lookfantasticProduct,
+  // UK Sports
+  sportsDirectProduct,
+  jdSportsProduct,
+  decathlonUkProduct,
+  // UK Toys & Books
+  smythsToysProduct,
+  waterstonesBooksProduct,
+  // UK Pets
+  petsAtHomeProduct,
 } from './ecommerce.ts';
 import { indeedJob, linkedinJob, glassdoorJob, remoteokListing } from './jobs.ts';
 import { rightmoveProperty, zillowListing, zooplaProperty } from './realestate.ts';
@@ -179,6 +202,35 @@ export const PRESETS: Record<string, ScrapePreset> = {
   // ecommerce — CA retailers
   'memory-express':       memoryExpressProduct,
   'mikes-computer-shop':  mikesComputerShopProduct,
+
+  // ecommerce — UK fashion
+  'asos-product':               asosProduct,
+  'next-product':               nextProduct,
+  'marks-and-spencer-product':  marksAndSpencerProduct,
+  'zalando-uk-product':         zalandoUkProduct,
+
+  // ecommerce — UK home & garden
+  'dunelm-product':      dunelmProduct,
+  'wayfair-uk-product':  wayfairUkProduct,
+  'b-and-q-product':     bAndQProduct,
+  'ikea-uk-product':     ikeaUkProduct,
+
+  // ecommerce — UK health & beauty
+  'boots-product':         bootsProduct,
+  'superdrug-product':     superdrugProduct,
+  'lookfantastic-product': lookfantasticProduct,
+
+  // ecommerce — UK sports
+  'sports-direct-product':  sportsDirectProduct,
+  'jd-sports-product':      jdSportsProduct,
+  'decathlon-uk-product':   decathlonUkProduct,
+
+  // ecommerce — UK toys & books
+  'smyths-toys-product':     smythsToysProduct,
+  'waterstones-product':     waterstonesBooksProduct,
+
+  // ecommerce — UK pets
+  'pets-at-home-product':   petsAtHomeProduct,
 
   // ecommerce — category/listing pages
   'amazon-uk-category':    amazonUkCategory,

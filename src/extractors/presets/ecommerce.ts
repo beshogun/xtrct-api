@@ -1605,6 +1605,480 @@ export const veryCategory: ScrapePreset = {
   },
 };
 
+// ─── UK Fashion Retailer Presets ──────────────────────────────────────────────
+
+export const asosProduct: ScrapePreset = {
+  id: 'asos-product',
+  name: 'ASOS Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, brand, images and availability from an ASOS product page.',
+  matchDomains: ['asos.com'],
+  strategy: 'playwright',
+  waitFor: { type: 'selector', value: '[data-testid="product-title"], h1[class*="product-hero-title"]' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          '[data-testid="product-title"], h1[class*="product-hero-title"], h1[class*="productTitle"]',
+    price:          '[data-testid="current-price"], [class*="current-price"], [class*="price__current"]',
+    original_price: '[data-testid="previous-price"], [class*="previous-price"], [class*="price__previous"] del',
+    brand:          '[data-testid="product-brand-link"], [class*="brand-name"] a, h2[class*="brand"]',
+    in_stock:       'button[data-testid="add-to-bag"]:not([disabled]), button[class*="addToBag"]:not([disabled])',
+    colour:         '[data-testid="colour-label"], [class*="colour-name"], [class*="colorName"]',
+    images:         'all:[data-testid="image-thumbnail"] img@src, all:[class*="product-image"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+    };
+  },
+};
+
+export const nextProduct: ScrapePreset = {
+  id: 'next-product',
+  name: 'Next Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, availability, and images from a Next product page.',
+  matchDomains: ['next.co.uk'],
+  strategy: 'playwright',
+  waitFor: { type: 'selector', value: 'h1[data-testid="product-title"], h1[class*="ProductTitle"]' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[data-testid="product-title"], h1[class*="ProductTitle"], h1[itemprop="name"]',
+    price:          '[data-testid="product-price"] [class*="now"], [itemprop="price"]@content, [class*="price--selling"]',
+    original_price: '[data-testid="product-price"] [class*="was"], del[class*="price"], [class*="price--reduced"]',
+    brand:          '[data-testid="brand-name"], [class*="brand-name"], [itemprop="brand"]',
+    in_stock:       'button[data-testid="add-to-bag"]:not([disabled]), button[class*="AddToBag"]:not([disabled])',
+    colour:         '[data-testid="colour-name"], [class*="colour-label"], [class*="color-name"]',
+    images:         'all:[class*="product-image"] img@src, all:[data-testid="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+    };
+  },
+};
+
+export const marksAndSpencerProduct: ScrapePreset = {
+  id: 'marks-and-spencer-product',
+  name: 'M&S Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, availability and images from a Marks & Spencer product page.',
+  matchDomains: ['marksandspencer.com'],
+  strategy: 'playwright',
+  waitFor: { type: 'selector', value: 'h1[data-testid="product-title"], [class*="ProductTitle"]' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[data-testid="product-title"], h1[class*="ProductTitle"], h1[itemprop="name"]',
+    price:          '[data-testid="product-selling-price"], [class*="price__selling"], [itemprop="price"]@content',
+    original_price: '[data-testid="product-rrp"], del[class*="price"], [class*="price__original"]',
+    brand:          '[data-testid="product-brand"], [class*="brand-name"]',
+    in_stock:       'button[data-testid="add-to-bag"]:not([disabled]), [class*="add-to-bag"]:not([disabled])',
+    images:         'all:[data-testid="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+    };
+  },
+};
+
+export const zalandoUkProduct: ScrapePreset = {
+  id: 'zalando-uk-product',
+  name: 'Zalando (UK) Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, brand and images from a Zalando UK product page.',
+  matchDomains: ['zalando.co.uk'],
+  strategy: 'playwright',
+  waitFor: { type: 'selector', value: 'h1[class*="title"], [data-testid="product-name"]' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="title"], [data-testid="product-name"], [class*="product-title"]',
+    price:          '[class*="price"][class*="original"], [data-testid="price"], x-price',
+    original_price: '[class*="price"][class*="original"] del, [data-testid="original-price"]',
+    brand:          'h3[class*="brand"], [data-testid="brand-name"], a[class*="brand"]',
+    in_stock:       'button[data-testid="to-cart"]:not([disabled]), button[class*="AddToCart"]:not([disabled])',
+    images:         'all:[class*="image-container"] img@src, all:[data-testid="image"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+    };
+  },
+};
+
+// ─── UK Home & Garden Retailer Presets ────────────────────────────────────────
+
+export const dunelmProduct: ScrapePreset = {
+  id: 'dunelm-product',
+  name: 'Dunelm Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, availability and images from a Dunelm product page.',
+  matchDomains: ['dunelm.com'],
+  strategy: 'playwright',
+  waitFor: { type: 'selector', value: 'h1[class*="product-title"], [data-testid="product-title"]' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-title"], [data-testid="product-title"], h1[itemprop="name"]',
+    price:          '[class*="price__selling"], [data-testid="product-price"], [itemprop="price"]@content',
+    original_price: '[class*="price__was"], del[class*="price"], [data-testid="was-price"]',
+    in_stock:       'button[data-testid="add-to-basket"]:not([disabled]), button[class*="addToBasket"]:not([disabled])',
+    brand:          '[class*="brand-name"], [data-testid="brand-name"]',
+    images:         'all:[class*="product-gallery"] img@src, all:[data-testid="product-image"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+    };
+  },
+};
+
+export const wayfairUkProduct: ScrapePreset = {
+  id: 'wayfair-uk-product',
+  name: 'Wayfair (UK) Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, availability and images from a Wayfair UK product page.',
+  matchDomains: ['wayfair.co.uk'],
+  strategy: 'playwright',
+  waitFor: { type: 'selector', value: 'h1[data-hb-id="ProductDetailTitle"], [class*="ProductDetailTitle"]' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[data-hb-id="ProductDetailTitle"], h1[class*="ProductDetailTitle"], [itemprop="name"]',
+    price:          '[data-testid="PriceBlock"] [class*="BasePriceText"], [class*="sale-price"], [itemprop="price"]@content',
+    original_price: '[data-testid="PriceBlock"] s, del[class*="price"], [class*="original-price"]',
+    brand:          'a[data-testid="manufacturer-link"], [class*="manufacturer"], [itemprop="brand"]',
+    in_stock:       'button[data-testid="AddToCartButton"]:not([disabled]), button[class*="AddToCart"]:not([disabled])',
+    images:         'all:[class*="ProductGallery"] img@src, all:[class*="product-image"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+    };
+  },
+};
+
+export const bAndQProduct: ScrapePreset = {
+  id: 'b-and-q-product',
+  name: 'B&Q Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, availability and images from a B&Q product page.',
+  matchDomains: ['diy.com'],
+  strategy: 'playwright',
+  waitFor: { type: 'selector', value: 'h1[data-testid="product-title"], [class*="ProductTitle"]' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[data-testid="product-title"], h1[class*="ProductTitle"], h1[itemprop="name"]',
+    price:          '[data-testid="product-price"] [class*="now"], [class*="priceNow"], [itemprop="price"]@content',
+    original_price: '[data-testid="product-price"] [class*="was"], del[class*="price"], [class*="priceWas"]',
+    in_stock:       'button[data-testid="add-to-basket"]:not([disabled]), button[class*="AddToBasket"]:not([disabled])',
+    brand:          '[data-testid="brand-name"], [class*="brand"] a, [itemprop="brand"]',
+    images:         'all:[data-testid="product-image"] img@src, all:[class*="ProductGallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+    };
+  },
+};
+
+export const ikeaUkProduct: ScrapePreset = {
+  id: 'ikea-uk-product',
+  name: 'IKEA (UK) Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, availability and images from an IKEA UK product page.',
+  matchDomains: ['ikea.com/gb'],
+  strategy: 'playwright',
+  waitFor: { type: 'selector', value: 'h1[class*="pip-header-section__title"], [class*="product-name"]' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="pip-header-section__title"], [class*="product-name"] h1, [itemprop="name"]',
+    price:          '[class*="pip-temp-price__integer"], [class*="price-package__price"], [class*="pip-price"]',
+    in_stock:       'button[class*="pip-btn-primary"]:not([disabled]), [class*="pip-buynow"]:not([disabled])',
+    brand:          '[class*="pip-header-section__description-part-number"], span[class*="pip-brand"]',
+    images:         'all:[class*="pip-media"] img@src, all:[class*="product-gallery"] img@src',
+    article_no:     '[class*="pip-header-section__description-part-number"]',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:   parsePrice(raw.price as string | null),
+      in_stock: !!(raw.in_stock),
+    };
+  },
+};
+
+// ─── UK Health & Beauty Retailer Presets ─────────────────────────────────────
+
+export const bootsProduct: ScrapePreset = {
+  id: 'boots-product',
+  name: 'Boots Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, availability and images from a Boots product page.',
+  matchDomains: ['boots.com'],
+  strategy: 'playwright',
+  waitFor: { type: 'selector', value: 'h1[class*="product-title"], [data-testid="product-title"]' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-title"], h1[data-testid="product-title"], [itemprop="name"]',
+    price:          '[class*="price-value"], [data-testid="product-price"], [class*="productPrice"]',
+    original_price: 'del[class*="price"], [class*="price-previous"], [data-testid="was-price"]',
+    in_stock:       'button[data-testid="add-to-bag"]:not([disabled]), button[class*="addToBag"]:not([disabled])',
+    brand:          '[class*="brand-name"] a, [data-testid="brand-name"], [itemprop="brand"]',
+    images:         'all:[class*="product-image"] img@src, all:[data-testid="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+    };
+  },
+};
+
+export const superdrugProduct: ScrapePreset = {
+  id: 'superdrug-product',
+  name: 'Superdrug Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, availability and images from a Superdrug product page.',
+  matchDomains: ['superdrug.com'],
+  strategy: 'playwright',
+  waitFor: { type: 'selector', value: 'h1[class*="product-title"], [data-testid="product-title"]' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-title"], h1[data-testid="product-title"], [itemprop="name"]',
+    price:          '[class*="price__current"], [class*="product-price"], [itemprop="price"]@content',
+    original_price: 'del[class*="price"], [class*="price__previous"], s[class*="price"]',
+    in_stock:       'button[data-testid="add-to-bag"]:not([disabled]), button[class*="addToBasket"]:not([disabled])',
+    brand:          '[class*="brand-name"], [itemprop="brand"] [itemprop="name"]',
+    images:         'all:[class*="product-gallery"] img@src, all:[class*="ProductImage"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+    };
+  },
+};
+
+export const lookfantasticProduct: ScrapePreset = {
+  id: 'lookfantastic-product',
+  name: 'Lookfantastic Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, availability and images from a Lookfantastic product page.',
+  matchDomains: ['lookfantastic.com'],
+  strategy: 'playwright',
+  waitFor: { type: 'selector', value: 'h1[class*="product-title"], [data-product-title]' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-title"], [data-product-title], [itemprop="name"]',
+    price:          '[class*="price__current"], [data-price], [itemprop="price"]@content',
+    original_price: 'del[class*="price"], [class*="price__previous"], [data-rrp]',
+    brand:          '[class*="brand-name"] a, [class*="product-brand"], [itemprop="brand"]',
+    in_stock:       'button[class*="add-to-bag"]:not([disabled]), [class*="atb-button"]:not([disabled])',
+    images:         'all:[class*="product-gallery"] img@src, all:[class*="product-images"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+    };
+  },
+};
+
+// ─── UK Sports & Outdoor Retailer Presets ────────────────────────────────────
+
+export const sportsDirectProduct: ScrapePreset = {
+  id: 'sports-direct-product',
+  name: 'Sports Direct Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, availability and images from a Sports Direct product page.',
+  matchDomains: ['sportsdirect.com'],
+  strategy: 'playwright',
+  waitFor: { type: 'selector', value: 'h1[class*="product-title"], [itemprop="name"]' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-title"], h1[itemprop="name"], [data-productname]',
+    price:          '[class*="product-price"] [class*="selling"], [itemprop="price"]@content, [class*="nowPrice"]',
+    original_price: 'del[class*="price"], [class*="wasPrice"], [itemprop="price"][class*="was"]',
+    brand:          '[class*="product-brand"] a, [itemprop="brand"] [itemprop="name"]',
+    in_stock:       'button[class*="addToBag"]:not([disabled]), button[id*="addToBag"]:not([disabled])',
+    images:         'all:#altImages img@src, all:[class*="product-image"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+    };
+  },
+};
+
+export const jdSportsProduct: ScrapePreset = {
+  id: 'jd-sports-product',
+  name: 'JD Sports Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, availability and images from a JD Sports product page.',
+  matchDomains: ['jdsports.co.uk'],
+  strategy: 'playwright',
+  waitFor: { type: 'selector', value: 'h1[class*="prod-title"], [data-e2e="product-title"]' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="prod-title"], [data-e2e="product-title"], [itemprop="name"]',
+    price:          '[class*="selling-price"], [data-e2e="product-price"], [itemprop="price"]@content',
+    original_price: 'del[class*="price"], [class*="was-price"], [data-e2e="original-price"]',
+    brand:          '[class*="product-brand"] a, [data-e2e="brand-name"]',
+    in_stock:       'button[data-e2e="add-to-bag"]:not([disabled]), button[class*="add-to-bag"]:not([disabled])',
+    images:         'all:[class*="product-image"] img@src, all:[data-e2e="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+    };
+  },
+};
+
+export const decathlonUkProduct: ScrapePreset = {
+  id: 'decathlon-uk-product',
+  name: 'Decathlon (UK) Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, availability and images from a Decathlon UK product page.',
+  matchDomains: ['decathlon.co.uk'],
+  strategy: 'playwright',
+  waitFor: { type: 'selector', value: 'h1[class*="product-title"], [data-testid="product-name"]' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-title"], [data-testid="product-name"], [itemprop="name"]',
+    price:          '[class*="price__current"], [data-testid="product-price"], [itemprop="price"]@content',
+    original_price: 'del[class*="price"], [class*="price__original"], [data-testid="original-price"]',
+    brand:          '[class*="product-brand"] a, [data-testid="brand-name"]',
+    in_stock:       'button[data-testid="add-to-basket"]:not([disabled]), button[class*="AddToCart"]:not([disabled])',
+    images:         'all:[class*="product-gallery"] img@src, all:[data-testid="product-image"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+    };
+  },
+};
+
+// ─── UK Toy & Book Retailer Presets ──────────────────────────────────────────
+
+export const smythsToysProduct: ScrapePreset = {
+  id: 'smyths-toys-product',
+  name: 'Smyths Toys Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, availability and images from a Smyths Toys product page.',
+  matchDomains: ['smythstoys.com'],
+  strategy: 'playwright',
+  waitFor: { type: 'selector', value: 'h1[class*="product-title"], [class*="productTitle"]' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-title"], h1[class*="productTitle"], [itemprop="name"]',
+    price:          '[class*="price__selling"], [class*="productPrice"], [itemprop="price"]@content',
+    original_price: 'del[class*="price"], [class*="price__was"], [class*="rrp"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), [class*="addToBasket"]:not([disabled])',
+    brand:          '[class*="brand-name"] a, [itemprop="brand"]',
+    images:         'all:[class*="product-gallery"] img@src, all:[class*="productImage"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+    };
+  },
+};
+
+export const waterstonesBooksProduct: ScrapePreset = {
+  id: 'waterstones-product',
+  name: 'Waterstones Product',
+  category: 'ecommerce',
+  description: 'Extracts title, price, author, ISBN and availability from a Waterstones book page.',
+  matchDomains: ['waterstones.com'],
+  strategy: 'http',
+  outputFormats: ['structured'],
+  selectors: {
+    title:       'h1[itemprop="name"], h1[class*="title"], .title-and-author h1',
+    price:       '[class*="price__current"], [itemprop="price"]@content, span[class*="price"]',
+    author:      '[itemprop="author"] [itemprop="name"], a[class*="author-name"]',
+    isbn:        '[itemprop="isbn"], [class*="isbn"]',
+    in_stock:    'button[data-id="add-to-basket"]:not([disabled]), .add-to-basket-button:not([disabled])',
+    format:      '[class*="format-selector"] .active, [class*="selected-format"]',
+    images:      'all:[itemprop="image"]@src, all:.book-cover img@src',
+    description: '[itemprop="description"], #tabContent p',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:   parsePrice(raw.price as string | null),
+      in_stock: !!(raw.in_stock),
+    };
+  },
+};
+
+// ─── UK Pet Retailer Presets ──────────────────────────────────────────────────
+
+export const petsAtHomeProduct: ScrapePreset = {
+  id: 'pets-at-home-product',
+  name: 'Pets at Home Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, availability and images from a Pets at Home product page.',
+  matchDomains: ['petsathome.com'],
+  strategy: 'playwright',
+  waitFor: { type: 'selector', value: 'h1[data-testid="product-name"], [class*="ProductName"]' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[data-testid="product-name"], h1[class*="ProductName"], [itemprop="name"]',
+    price:          '[data-testid="product-price"], [class*="price__current"], [itemprop="price"]@content',
+    original_price: 'del[class*="price"], [data-testid="was-price"], [class*="price__original"]',
+    brand:          '[data-testid="product-brand"], [class*="brand-name"]',
+    in_stock:       'button[data-testid="add-to-basket"]:not([disabled]), [class*="addToBasket"]:not([disabled])',
+    images:         'all:[data-testid="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+    };
+  },
+};
+
+// ─── UK Shared helpers ────────────────────────────────────────────────────────
+
 // ─── Shared helpers ────────────────────────────────────────────────────────────
 
 /** Parse a price string like "$1,234.56" or "£999" into a number. */

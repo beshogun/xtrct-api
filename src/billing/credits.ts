@@ -5,6 +5,13 @@ import { sql, TIER_CREDITS, type Tier } from '../db/index.ts';
  * If the key has no remaining credits, bills as overage instead.
  */
 export async function deductCredits(apiKeyId: string, credits: number, jobId: string, strategy: string): Promise<void> {
+  // Internal tier: track usage for observability but never block or deduct
+  const [keyRow] = await sql`SELECT tier FROM api_keys WHERE id = ${apiKeyId}`;
+  if (keyRow?.tier === 'internal') {
+    await sql`INSERT INTO usage_events (api_key_id, job_id, credits, strategy) VALUES (${apiKeyId}, ${jobId}, ${credits}, ${strategy})`;
+    return;
+  }
+
   await sql`
     UPDATE api_keys SET
       credits_remaining   = GREATEST(0, credits_remaining - ${credits}),
@@ -28,6 +35,9 @@ export async function deductCredits(apiKeyId: string, credits: number, jobId: st
  * Returns true if the job can proceed.
  */
 export async function checkCredits(apiKeyId: string, tier: Tier): Promise<boolean> {
+  // Internal tier: always allowed
+  if (tier === 'internal') return true;
+
   // Free tier: hard block at 0 credits
   if (tier === 'free') {
     const [row] = await sql`SELECT credits_remaining FROM api_keys WHERE id = ${apiKeyId}`;

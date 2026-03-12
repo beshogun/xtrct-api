@@ -73,7 +73,7 @@ export const scrapeRoutes = new Elysia()
       resolvedFormats = Array.isArray(output) ? output : [output];
     }
 
-    // ─── Free tier: no proxy access ────────────────────────────────────────────
+    // ─── Free tier: no proxy access / Internal tier: full access ───────────────
     const effective_proxy_tier = (apiKey.tier === 'free' && proxy_tier !== 'none') ? 'none' as typeof proxy_tier : proxy_tier;
 
     // ─── Validation ────────────────────────────────────────────────────────────

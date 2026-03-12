@@ -8,7 +8,7 @@ export const sql = postgres(process.env.DATABASE_URL ?? '', {
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type Tier = 'free' | 'starter' | 'growth' | 'enterprise';
+export type Tier = 'free' | 'starter' | 'growth' | 'enterprise' | 'internal';
 export type Strategy = 'auto' | 'http' | 'playwright' | 'flaresolverr';
 export type JobStatus = 'pending' | 'running' | 'done' | 'failed';
 export type OutputFormat =
@@ -85,6 +85,7 @@ export const TIER_CREDITS: Record<Tier, number> = {
   starter:    10_000,
   growth:     50_000,
   enterprise: 250_000,
+  internal:   0,
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
