@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blog — xtrct Web Scraping API</title>
+  <meta name="description" content="Guides, tutorials, and best practices for web scraping, data extraction, and bypassing bot protection." />
+  <link rel="canonical" href="https://xtrct.io/blog" />
+  <meta property="og:type"        content="website" />
+  <meta property="og:url"         content="https://xtrct.io/blog" />
+  <meta property="og:title"       content="Blog — xtrct Web Scraping API" />
+  <meta property="og:description" content="Guides and tutorials for web scraping and data extraction." />
+  <meta property="og:image"       content="https://xtrct.io/og.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg: '#07060f', surface: '#0f0d1a', card: '#14111f',
+            border: '#1e1a2e', accent: '#7c3aed', bright: '#a78bfa',
+            text: '#ede9fe', muted: '#6d6880',
+          },
+          fontFamily: {
+            display: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #07060f; color: #ede9fe; font-family: Inter, system-ui, sans-serif; }
+    a { text-decoration: none; }
+  </style>
+</head>
+<body>
+  <nav style="border-bottom: 1px solid #1e1a2e;">
+    <div class="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="/" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:20px;color:#ede9fe;letter-spacing:-0.5px;">
+        xtrct<span style="color:#7c3aed;">.</span>
+      </a>
+      <a href="/#pricing" style="font-size:14px;background:#7c3aed;color:#fff;padding:8px 18px;border-radius:8px;font-weight:600;">Get API Key</a>
+    </div>
+  </nav>
+
+  <main class="max-w-3xl mx-auto px-6 py-16">
+    <h1 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:2rem;letter-spacing:-0.5px;color:#ede9fe;margin-bottom:0.5rem;">Blog</h1>
+    <p style="color:#6d6880;margin-bottom:3rem;">Web scraping guides, tutorials, and best practices.</p>
+
+    <div style="display:flex;flex-direction:column;gap:16px;">
+
+      <a href="/blog/scrape-cloudflare-protected-sites" style="display:block;background:#0f0d1a;border:1px solid #1e1a2e;border-radius:14px;padding:28px;transition:border-color 0.15s;" onmouseover="this.style.borderColor='#7c3aed'" onmouseout="this.style.borderColor='#1e1a2e'">
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <span style="background:#1e1a2e;color:#a78bfa;font-size:11px;font-family:'JetBrains Mono',monospace;padding:2px 10px;border-radius:20px;">Web Scraping</span>
+          <span style="background:#1e1a2e;color:#a78bfa;font-size:11px;font-family:'JetBrains Mono',monospace;padding:2px 10px;border-radius:20px;">Cloudflare</span>
+        </div>
+        <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:1.2rem;color:#ede9fe;margin:0 0 8px;">How to Scrape Cloudflare-Protected Sites in 2026</h2>
+        <p style="color:#6d6880;font-size:14px;line-height:1.6;margin:0 0 12px;">Why Cloudflare blocks scrapers, which approaches fail, and what actually works — stealth browsers, residential proxies, and FlareSolverr.</p>
+        <span style="color:#7c3aed;font-size:13px;font-weight:600;">Read more →</span>
+      </a>
+
+      <a href="/blog/extract-data-from-any-website-api" style="display:block;background:#0f0d1a;border:1px solid #1e1a2e;border-radius:14px;padding:28px;transition:border-color 0.15s;" onmouseover="this.style.borderColor='#7c3aed'" onmouseout="this.style.borderColor='#1e1a2e'">
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <span style="background:#1e1a2e;color:#a78bfa;font-size:11px;font-family:'JetBrains Mono',monospace;padding:2px 10px;border-radius:20px;">Tutorial</span>
+          <span style="background:#1e1a2e;color:#a78bfa;font-size:11px;font-family:'JetBrains Mono',monospace;padding:2px 10px;border-radius:20px;">Web Scraping</span>
+        </div>
+        <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:1.2rem;color:#ede9fe;margin:0 0 8px;">How to Extract Data from Any Website Using an API</h2>
+        <p style="color:#6d6880;font-size:14px;line-height:1.6;margin:0 0 12px;">Step-by-step guide: get HTML, Markdown, JSON, screenshots, and PDFs from any site with a single API call. Includes Python and curl examples.</p>
+        <span style="color:#7c3aed;font-size:13px;font-weight:600;">Read more →</span>
+      </a>
+
+      <a href="/blog/web-scraping-api-vs-diy" style="display:block;background:#0f0d1a;border:1px solid #1e1a2e;border-radius:14px;padding:28px;transition:border-color 0.15s;" onmouseover="this.style.borderColor='#7c3aed'" onmouseout="this.style.borderColor='#1e1a2e'">
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <span style="background:#1e1a2e;color:#a78bfa;font-size:11px;font-family:'JetBrains Mono',monospace;padding:2px 10px;border-radius:20px;">Web Scraping</span>
+          <span style="background:#1e1a2e;color:#a78bfa;font-size:11px;font-family:'JetBrains Mono',monospace;padding:2px 10px;border-radius:20px;">Engineering</span>
+        </div>
+        <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:1.2rem;color:#ede9fe;margin:0 0 8px;">Web Scraping API vs DIY: The True Cost in 2026</h2>
+        <p style="color:#6d6880;font-size:14px;line-height:1.6;margin:0 0 12px;">Infrastructure, proxies, maintenance, and developer time — the real monthly cost of building your own scraper vs using an API.</p>
+        <span style="color:#7c3aed;font-size:13px;font-weight:600;">Read more →</span>
+      </a>
+
+    </div>
+  </main>
+
+  <footer style="border-top:1px solid #1e1a2e;margin-top:5rem;padding:2rem 0;">
+    <div class="max-w-3xl mx-auto px-6 flex items-center justify-between" style="font-size:13px;color:#3b3554;">
+      <span>© 2026 xtrct.io</span>
+      <div style="display:flex;gap:20px;">
+        <a href="/privacy" style="color:#3b3554;">Privacy</a>
+        <a href="/terms" style="color:#3b3554;">Terms</a>
+        <a href="mailto:hello@xtrct.io" style="color:#3b3554;">Contact</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

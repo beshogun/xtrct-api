@@ -30,6 +30,10 @@ export function createServer() {
     .get('/dashboard',    () => serveHtml('dashboard.html'))
     .get('/privacy',      () => serveHtml('privacy.html'))
     .get('/terms',        () => serveHtml('terms.html'))
+    .get('/blog',         () => serveHtml('blog/index.html'))
+    .get('/blog/scrape-cloudflare-protected-sites', () => serveHtml('blog/scrape-cloudflare-protected-sites.html'))
+    .get('/blog/extract-data-from-any-website-api', () => serveHtml('blog/extract-data-from-any-website-api.html'))
+    .get('/blog/web-scraping-api-vs-diy',           () => serveHtml('blog/web-scraping-api-vs-diy.html'))
 
     // ─── Health ──────────────────────────────────────────────────────────────
     .get('/health', async () => {

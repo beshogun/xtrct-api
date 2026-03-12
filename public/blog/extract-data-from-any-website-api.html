@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How to Extract Data from Any Website Using an API (2026) — xtrct</title>
+  <meta name="description" content="A step-by-step guide to extracting structured data from any website using the xtrct API. Get HTML, Markdown, JSON, screenshots, and more with a single API call." />
+  <link rel="canonical" href="https://xtrct.io/blog/extract-data-from-any-website-api" />
+  <meta property="og:type"        content="article" />
+  <meta property="og:url"         content="https://xtrct.io/blog/extract-data-from-any-website-api" />
+  <meta property="og:title"       content="How to Extract Data from Any Website Using an API (2026)" />
+  <meta property="og:description" content="Step-by-step: extract HTML, Markdown, JSON, screenshots from any website with one API call." />
+  <meta property="og:image"       content="https://xtrct.io/og.png" />
+  <meta name="twitter:card"       content="summary_large_image" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg: '#07060f', surface: '#0f0d1a', card: '#14111f',
+            border: '#1e1a2e', accent: '#7c3aed', bright: '#a78bfa',
+            text: '#ede9fe', muted: '#6d6880',
+          },
+          fontFamily: {
+            display: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #07060f; color: #ede9fe; font-family: Inter, system-ui, sans-serif; }
+    pre { background: #0f0d1a; border: 1px solid #1e1a2e; border-radius: 10px; padding: 20px; overflow-x: auto; }
+    code { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #a78bfa; }
+    pre code { color: #c4b5fd; }
+    h2 { color: #ede9fe; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; margin-top: 2.5rem; margin-bottom: 1rem; font-size: 1.4rem; }
+    h3 { color: #ede9fe; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; margin-top: 2rem; margin-bottom: 0.75rem; font-size: 1.1rem; }
+    p { color: #b8b0cc; line-height: 1.75; margin-bottom: 1.25rem; }
+    ul, ol { color: #b8b0cc; line-height: 1.75; margin-bottom: 1.25rem; padding-left: 1.5rem; }
+    li { margin-bottom: 0.4rem; }
+    a { color: #a78bfa; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .pill { display: inline-block; background: #1e1a2e; color: #a78bfa; font-size: 12px; font-family: 'JetBrains Mono', monospace; padding: 2px 10px; border-radius: 20px; margin-right: 6px; }
+    .format-badge { display:inline-block;background:#1e1a2e;border:1px solid #2d2845;color:#a78bfa;font-size:12px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:6px;margin:3px; }
+  </style>
+</head>
+<body>
+  <!-- Nav -->
+  <nav style="border-bottom: 1px solid #1e1a2e;">
+    <div class="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="/" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:20px;color:#ede9fe;letter-spacing:-0.5px;">
+        xtrct<span style="color:#7c3aed;">.</span>
+      </a>
+      <a href="/#pricing" style="font-size:14px;background:#7c3aed;color:#fff;padding:8px 18px;border-radius:8px;font-weight:600;">Get API Key</a>
+    </div>
+  </nav>
+
+  <main class="max-w-3xl mx-auto px-6 py-16">
+    <div style="margin-bottom:2rem;">
+      <span class="pill">Tutorial</span>
+      <span class="pill">Web Scraping</span>
+      <span style="font-size:13px;color:#6d6880;margin-left:4px;">March 2026 · 7 min read</span>
+    </div>
+
+    <h1 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:2.2rem;line-height:1.2;letter-spacing:-1px;color:#ede9fe;margin-bottom:1.5rem;">
+      How to Extract Data from Any Website Using an API
+    </h1>
+
+    <p style="font-size:1.1rem;color:#9d94b8;margin-bottom:2.5rem;">
+      Whether you need clean Markdown for an LLM, structured JSON from a product page,
+      or a screenshot of a site — this guide shows how to get it with a single API call.
+    </p>
+
+    <hr style="border:none;border-top:1px solid #1e1a2e;margin:2rem 0;" />
+
+    <h2>What you can extract</h2>
+    <p>xtrct supports 9 output formats from any URL:</p>
+    <div style="margin-bottom:1.5rem;">
+      <span class="format-badge">html</span>
+      <span class="format-badge">cleaned_html</span>
+      <span class="format-badge">markdown</span>
+      <span class="format-badge">text</span>
+      <span class="format-badge">screenshot</span>
+      <span class="format-badge">pdf</span>
+      <span class="format-badge">links</span>
+      <span class="format-badge">metadata</span>
+      <span class="format-badge">structured</span>
+    </div>
+    <p>You can request multiple formats in a single call and get them all back at once.</p>
+
+    <h2>Getting started</h2>
+    <p>
+      Get a free API key at <a href="https://xtrct.io">xtrct.io</a> — no credit card needed,
+      500 free credits included.
+    </p>
+
+    <h2>Basic extraction</h2>
+    <h3>Get Markdown from any page</h3>
+    <p>Perfect for feeding into LLMs or storing readable content.</p>
+    <pre><code>curl -X POST https://api.xtrct.io/v1/scrape \
+  -H "X-API-Key: YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com/article",
+    "output": "markdown",
+    "wait": true
+  }'</code></pre>
+
+    <h3>Get clean text</h3>
+    <p>Strips all HTML — just the human-readable text content.</p>
+    <pre><code>{
+  "url": "https://example.com/article",
+  "output": "text",
+  "wait": true
+}</code></pre>
+
+    <h3>Take a screenshot</h3>
+    <pre><code>{
+  "url": "https://example.com",
+  "output": "screenshot",
+  "screenshot_options": {
+    "format": "png",
+    "full_page": true
+  },
+  "wait": true
+}</code></pre>
+
+    <h2>Structured data extraction</h2>
+    <p>
+      Use CSS selectors to extract specific fields from a page — great for product data,
+      job listings, news articles, and anything with a consistent structure.
+    </p>
+    <pre><code>{
+  "url": "https://shop.example.com/product/123",
+  "output": "structured",
+  "selectors": {
+    "title":       "h1.product-title",
+    "price":       ".price-now",
+    "description": ".product-description",
+    "rating":      "[data-rating]"
+  },
+  "wait": true
+}</code></pre>
+
+    <p>Response:</p>
+    <pre><code>{
+  "result": {
+    "structured": {
+      "title":       "Blue Widget Pro",
+      "price":       "£49.99",
+      "description": "The best widget for all your widget needs.",
+      "rating":      "4.7"
+    }
+  }
+}</code></pre>
+
+    <h2>Multiple formats at once</h2>
+    <p>Get everything you need in one request:</p>
+    <pre><code>{
+  "url": "https://example.com/article",
+  "output": ["markdown", "metadata", "links"],
+  "wait": true
+}</code></pre>
+
+    <h2>Handling JavaScript-heavy sites</h2>
+    <p>
+      For sites that load content dynamically (React, Vue, etc.), use <code>wait_for</code>
+      to wait for specific content before extracting:
+    </p>
+    <pre><code>{
+  "url": "https://spa-site.com/data",
+  "output": "markdown",
+  "wait_for": { "type": "selector", "value": ".data-loaded" },
+  "wait": true
+}</code></pre>
+
+    <p>Or wait for network activity to settle:</p>
+    <pre><code>{
+  "url": "https://spa-site.com/data",
+  "output": "html",
+  "wait_for": { "type": "networkidle" },
+  "wait": true
+}</code></pre>
+
+    <h2>Using presets for common sites</h2>
+    <p>
+      xtrct ships with 20+ zero-config presets for popular sites.
+      They automatically set the right strategy, wait conditions, and selectors.
+    </p>
+    <pre><code>{
+  "url": "https://amazon.com/dp/B0EXAMPLE",
+  "preset": "amazon",
+  "wait": true
+}</code></pre>
+
+    <p>Or let xtrct auto-detect the right preset from the URL:</p>
+    <pre><code>{
+  "url": "https://amazon.com/dp/B0EXAMPLE",
+  "output": "structured",
+  "wait": true
+}</code></pre>
+
+    <h2>Async jobs for large batches</h2>
+    <p>
+      For bulk scraping, drop the <code>"wait": true</code> flag to get a job ID back immediately,
+      then poll for the result or use a webhook:
+    </p>
+    <pre><code># Submit job
+POST /v1/scrape
+{ "url": "...", "output": "markdown", "webhook_url": "https://your-site.com/hook" }
+
+# Response immediately:
+{ "job_id": "abc123", "status": "queued" }
+
+# Poll result:
+GET /v1/jobs/abc123</code></pre>
+
+    <h2>Python example</h2>
+    <pre><code>import requests
+
+API_KEY = "your_key_here"
+BASE    = "https://api.xtrct.io/v1"
+
+def scrape(url, output="markdown"):
+    r = requests.post(
+        f"{BASE}/scrape",
+        headers={"X-API-Key": API_KEY},
+        json={"url": url, "output": output, "wait": True}
+    )
+    r.raise_for_status()
+    return r.json()["result"][output]
+
+content = scrape("https://news.ycombinator.com", "markdown")
+print(content[:500])</code></pre>
+
+    <!-- CTA -->
+    <div style="background:#0f0d1a;border:1px solid #1e1a2e;border-radius:16px;padding:32px;margin-top:3rem;text-align:center;">
+      <p style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:1.2rem;color:#ede9fe;margin:0 0 8px;">
+        Ready to start extracting?
+      </p>
+      <p style="color:#6d6880;font-size:14px;margin:0 0 20px;">
+        500 free credits. No credit card. Works on any website.
+      </p>
+      <a href="https://xtrct.io/#pricing" style="display:inline-block;background:#7c3aed;color:#fff;padding:12px 28px;border-radius:10px;font-weight:600;font-size:15px;">
+        Get your free API key →
+      </a>
+    </div>
+  </main>
+
+  <footer style="border-top:1px solid #1e1a2e;margin-top:5rem;padding:2rem 0;">
+    <div class="max-w-3xl mx-auto px-6 flex items-center justify-between" style="font-size:13px;color:#3b3554;">
+      <span>© 2026 xtrct.io</span>
+      <div style="display:flex;gap:20px;">
+        <a href="/privacy" style="color:#3b3554;">Privacy</a>
+        <a href="/terms" style="color:#3b3554;">Terms</a>
+        <a href="mailto:hello@xtrct.io" style="color:#3b3554;">Contact</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How to Scrape Cloudflare-Protected Sites in 2026 — xtrct</title>
+  <meta name="description" content="A practical guide to scraping websites protected by Cloudflare in 2026. Learn about browser fingerprinting, JS challenges, and how to bypass them with an API." />
+  <link rel="canonical" href="https://xtrct.io/blog/scrape-cloudflare-protected-sites" />
+  <meta property="og:type"        content="article" />
+  <meta property="og:url"         content="https://xtrct.io/blog/scrape-cloudflare-protected-sites" />
+  <meta property="og:title"       content="How to Scrape Cloudflare-Protected Sites in 2026" />
+  <meta property="og:description" content="A practical guide to bypassing Cloudflare when scraping. Browser fingerprinting, JS challenges, and the easiest solution." />
+  <meta property="og:image"       content="https://xtrct.io/og.png" />
+  <meta name="twitter:card"       content="summary_large_image" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg: '#07060f', surface: '#0f0d1a', card: '#14111f',
+            border: '#1e1a2e', accent: '#7c3aed', bright: '#a78bfa',
+            text: '#ede9fe', muted: '#6d6880',
+          },
+          fontFamily: {
+            display: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #07060f; color: #ede9fe; font-family: Inter, system-ui, sans-serif; }
+    pre { background: #0f0d1a; border: 1px solid #1e1a2e; border-radius: 10px; padding: 20px; overflow-x: auto; }
+    code { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #a78bfa; }
+    pre code { color: #c4b5fd; }
+    h2 { color: #ede9fe; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; margin-top: 2.5rem; margin-bottom: 1rem; font-size: 1.4rem; }
+    h3 { color: #ede9fe; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; margin-top: 2rem; margin-bottom: 0.75rem; font-size: 1.1rem; }
+    p { color: #b8b0cc; line-height: 1.75; margin-bottom: 1.25rem; }
+    ul, ol { color: #b8b0cc; line-height: 1.75; margin-bottom: 1.25rem; padding-left: 1.5rem; }
+    li { margin-bottom: 0.4rem; }
+    a { color: #a78bfa; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .pill { display: inline-block; background: #1e1a2e; color: #a78bfa; font-size: 12px; font-family: 'JetBrains Mono', monospace; padding: 2px 10px; border-radius: 20px; margin-right: 6px; }
+  </style>
+</head>
+<body>
+  <!-- Nav -->
+  <nav style="border-bottom: 1px solid #1e1a2e;">
+    <div class="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="/" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:20px;color:#ede9fe;letter-spacing:-0.5px;">
+        xtrct<span style="color:#7c3aed;">.</span>
+      </a>
+      <a href="/#pricing" style="font-size:14px;background:#7c3aed;color:#fff;padding:8px 18px;border-radius:8px;font-weight:600;">Get API Key</a>
+    </div>
+  </nav>
+
+  <!-- Article -->
+  <main class="max-w-3xl mx-auto px-6 py-16">
+    <!-- Meta -->
+    <div style="margin-bottom:2rem;">
+      <span class="pill">Web Scraping</span>
+      <span class="pill">Cloudflare</span>
+      <span style="font-size:13px;color:#6d6880;margin-left:4px;">March 2026 · 8 min read</span>
+    </div>
+
+    <h1 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:2.2rem;line-height:1.2;letter-spacing:-1px;color:#ede9fe;margin-bottom:1.5rem;">
+      How to Scrape Cloudflare-Protected Sites in 2026
+    </h1>
+
+    <p style="font-size:1.1rem;color:#9d94b8;margin-bottom:2.5rem;">
+      Cloudflare blocks more scrapers than any other technology on the web. Here's exactly why it works,
+      what techniques fail, and the approaches that still get clean data.
+    </p>
+
+    <hr style="border:none;border-top:1px solid #1e1a2e;margin:2rem 0;" />
+
+    <h2>Why Cloudflare is so effective at blocking scrapers</h2>
+    <p>
+      Cloudflare's bot protection works on several layers simultaneously, which is why simple approaches fail:
+    </p>
+    <ul>
+      <li><strong style="color:#ede9fe;">JavaScript challenges</strong> — Cloudflare serves a JS page that computes a proof-of-work token before redirecting to the actual site. A plain HTTP fetch gets the challenge page, not the content.</li>
+      <li><strong style="color:#ede9fe;">Browser fingerprinting</strong> — Even with a headless browser, Cloudflare checks for automation signals: missing WebGL, fake navigator properties, impossible screen dimensions, missing plugins.</li>
+      <li><strong style="color:#ede9fe;">IP reputation</strong> — Data-center IPs are pre-flagged. Residential IPs are trusted by default.</li>
+      <li><strong style="color:#ede9fe;">Behavioural analysis</strong> — Mouse movement, scroll events, time-on-page. A page that gets scraped in 100ms with no interaction is suspicious.</li>
+    </ul>
+
+    <h2>Approaches that don't work in 2026</h2>
+
+    <h3>Plain HTTP requests</h3>
+    <p>
+      <code>requests.get()</code>, <code>curl</code>, <code>fetch()</code> — these get a 403 or a challenge page immediately on any Cloudflare-protected domain. The HTML you get back is a Cloudflare interstitial, not the site content.
+    </p>
+
+    <h3>Vanilla Selenium / Playwright with default settings</h3>
+    <p>
+      Running <code>playwright.chromium.launch()</code> with default settings is trivially detectable.
+      Cloudflare's JS checks <code>navigator.webdriver</code>, looks for specific Chrome DevTools Protocol artifacts,
+      and checks dozens of other automation signals. You'll get blocked within a few requests.
+    </p>
+
+    <h3>Rotating data-center proxies alone</h3>
+    <p>
+      IP rotation helps with rate limits but Cloudflare knows AWS, GCP, DigitalOcean, and all major
+      data-center CIDR ranges. Even with fresh IPs you'll still be fingerprinted and blocked.
+    </p>
+
+    <h2>What actually works</h2>
+
+    <h3>1. Stealth-patched headless Chromium</h3>
+    <p>
+      Libraries like <code>playwright-extra</code> with the stealth plugin patch the automation fingerprints:
+      spoofing <code>navigator.webdriver</code>, adding realistic plugin lists, patching WebGL renderer strings,
+      randomising viewport and User-Agent. This gets past most Cloudflare configurations.
+    </p>
+    <pre><code># Python example with playwright-extra
+from playwright.sync_api import sync_playwright
+from playwright_stealth import stealth_sync
+
+with sync_playwright() as p:
+    browser = p.chromium.launch(headless=True)
+    page = browser.new_page()
+    stealth_sync(page)
+    page.goto("https://protected-site.com")
+    print(page.content())</code></pre>
+
+    <p>This works but requires you to manage browser instances, keep up with Cloudflare updates, and run your own infrastructure.</p>
+
+    <h3>2. Residential proxy + stealth browser</h3>
+    <p>
+      Combining a residential IP (Bright Data, ProxyJet, Smartproxy) with a stealth-patched browser is the
+      most reliable combination for heavily-protected sites. Residential IPs have genuine ISP reputation,
+      so the IP reputation check passes even for aggressive Cloudflare configs.
+    </p>
+
+    <h3>3. FlareSolverr</h3>
+    <p>
+      <a href="https://github.com/FlareSolverr/FlareSolverr">FlareSolverr</a> is an open-source proxy server
+      that solves Cloudflare challenges using a real browser session and returns the result.
+      You self-host it and it handles the JS challenge automatically.
+    </p>
+    <pre><code>curl -X POST http://localhost:8191/v1 \
+  -H "Content-Type: application/json" \
+  -d '{"cmd":"request.get","url":"https://protected-site.com","maxTimeout":60000}'</code></pre>
+
+    <h3>4. Use a scraping API that handles it for you</h3>
+    <p>
+      If you don't want to manage browser infrastructure, proxy pools, and keep up with Cloudflare
+      updates yourself, a scraping API handles the entire escalation stack automatically.
+    </p>
+    <p>
+      <a href="https://xtrct.io">xtrct</a> runs a 7-step auto-escalation chain: plain HTTP → HTTP with
+      datacenter proxy → HTTP with residential proxy → stealth Playwright → Playwright with datacenter proxy
+      → Playwright with residential proxy → FlareSolverr. It tries the cheapest method first and only
+      escalates when needed.
+    </p>
+    <pre><code>curl -X POST https://api.xtrct.io/v1/scrape \
+  -H "X-API-Key: YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://cloudflare-protected-site.com","output":"markdown","wait":true}'</code></pre>
+
+    <p>You get back clean Markdown (or HTML, JSON, screenshot, PDF — your choice) without managing any infrastructure.</p>
+
+    <h2>Choosing the right approach</h2>
+
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:1.5rem;">
+      <thead>
+        <tr style="border-bottom:1px solid #1e1a2e;">
+          <th style="text-align:left;padding:10px 12px;color:#6d6880;font-weight:600;">Approach</th>
+          <th style="text-align:left;padding:10px 12px;color:#6d6880;font-weight:600;">Works on CF?</th>
+          <th style="text-align:left;padding:10px 12px;color:#6d6880;font-weight:600;">Setup effort</th>
+          <th style="text-align:left;padding:10px 12px;color:#6d6880;font-weight:600;">Cost</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid #1e1a2e;">
+          <td style="padding:10px 12px;color:#b8b0cc;">Plain HTTP</td>
+          <td style="padding:10px 12px;color:#ef4444;">No</td>
+          <td style="padding:10px 12px;color:#b8b0cc;">None</td>
+          <td style="padding:10px 12px;color:#b8b0cc;">Free</td>
+        </tr>
+        <tr style="border-bottom:1px solid #1e1a2e;">
+          <td style="padding:10px 12px;color:#b8b0cc;">Stealth Playwright</td>
+          <td style="padding:10px 12px;color:#fbbf24;">Usually</td>
+          <td style="padding:10px 12px;color:#b8b0cc;">High</td>
+          <td style="padding:10px 12px;color:#b8b0cc;">Server + proxies</td>
+        </tr>
+        <tr style="border-bottom:1px solid #1e1a2e;">
+          <td style="padding:10px 12px;color:#b8b0cc;">Residential proxy + stealth</td>
+          <td style="padding:10px 12px;color:#22c55e;">Yes</td>
+          <td style="padding:10px 12px;color:#b8b0cc;">High</td>
+          <td style="padding:10px 12px;color:#b8b0cc;">Server + proxies</td>
+        </tr>
+        <tr style="border-bottom:1px solid #1e1a2e;">
+          <td style="padding:10px 12px;color:#b8b0cc;">FlareSolverr</td>
+          <td style="padding:10px 12px;color:#22c55e;">Yes</td>
+          <td style="padding:10px 12px;color:#b8b0cc;">Medium</td>
+          <td style="padding:10px 12px;color:#b8b0cc;">Self-host</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 12px;color:#a78bfa;font-weight:600;">xtrct API</td>
+          <td style="padding:10px 12px;color:#22c55e;">Yes</td>
+          <td style="padding:10px 12px;color:#b8b0cc;">None</td>
+          <td style="padding:10px 12px;color:#b8b0cc;">Pay-per-use</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Summary</h2>
+    <p>
+      Cloudflare protection in 2026 requires at minimum a stealth-patched browser. For heavily protected
+      sites, combine that with a residential proxy. If you'd rather not manage infrastructure,
+      a scraping API like xtrct handles the entire stack automatically — free to start.
+    </p>
+
+    <!-- CTA -->
+    <div style="background:#0f0d1a;border:1px solid #1e1a2e;border-radius:16px;padding:32px;margin-top:3rem;text-align:center;">
+      <p style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:1.2rem;color:#ede9fe;margin:0 0 8px;">
+        Skip the infrastructure — use xtrct
+      </p>
+      <p style="color:#6d6880;font-size:14px;margin:0 0 20px;">
+        500 free credits. No credit card required. Cloudflare bypass included.
+      </p>
+      <a href="https://xtrct.io/#pricing" style="display:inline-block;background:#7c3aed;color:#fff;padding:12px 28px;border-radius:10px;font-weight:600;font-size:15px;">
+        Get your free API key →
+      </a>
+    </div>
+  </main>
+
+  <footer style="border-top:1px solid #1e1a2e;margin-top:5rem;padding:2rem 0;">
+    <div class="max-w-3xl mx-auto px-6 flex items-center justify-between" style="font-size:13px;color:#3b3554;">
+      <span>© 2026 xtrct.io</span>
+      <div style="display:flex;gap:20px;">
+        <a href="/privacy" style="color:#3b3554;">Privacy</a>
+        <a href="/terms" style="color:#3b3554;">Terms</a>
+        <a href="mailto:hello@xtrct.io" style="color:#3b3554;">Contact</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
