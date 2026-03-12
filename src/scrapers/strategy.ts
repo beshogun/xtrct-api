@@ -209,7 +209,7 @@ async function runAuto(url: string, opts: RunOptions): Promise<StrategyResult> {
     stepNum++;
   }
 
-  // ── Step 7: FlareSolverr ────────────────────────────────────────────────────
+  // ── Step 7: FlareSolverr → then Playwright with CF cookies (SPA handoff) ───
   process.stderr.write(`  [strategy] step ${stepNum}: FlareSolverr\n`);
   if (!(await flareScraper.isAvailable())) {
     throw new Error(
@@ -218,8 +218,40 @@ async function runAuto(url: string, opts: RunOptions): Promise<StrategyResult> {
     );
   }
 
-  const r = await flareScraper.fetch(url, opts.timeout);
-  return { ...r, strategyUsed: 'flaresolverr', proxyUsed: null, proxyTier: 'none' };
+  const flareResult = await flareScraper.fetch(url, opts.timeout);
+
+  // If the page looks like a rendered SPA (has substantial content), return it directly
+  if (flareResult.html.length > 50_000) {
+    return { ...flareResult, strategyUsed: 'flaresolverr', proxyUsed: null, proxyTier: 'none' };
+  }
+
+  // Otherwise (SPA shell — React/Next.js not yet hydrated), hand off CF cookies to
+  // Playwright so the browser renders the full page with a legitimate CF clearance token
+  process.stderr.write(`  [strategy] step ${stepNum}b: FlareSolverr→Playwright cookie handoff (SPA)\n`);
+  const cfCookies = flareResult.cookies.map(c => ({
+    name: c.name,
+    value: c.value,
+    domain: c.domain,
+  }));
+
+  const pwResult = await tryPlaywright(url, null, {
+    ...opts,
+    cookies: [...(opts.cookies ?? []), ...cfCookies],
+    timeout: opts.timeout ?? 30_000,
+  });
+
+  if (pwResult) {
+    return {
+      ...pwResult.result,
+      strategyUsed: 'playwright',
+      proxyUsed: null,
+      proxyTier: 'none',
+      playwright: { page: pwResult.page, context: pwResult.context, release: pwResult.release },
+    };
+  }
+
+  // Fall back to raw FlareSolverr result if Playwright also fails
+  return { ...flareResult, strategyUsed: 'flaresolverr', proxyUsed: null, proxyTier: 'none' };
 }
 
 // ─── Public entry point ───────────────────────────────────────────────────────
