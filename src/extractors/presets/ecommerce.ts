@@ -9,7 +9,8 @@ export const amazonProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price, rating, availability, images and bullet points from an Amazon product page.',
   matchDomains: ['amazon.co.uk', 'amazon.com', 'amazon.de', 'amazon.fr', 'amazon.es', 'amazon.it', 'amazon.ca', 'amazon.com.au'],
-  strategy: 'http',
+  strategy: 'playwright',
+  waitFor: { type: 'selector', value: 'span#productTitle' },
   outputFormats: ['structured'],
   selectors: {
     title:          'span#productTitle',
