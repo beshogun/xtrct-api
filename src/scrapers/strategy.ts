@@ -209,7 +209,7 @@ async function runAuto(url: string, opts: RunOptions): Promise<StrategyResult> {
     stepNum++;
   }
 
-  // ── Step 7: FlareSolverr → then Playwright with CF cookies (SPA handoff) ───
+  // ── Step 7: FlareSolverr (with residential proxy) → Playwright cookie handoff ─
   process.stderr.write(`  [strategy] step ${stepNum}: FlareSolverr\n`);
   if (!(await flareScraper.isAvailable())) {
     throw new Error(
@@ -218,40 +218,45 @@ async function runAuto(url: string, opts: RunOptions): Promise<StrategyResult> {
     );
   }
 
-  const flareResult = await flareScraper.fetch(url, opts.timeout);
+  // Pass residential proxy to FlareSolverr so cf_clearance is issued for that IP.
+  // This is critical for the cookie handoff: Playwright must use the same IP.
+  const flareProxy = resProxy ?? dcProxy ?? null;
+  const flareResult = await flareScraper.fetch(url, opts.timeout, flareProxy);
 
-  // If the page looks like a rendered SPA (has substantial content), return it directly
+  // If the page looks fully rendered (non-SPA or SSR), return it directly
   if (flareResult.html.length > 50_000) {
-    return { ...flareResult, strategyUsed: 'flaresolverr', proxyUsed: null, proxyTier: 'none' };
+    return { ...flareResult, strategyUsed: 'flaresolverr', proxyUsed: flareProxy, proxyTier: flareProxy === resProxy ? 'residential' : flareProxy ? 'datacenter' : 'none' };
   }
 
-  // Otherwise (SPA shell — React/Next.js not yet hydrated), hand off CF cookies to
-  // Playwright so the browser renders the full page with a legitimate CF clearance token
-  process.stderr.write(`  [strategy] step ${stepNum}b: FlareSolverr→Playwright cookie handoff (SPA)\n`);
+  // SPA shell — hand off CF cookies to Playwright using the SAME proxy so the
+  // cf_clearance cookie is valid for that IP and the SPA can fully hydrate.
+  process.stderr.write(`  [strategy] step ${stepNum}b: FlareSolverr→Playwright SPA handoff\n`);
   const cfCookies = flareResult.cookies.map(c => ({
     name: c.name,
     value: c.value,
     domain: c.domain,
   }));
 
-  const pwResult = await tryPlaywright(url, null, {
+  const pwResult = await tryPlaywright(url, flareProxy, {
     ...opts,
     cookies: [...(opts.cookies ?? []), ...cfCookies],
     timeout: opts.timeout ?? 30_000,
   });
 
   if (pwResult) {
+    const proxyTier = flareProxy === resProxy ? 'residential' : flareProxy ? 'datacenter' : 'none';
     return {
       ...pwResult.result,
       strategyUsed: 'playwright',
-      proxyUsed: null,
-      proxyTier: 'none',
+      proxyUsed: flareProxy,
+      proxyTier,
       playwright: { page: pwResult.page, context: pwResult.context, release: pwResult.release },
     };
   }
 
   // Fall back to raw FlareSolverr result if Playwright also fails
-  return { ...flareResult, strategyUsed: 'flaresolverr', proxyUsed: null, proxyTier: 'none' };
+  const proxyTier = flareProxy === resProxy ? 'residential' : flareProxy ? 'datacenter' : 'none';
+  return { ...flareResult, strategyUsed: 'flaresolverr', proxyUsed: flareProxy, proxyTier };
 }
 
 // ─── Public entry point ───────────────────────────────────────────────────────

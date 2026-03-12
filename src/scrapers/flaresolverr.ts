@@ -35,11 +35,14 @@ export class FlareSolverrScraper {
     return FLARESOLVERR_URL;
   }
 
-  async fetch(url: string, timeout = 60_000): Promise<FlareResult> {
+  async fetch(url: string, timeout = 60_000, proxyUrl?: string | null): Promise<FlareResult> {
+    const body: Record<string, unknown> = { cmd: 'request.get', url, maxTimeout: timeout };
+    if (proxyUrl) body.proxy = { url: proxyUrl };
+
     const res = await fetch(`${FLARESOLVERR_URL}/v1`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cmd: 'request.get', url, maxTimeout: timeout }),
+      body: JSON.stringify(body),
     });
 
     if (!res.ok) throw new Error(`FlareSolverr HTTP ${res.status}`);
