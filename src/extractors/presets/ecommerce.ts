@@ -1457,7 +1457,8 @@ export const amazonUkCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers product listings from an Amazon UK category or search results page.',
   matchDomains: [],
-  strategy: 'http',
+  strategy: 'playwright',
+  waitFor: { type: 'selector', value: 'div[data-asin]:not([data-asin=""])' },
   outputFormats: ['structured'],
   selectors: {
     // data-asin attribute on the result item — use as unique product key
