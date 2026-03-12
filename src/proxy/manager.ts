@@ -88,6 +88,10 @@ class ProxyManager {
    * list to fetch.
    */
   getResidentialProxy(): string | null {
+    // Explicit residential proxy URL (e.g. ProxyJet, Bright Data, etc.)
+    if (process.env.RESIDENTIAL_PROXY) return process.env.RESIDENTIAL_PROXY;
+
+    // Legacy Webshare residential credentials
     const user = process.env.WEBSHARE_RESIDENTIAL_USER;
     const pass = process.env.WEBSHARE_RESIDENTIAL_PASS;
     if (!user || !pass) return null;
@@ -219,6 +223,7 @@ class ProxyManager {
   }
 
   private isResidentialUrl(url: string): boolean {
+    if (process.env.RESIDENTIAL_PROXY && url === process.env.RESIDENTIAL_PROXY) return true;
     try {
       return new URL(url).hostname === 'p.webshare.io';
     } catch {
