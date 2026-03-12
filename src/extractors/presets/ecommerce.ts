@@ -1459,16 +1459,14 @@ export const amazonUkCategory: ScrapePreset = {
   description: 'Discovers product listings from an Amazon UK category or search results page.',
   matchDomains: [],
   strategy: 'playwright',
-  waitFor: { type: 'selector', value: 'div[data-asin]:not([data-asin=""])' },
+  waitFor: { type: 'selector', value: '[data-asin]' },
   outputFormats: ['structured'],
   selectors: {
-    // data-asin attribute on the result item — use as unique product key
-    all_asins:  'all:div[data-asin]:not([data-asin=""])@data-asin',
-    all_titles: 'all:div[data-asin]:not([data-asin=""]) h2 a span',
-    all_urls:   'all:div[data-asin]:not([data-asin=""]) h2 a@href',
-    all_prices: 'all:div[data-asin]:not([data-asin=""]) .a-price .a-offscreen',
-    all_images: 'all:div[data-asin]:not([data-asin=""]) img.s-image@src',
-    all_brands: 'all:div[data-asin]:not([data-asin=""]) .s-line-clamp-1 h2, all:div[data-asin]:not([data-asin=""]) span.a-size-base-plus',
+    all_asins:  'all:[data-asin]@data-asin',
+    all_titles: 'all:[data-asin] h2 a span',
+    all_urls:   'all:[data-asin] h2 a@href',
+    all_prices: 'all:[data-asin] .a-price .a-offscreen',
+    all_images: 'all:[data-asin] img.s-image@src',
   },
 };
 
