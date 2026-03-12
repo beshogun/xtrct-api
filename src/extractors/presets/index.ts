@@ -89,6 +89,16 @@ import {
   // CA retailers
   memoryExpressProduct,
   mikesComputerShopProduct,
+  // Category listing presets
+  amazonUkCategory,
+  currysCategory,
+  argosCategory,
+  johnLewisCategory,
+  aoCategory,
+  ebuyerCategory,
+  scanCategory,
+  laptopsDirectCategory,
+  veryCategory,
 } from './ecommerce.ts';
 import { indeedJob, linkedinJob, glassdoorJob, remoteokListing } from './jobs.ts';
 import { rightmoveProperty, zillowListing, zooplaProperty } from './realestate.ts';
@@ -169,6 +179,17 @@ export const PRESETS: Record<string, ScrapePreset> = {
   // ecommerce — CA retailers
   'memory-express':       memoryExpressProduct,
   'mikes-computer-shop':  mikesComputerShopProduct,
+
+  // ecommerce — category/listing pages
+  'amazon-uk-category':    amazonUkCategory,
+  'currys-category':       currysCategory,
+  'argos-category':        argosCategory,
+  'johnlewis-category':    johnLewisCategory,
+  'ao-category':           aoCategory,
+  'ebuyer-category':       ebuyerCategory,
+  'scan-category':         scanCategory,
+  'laptopsdirect-category': laptopsDirectCategory,
+  'very-category':         veryCategory,
 
   // jobs
   'indeed-job':        indeedJob,

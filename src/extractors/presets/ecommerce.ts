@@ -1442,6 +1442,167 @@ export const mikesComputerShopProduct: ScrapePreset = {
   },
 };
 
+// ─── Category / Listing Page Presets ──────────────────────────────────────────
+//
+// These presets scrape retailer category/search pages to discover products.
+// Each returns parallel arrays: all_titles, all_urls, all_prices, all_images, all_asins?
+// The category-crawler worker zips these arrays into product records.
+//
+// IMPORTANT: array lengths may differ if some cards lack prices. The worker
+// uses all_urls as the authoritative index and treats missing values as null.
+
+export const amazonUkCategory: ScrapePreset = {
+  id: 'amazon-uk-category',
+  name: 'Amazon UK Category / Search',
+  category: 'ecommerce',
+  description: 'Discovers product listings from an Amazon UK category or search results page.',
+  matchDomains: [],
+  strategy: 'http',
+  outputFormats: ['structured'],
+  selectors: {
+    // data-asin attribute on the result item — use as unique product key
+    all_asins:  'all:div[data-asin]:not([data-asin=""])@data-asin',
+    all_titles: 'all:div[data-asin]:not([data-asin=""]) h2 a span',
+    all_urls:   'all:div[data-asin]:not([data-asin=""]) h2 a@href',
+    all_prices: 'all:div[data-asin]:not([data-asin=""]) .a-price .a-offscreen',
+    all_images: 'all:div[data-asin]:not([data-asin=""]) img.s-image@src',
+    all_brands: 'all:div[data-asin]:not([data-asin=""]) .s-line-clamp-1 h2, all:div[data-asin]:not([data-asin=""]) span.a-size-base-plus',
+  },
+};
+
+export const currysCategory: ScrapePreset = {
+  id: 'currys-category',
+  name: 'Currys Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers product listings from a Currys category page.',
+  matchDomains: [],
+  strategy: 'playwright',
+  waitFor: { type: 'selector', value: '[data-component="ProductCard"], [class*="product-card"], article[class*="ProductCard"]' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[data-component="ProductCard"] [data-component="Title"], all:article[class*="product-card"] h3, all:[class*="ProductCard"] h3',
+    all_urls:   'all:[data-component="ProductCard"] a[data-component="Link"]@href, all:article[class*="product-card"] a@href, all:[class*="ProductCard"] a[class*="link"]@href',
+    all_prices: 'all:[data-component="ProductCard"] [data-component="PriceBlock"] [class*="current"], all:article[class*="product-card"] [class*="price-current"]',
+    all_images: 'all:[data-component="ProductCard"] img@src, all:article[class*="product-card"] img@src',
+  },
+};
+
+export const argosCategory: ScrapePreset = {
+  id: 'argos-category',
+  name: 'Argos Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers product listings from an Argos category page.',
+  matchDomains: [],
+  strategy: 'playwright',
+  waitFor: { type: 'selector', value: '[data-test="product-card"], [class*="ProductCard"]' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[data-test="product-card"] [data-test="product-title"], all:[data-test="product-card"] h3',
+    all_urls:   'all:[data-test="product-card"] a[data-test="component-link"]@href, all:[data-test="product-card"] a@href',
+    all_prices: 'all:[data-test="product-card"] [data-test="price-display"], all:[data-test="product-card"] [class*="PriceDisplay"]',
+    all_images: 'all:[data-test="product-card"] img[data-test="product-tile-image"]@src, all:[data-test="product-card"] img@src',
+  },
+};
+
+export const johnLewisCategory: ScrapePreset = {
+  id: 'johnlewis-category',
+  name: 'John Lewis Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers product listings from a John Lewis category page.',
+  matchDomains: [],
+  strategy: 'playwright',
+  waitFor: { type: 'selector', value: '[data-testid="product-card-anchor"], [class*="ProductCard"]' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[data-testid="product-card-anchor"] [class*="ProductTitle"], all:[data-testid="product-card-anchor"] h2, all:[class*="ProductCard"] h2',
+    all_urls:   'all:a[data-testid="product-card-anchor"]@href, all:[class*="ProductCard"] a[data-testid]@href',
+    all_prices: 'all:[data-testid="product-card-anchor"] [data-testid="price"], all:[data-testid="product-card-anchor"] [class*="price"]',
+    all_images: 'all:[data-testid="product-card-anchor"] img@src, all:[class*="ProductCard"] img@src',
+  },
+};
+
+export const aoCategory: ScrapePreset = {
+  id: 'ao-category',
+  name: 'AO.com Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers product listings from an AO.com category page.',
+  matchDomains: [],
+  strategy: 'playwright',
+  waitFor: { type: 'selector', value: '[class*="product-tile"], [class*="ProductTile"], [data-testid="product-tile"]' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-tile"] [class*="product-name"], all:[class*="product-tile"] h2, all:[data-testid="product-tile"] h3',
+    all_urls:   'all:[class*="product-tile"] a@href, all:[data-testid="product-tile"] a@href',
+    all_prices: 'all:[class*="product-tile"] [class*="price"], all:[data-testid="product-tile"] [class*="price"]',
+    all_images: 'all:[class*="product-tile"] img@src, all:[data-testid="product-tile"] img@src',
+  },
+};
+
+export const ebuyerCategory: ScrapePreset = {
+  id: 'ebuyer-category',
+  name: 'Ebuyer Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers product listings from an Ebuyer category page.',
+  matchDomains: [],
+  strategy: 'http',
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:li.grid-item .item-title a, all:.product-listing .item-title a',
+    all_urls:   'all:li.grid-item .item-title a@href, all:.product-listing .item-title a@href',
+    all_prices: 'all:li.grid-item .price-inc-vat, all:.product-listing .price',
+    all_images: 'all:li.grid-item img.product-image@src, all:.product-listing img@src',
+  },
+};
+
+export const scanCategory: ScrapePreset = {
+  id: 'scan-category',
+  name: 'Scan.co.uk Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers product listings from a Scan.co.uk category page.',
+  matchDomains: [],
+  strategy: 'http',
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:ul.productList li .description a, all:.productListItem .description a',
+    all_urls:   'all:ul.productList li .description a@href, all:.productListItem .description a@href',
+    all_prices: 'all:ul.productList li .price, all:.productListItem .price',
+    all_images: 'all:ul.productList li img@src, all:.productListItem img@src',
+  },
+};
+
+export const laptopsDirectCategory: ScrapePreset = {
+  id: 'laptopsdirect-category',
+  name: 'Laptops Direct Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers product listings from a Laptops Direct category page.',
+  matchDomains: [],
+  strategy: 'http',
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:.product-list-item .product-title a, all:[class*="product-item"] h3 a',
+    all_urls:   'all:.product-list-item .product-title a@href, all:[class*="product-item"] h3 a@href',
+    all_prices: 'all:.product-list-item .product-price, all:[class*="product-item"] .price',
+    all_images: 'all:.product-list-item img.product-image@src, all:[class*="product-item"] img@src',
+  },
+};
+
+export const veryCategory: ScrapePreset = {
+  id: 'very-category',
+  name: 'Very.co.uk Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers product listings from a Very.co.uk category page.',
+  matchDomains: [],
+  strategy: 'playwright',
+  waitFor: { type: 'selector', value: '[data-testid="product-block"], [class*="ProductBlock"]' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[data-testid="product-block"] [data-testid="product-name"], all:[class*="ProductBlock"] h3',
+    all_urls:   'all:[data-testid="product-block"] a@href, all:[class*="ProductBlock"] a@href',
+    all_prices: 'all:[data-testid="product-block"] [data-testid="product-price"], all:[class*="ProductBlock"] [class*="price"]',
+    all_images: 'all:[data-testid="product-block"] img@src, all:[class*="ProductBlock"] img@src',
+  },
+};
+
 // ─── Shared helpers ────────────────────────────────────────────────────────────
 
 /** Parse a price string like "$1,234.56" or "£999" into a number. */
