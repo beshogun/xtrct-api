@@ -41,7 +41,7 @@ export function createServer() {
     .get('/ebay/account-deletion', ({ query }) => {
       const challengeCode = (query as any).challenge_code
       if (!challengeCode) return new Response('OK', { status: 200 })
-      const token = process.env.EBAY_DELETION_TOKEN ?? 'magpie-ebay-2026'
+      const token = process.env.EBAY_DELETION_TOKEN ?? 'magpie-ebay-marketplace-deletion-2026-xtrct'
       const endpoint = 'https://xtrct.io/ebay/account-deletion'
       const hash = createHash('sha256')
         .update(challengeCode + token + endpoint)
