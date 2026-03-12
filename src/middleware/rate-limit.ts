@@ -8,6 +8,7 @@ const TIER_LIMITS: Record<Tier, { reqPerMin: number; maxQueueDepth: number }> = 
   starter:    { reqPerMin: 60,   maxQueueDepth: 50 },
   growth:     { reqPerMin: 200,  maxQueueDepth: 200 },
   enterprise: { reqPerMin: 1000, maxQueueDepth: Infinity },
+  internal:   { reqPerMin: 1000, maxQueueDepth: Infinity },
 };
 
 const GLOBAL_QUEUE_LIMIT = 500;
