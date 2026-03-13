@@ -16,7 +16,7 @@ type StructuredResult = Record<string, string | string[] | null>;
  *   "price":  "nextdata:props.pageProps.product.price"  → Next.js __NEXT_DATA__ dot-path
  *   "imgs":   "nextdata[]:props.pageProps.product.images"
  *   "price":  "xhr:/api/product:price"    → XHR/fetch JSON capture dot-path
- *   "items":  "xhr[]:*/products*:results" → XHR array value
+ *   "items":  "xhr[]:*\/products*:results" → XHR array value
  */
 
 // ── JSON-LD helpers ─────────────────────────────────────────────────────────
