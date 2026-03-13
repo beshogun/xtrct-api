@@ -45,7 +45,10 @@ function isNetworkError(e: Error): boolean {
     e.message.includes('fetch failed') ||
     e.message.includes('certificate') ||
     e.message.includes('SSL') ||
-    e.message.includes('TLS')
+    e.message.includes('TLS') ||
+    e.message.includes('timed out') ||
+    e.message.includes('TimeoutError') ||
+    e.name === 'TimeoutError'
   );
 }
 
