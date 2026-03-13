@@ -50,17 +50,21 @@ export class PlaywrightScraper {
     let statusCode = 200;
 
     page.on('response', async res => {
-      if (res.url() === page.url()) statusCode = res.status();
+      try { if (res.url() === page.url()) statusCode = res.status(); } catch {}
     });
 
     // Block images, media and fonts — saves bandwidth and speeds up load.
     // JS and CSS must be allowed so Cloudflare challenge scripts can run.
     await page.route('**/*', (route) => {
-      const type = route.request().resourceType();
-      if (['image', 'media', 'font'].includes(type)) {
-        route.abort().catch(() => {});
-      } else {
-        route.continue().catch(() => {});
+      try {
+        const type = route.request().resourceType();
+        if (['image', 'media', 'font'].includes(type)) {
+          route.abort().catch(() => {});
+        } else {
+          route.continue().catch(() => {});
+        }
+      } catch {
+        // Page may have been closed/navigated — ignore
       }
     });
 
