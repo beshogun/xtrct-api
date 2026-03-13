@@ -3309,3 +3309,2170 @@ export const gardenTradingCategory: ScrapePreset = {
     all_images: 'all:[class*="product-card"] img@src, all:[class*="product-tile"] img@src',
   },
 };
+
+// ─── UK Product Presets — Group 1: Tech / Gaming ─────────────────────────────
+
+export const backMarketProduct: ScrapePreset = {
+  id: 'back-market-product',
+  name: 'Back Market Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, grade, brand and images from a Back Market refurbished electronics page.',
+  matchDomains: ['backmarket.co.uk', 'backmarket.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[data-qa="product-title"], h1[class*="product-title"], h1[class*="ProductTitle"]',
+    price:          '[data-qa="product-price"], [class*="price__current"], [class*="ProductPrice__current"]',
+    original_price: '[data-qa="product-original-price"], [class*="price__crossed"], del',
+    brand:          '[data-qa="product-brand"], [class*="brand-name"], [itemprop="brand"]',
+    grade:          '[data-qa="product-grade"], [class*="grade-label"], [class*="GradeLabel"]',
+    description:    '[data-qa="product-description"], [class*="product-description"]',
+    in_stock:       '[data-qa="add-to-cart"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[class*="product-gallery"] img@src, all:[class*="ProductGallery"] img@src, all:[class*="carousel"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const musicMagpieProduct: ScrapePreset = {
+  id: 'music-magpie-product',
+  name: 'musicMagpie Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, condition, brand, description and images from a musicMagpie product page.',
+  matchDomains: ['musicmagpie.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-title"], h1[class*="ProductTitle"], h1[itemprop="name"]',
+    price:          '[class*="product-price"] [class*="price"], [itemprop="price"]@content, [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="manufacturer"]',
+    condition:      '[class*="condition-label"], [class*="grade"], [data-condition]',
+    description:    '[class*="product-description"], [itemprop="description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src, all:[class*="carousel"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const richerSoundsProduct: ScrapePreset = {
+  id: 'richer-sounds-product',
+  name: 'Richer Sounds Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand, MPN and images from a Richer Sounds product page.',
+  matchDomains: ['richersounds.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1.product-name, h1[class*="product-title"], h1[itemprop="name"]',
+    price:          '.product-price .price, [class*="our-price"], [itemprop="price"]@content',
+    original_price: '.rrp-price, [class*="was-price"], del.price',
+    brand:          '[itemprop="brand"] [itemprop="name"], .product-brand a, [class*="manufacturer"]',
+    mpn:            '[itemprop="mpn"], .product-mpn, td[class*="model-number"]',
+    description:    '.product-description, [itemprop="description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), .add-to-basket:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:.product-images img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const gameUkProduct: ScrapePreset = {
+  id: 'game-uk-product',
+  name: 'GAME UK Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, platform, brand, description and images from a GAME UK product page.',
+  matchDomains: ['game.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-name"], h1[itemprop="name"], h1[class*="ProductName"]',
+    price:          '[class*="product-price"] [class*="price"], [itemprop="price"]@content, [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="publisher"]',
+    platform:       '[class*="platform"], [data-platform], [class*="format-label"]',
+    description:    '[class*="product-description"], [itemprop="description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const shoptoProduct: ScrapePreset = {
+  id: 'shopto-product',
+  name: 'ShopTo Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, platform, description and images from a ShopTo.net product page.',
+  matchDomains: ['shopto.net'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1.product-title, h1[class*="product-name"]',
+    price:          '[itemprop="price"]@content, .product-price .price, [class*="selling-price"]',
+    original_price: '[class*="rrp-price"], [class*="was-price"], del.price',
+    brand:          '[itemprop="brand"], .product-brand, [class*="manufacturer"]',
+    description:    '[itemprop="description"], .product-description',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), .add-to-basket:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:.product-images img@src, all:[class*="gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const zavviProduct: ScrapePreset = {
+  id: 'zavvi-product',
+  name: 'Zavvi Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand, description and images from a Zavvi product page.',
+  matchDomains: ['zavvi.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-title"], h1[itemprop="name"], h1[class*="ProductName"]',
+    price:          '[class*="product-price"] [class*="price-now"], [itemprop="price"]@content',
+    original_price: '[class*="price-was"], [class*="price-rrp"], del[itemprop="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), [itemprop="availability"][content*="InStock"]',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const games365Product: ScrapePreset = {
+  id: '365games-product',
+  name: '365games Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, platform, description and images from a 365games.co.uk product page.',
+  matchDomains: ['365games.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1.product-name, h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, .product-price .price, [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del.price',
+    brand:          '[itemprop="brand"], .product-brand, [class*="manufacturer"]',
+    description:    '[itemprop="description"], .product-description',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), .add-to-basket:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:.product-images img@src, all:[class*="product-image"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const halfordsProduct: ScrapePreset = {
+  id: 'halfords-product',
+  name: 'Halfords Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand, SKU, description and images from a Halfords product page.',
+  matchDomains: ['halfords.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-name"], h1[class*="ProductName"], h1[itemprop="name"]',
+    price:          '[class*="product-price"] [class*="price-now"], [itemprop="price"]@content, [class*="selling-price"]',
+    original_price: '[class*="price-was"], [class*="was-price"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    sku:            '[itemprop="sku"], [class*="product-code"], [class*="product-sku"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-gallery"] img@src, all:[class*="product-image"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const appliancesDirectProduct: ScrapePreset = {
+  id: 'appliances-direct-product',
+  name: 'Appliances Direct Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand, MPN, energy rating and images from an Appliances Direct product page.',
+  matchDomains: ['appliancesdirect.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1[class*="product-name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, .our-price span, [class*="product-price"] [class*="price"]',
+    original_price: '.rrp-price, [class*="was-price"], del.price',
+    brand:          '[itemprop="brand"] [itemprop="name"], .product-brand a, [class*="manufacturer"]',
+    mpn:            '[itemprop="mpn"], [class*="model-number"], td[data-label*="Model"]',
+    energy_rating:  '[class*="energy-rating"], [class*="EnergyRating"], [aria-label*="Energy"]',
+    description:    '[itemprop="description"], .product-description',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), .add-to-basket:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:.product-images img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const lakelandProduct: ScrapePreset = {
+  id: 'lakeland-product',
+  name: 'Lakeland Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand, description, rating and images from a Lakeland product page.',
+  matchDomains: ['lakeland.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-title"], h1[itemprop="name"], h1[class*="ProductName"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp-price"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="brand-name"], [class*="product-brand"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    rating:         '[itemprop="ratingValue"]@content, [class*="rating-score"], [class*="star-rating"] span',
+    review_count:   '[itemprop="reviewCount"]@content, [class*="review-count"], a[href*="reviews"] span',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), [class*="AddToBasket"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      rating:         parseRating(raw.rating as string | null),
+      review_count:   parseCount(raw.review_count as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const novatechProduct: ScrapePreset = {
+  id: 'novatech-product',
+  name: 'Novatech Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, availability, brand, MPN/EAN and images from a Novatech.co.uk product page.',
+  matchDomains: ['novatech.co.uk'],
+  strategy: 'http',
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1.product-name, #product-name',
+    price:          '[itemprop="price"]@content, span.price, .product-price .inc-vat',
+    original_price: '[class*="was-price"], del.price, span.rrp',
+    brand:          '[itemprop="brand"] span, .product-brand a, td[data-label="Manufacturer"]',
+    mpn:            '[itemprop="mpn"], td[data-label="Part No"], [class*="part-number"]',
+    ean:            '[itemprop="gtin13"], td[data-label="EAN"]',
+    description:    '[itemprop="description"], .product-description',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), .add-to-basket:not([disabled]), .in-stock',
+    images:         'all:[itemprop="image"]@src, all:#product-images img@src, all:.product-gallery img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const cclComputersProduct: ScrapePreset = {
+  id: 'ccl-computers-product',
+  name: 'CCL Computers Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, availability, brand, MPN/EAN and images from a CCLOnline.com product page.',
+  matchDomains: ['cclonline.com'],
+  strategy: 'http',
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1.product-name, .product-title h1',
+    price:          '[itemprop="price"]@content, span.price, .product-price strong',
+    original_price: '[class*="was-price"], del.price, .rrp span',
+    brand:          '[itemprop="brand"] span, .product-brand a, td[data-label="Brand"]',
+    mpn:            '[itemprop="mpn"], td[data-label="MPN"], [class*="part-number"]',
+    ean:            '[itemprop="gtin13"], td[data-label="EAN"]',
+    description:    '[itemprop="description"], .product-description',
+    in_stock:       'button#add-to-basket:not([disabled]), .add-to-basket:not([disabled]), .in-stock',
+    images:         'all:[itemprop="image"]@src, all:#product-images img@src, all:.product-gallery img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const highStreetTvProduct: ScrapePreset = {
+  id: 'high-street-tv-product',
+  name: 'High Street TV Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, description and images from a High Street TV product page.',
+  matchDomains: ['highstreettv.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1[class*="product-title"], h1[class*="product-name"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const bedsCoUkProduct: ScrapePreset = {
+  id: 'beds-co-uk-product',
+  name: 'Beds.co.uk Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, description and images from a Beds.co.uk product page.',
+  matchDomains: ['beds.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1[class*="product-title"], h1[class*="product-name"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+// ─── UK Product Presets — Group 2: Fashion ───────────────────────────────────
+
+export const boohooProduct: ScrapePreset = {
+  id: 'boohoo-product',
+  name: 'Boohoo Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, colour, size options and images from a Boohoo product page.',
+  matchDomains: ['boohoo.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-title"], h1[class*="ProductTitle"], h1[itemprop="name"]',
+    price:          '[class*="product-price"] [class*="price-now"], [itemprop="price"]@content, [class*="price__current"]',
+    original_price: '[class*="price-was"], [class*="price__original"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"], [class*="product-details"]',
+    colour:         '[class*="colour-name"], [data-colour], [class*="selected-colour"]',
+    in_stock:       'button[class*="add-to-bag"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src, all:[class*="carousel"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const prettylittlethingProduct: ScrapePreset = {
+  id: 'prettylittlething-product',
+  name: 'PrettyLittleThing Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, colour and images from a PrettyLittleThing product page.',
+  matchDomains: ['prettylittlething.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-title"], h1[itemprop="name"], h1[class*="ProductTitle"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price-now"], [class*="price__current"]',
+    original_price: '[class*="price-was"], [class*="price__original"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    colour:         '[class*="colour-name"], [data-colour], [class*="selected-colour"]',
+    in_stock:       'button[class*="add-to-bag"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src, all:[class*="carousel"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const newLookProduct: ScrapePreset = {
+  id: 'new-look-product',
+  name: 'New Look Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand and images from a New Look product page.',
+  matchDomains: ['newlook.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-title"], h1[data-testid="product-name"], h1[itemprop="name"]',
+    price:          '[data-testid="price"], [class*="product-price"] [class*="price"], [itemprop="price"]@content',
+    original_price: '[class*="was-price"], [class*="strike-price"], del[class*="price"]',
+    brand:          '[class*="product-brand"], [class*="brand-name"], [itemprop="brand"]',
+    description:    '[class*="product-description"], [itemprop="description"]',
+    in_stock:       '.add-to-basket:not([disabled]), [data-testid="add-to-cart"]:not([disabled]), button[class*="add-to-bag"]:not([disabled])',
+    images:         'all:[class*="product-image"] img@src, all:[class*="gallery"] img@src, all:[class*="carousel"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const riverIslandProduct: ScrapePreset = {
+  id: 'river-island-product',
+  name: 'River Island Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, colour, brand and images from a River Island product page.',
+  matchDomains: ['riverisland.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-name"], h1[data-testid="product-title"], h1[itemprop="name"]',
+    price:          '[data-testid="product-price"], [itemprop="price"]@content, [class*="product-price"] [class*="price"]',
+    original_price: '[class*="was-price"], [class*="original-price"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="brand-name"]',
+    colour:         '[class*="colour-name"], [data-testid="selected-colour"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-bag"]:not([disabled]), button[data-testid="add-to-bag"]:not([disabled])',
+    images:         'all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src, all:[class*="carousel"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const houseOfFraserProduct: ScrapePreset = {
+  id: 'house-of-fraser-product',
+  name: 'House of Fraser Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand and images from a House of Fraser product page.',
+  matchDomains: ['houseoffraser.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-name"], h1[itemprop="name"], h1[class*="ProductName"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price-now"], [class*="price__current"]',
+    original_price: '[class*="price-was"], [class*="was-price"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], a[class*="brand"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-bag"]:not([disabled]), button[class*="add-to-basket"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const flannelsProduct: ScrapePreset = {
+  id: 'flannels-product',
+  name: 'Flannels Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand and images from a Flannels product page.',
+  matchDomains: ['flannels.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-name"], h1[itemprop="name"], h1[class*="ProductName"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price-now"], [class*="price__current"]',
+    original_price: '[class*="price-was"], [class*="was-price"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], a[class*="brand"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-bag"]:not([disabled]), button[class*="add-to-basket"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const mainlineMenswearProduct: ScrapePreset = {
+  id: 'mainline-menswear-product',
+  name: 'Mainline Menswear Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand and images from a Mainline Menswear product page.',
+  matchDomains: ['mainlinemenswear.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1[class*="product-title"], h1[class*="product-name"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-bag"]:not([disabled]), button[class*="add-to-basket"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const fatFaceProduct: ScrapePreset = {
+  id: 'fat-face-product',
+  name: 'Fat Face Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, colour and images from a Fat Face product page.',
+  matchDomains: ['fatface.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-name"], h1[itemprop="name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="original-price"], del[class*="price"]',
+    brand:          '[itemprop="brand"]',
+    colour:         '[class*="selected-colour"], [class*="colour-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-bag"]:not([disabled]), button[class*="add-to-basket"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const whiteStuffProduct: ScrapePreset = {
+  id: 'white-stuff-product',
+  name: 'White Stuff Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, colour and images from a White Stuff product page.',
+  matchDomains: ['whitestuff.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-name"], h1[itemprop="name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="original-price"], del[class*="price"]',
+    brand:          '[itemprop="brand"]',
+    colour:         '[class*="selected-colour"], [class*="colour-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-bag"]:not([disabled]), button[class*="add-to-basket"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const joulesProduct: ScrapePreset = {
+  id: 'joules-product',
+  name: 'Joules Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, colour and images from a Joules product page.',
+  matchDomains: ['joules.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-name"], h1[itemprop="name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="original-price"], del[class*="price"]',
+    brand:          '[itemprop="brand"]',
+    colour:         '[class*="selected-colour"], [class*="colour-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-bag"]:not([disabled]), button[class*="add-to-basket"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const tedBakerProduct: ScrapePreset = {
+  id: 'ted-baker-product',
+  name: 'Ted Baker Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, colour and images from a Ted Baker product page.',
+  matchDomains: ['tedbaker.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-name"], h1[itemprop="name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="original-price"], del[class*="price"]',
+    brand:          '[itemprop="brand"]',
+    colour:         '[class*="selected-colour"], [class*="colour-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-bag"]:not([disabled]), button[class*="add-to-basket"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const reissProduct: ScrapePreset = {
+  id: 'reiss-product',
+  name: 'Reiss Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, colour and images from a Reiss product page.',
+  matchDomains: ['reiss.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-name"], h1[itemprop="name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="original-price"], del[class*="price"]',
+    brand:          '[itemprop="brand"]',
+    colour:         '[class*="selected-colour"], [class*="colour-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-bag"]:not([disabled]), button[class*="add-to-basket"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const superdryProduct: ScrapePreset = {
+  id: 'superdry-product',
+  name: 'Superdry Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, colour and images from a Superdry product page.',
+  matchDomains: ['superdry.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-name"], h1[itemprop="name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="original-price"], del[class*="price"]',
+    brand:          '[itemprop="brand"]',
+    colour:         '[class*="selected-colour"], [class*="colour-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-bag"]:not([disabled]), button[class*="add-to-basket"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const matalanProduct: ScrapePreset = {
+  id: 'matalan-product',
+  name: 'Matalan Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, colour and images from a Matalan product page.',
+  matchDomains: ['matalan.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-name"], h1[itemprop="name"], h1[data-testid="product-title"]',
+    price:          '[data-testid="product-price"], [itemprop="price"]@content, [class*="product-price"] [class*="price"]',
+    original_price: '[class*="was-price"], [class*="original-price"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="brand-name"]',
+    colour:         '[class*="selected-colour"], [class*="colour-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-bag"]:not([disabled]), button[class*="add-to-basket"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const quizProduct: ScrapePreset = {
+  id: 'quiz-product',
+  name: 'Quiz Clothing Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, colour and images from a Quiz Clothing product page.',
+  matchDomains: ['quizclothing.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-name"], h1[itemprop="name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="original-price"], del[class*="price"]',
+    brand:          '[itemprop="brand"]',
+    colour:         '[class*="selected-colour"], [class*="colour-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-bag"]:not([disabled]), button[class*="add-to-basket"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const georgeAsdaProduct: ScrapePreset = {
+  id: 'george-asda-product',
+  name: 'George at Asda Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, colour and images from a George (Asda) product page.',
+  matchDomains: ['george.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-name"], h1[itemprop="name"], h1[data-testid="product-title"]',
+    price:          '[data-testid="product-price"], [itemprop="price"]@content, [class*="product-price"] [class*="price"]',
+    original_price: '[class*="was-price"], [class*="original-price"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="brand-name"]',
+    colour:         '[class*="selected-colour"], [class*="colour-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-bag"]:not([disabled]), button[class*="add-to-basket"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const debenhamsProduct: ScrapePreset = {
+  id: 'debenhams-product',
+  name: 'Debenhams Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand and images from a Debenhams product page.',
+  matchDomains: ['debenhams.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-title"], h1[itemprop="name"], h1[class*="ProductTitle"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price-now"], [class*="price__current"]',
+    original_price: '[class*="price-was"], [class*="price__original"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], a[class*="brand"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-bag"]:not([disabled]), button[class*="add-to-basket"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const karenMillenProduct: ScrapePreset = {
+  id: 'karen-millen-product',
+  name: 'Karen Millen Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, colour and images from a Karen Millen product page.',
+  matchDomains: ['karenmillen.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-title"], h1[itemprop="name"], h1[class*="ProductTitle"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price-now"], [class*="price__current"]',
+    original_price: '[class*="price-was"], [class*="price__original"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"]',
+    colour:         '[class*="colour-name"], [data-colour], [class*="selected-colour"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-bag"]:not([disabled]), button[class*="add-to-basket"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const dorothyPerkinsProduct: ScrapePreset = {
+  id: 'dorothy-perkins-product',
+  name: 'Dorothy Perkins Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, colour and images from a Dorothy Perkins product page.',
+  matchDomains: ['dorothyperkins.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-title"], h1[itemprop="name"], h1[class*="ProductTitle"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price-now"], [class*="price__current"]',
+    original_price: '[class*="price-was"], [class*="price__original"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"]',
+    colour:         '[class*="colour-name"], [data-colour], [class*="selected-colour"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-bag"]:not([disabled]), button[class*="add-to-basket"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const wallisProduct: ScrapePreset = {
+  id: 'wallis-product',
+  name: 'Wallis Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, colour and images from a Wallis product page.',
+  matchDomains: ['wallis.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-title"], h1[itemprop="name"], h1[class*="ProductTitle"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price-now"], [class*="price__current"]',
+    original_price: '[class*="price-was"], [class*="price__original"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"]',
+    colour:         '[class*="colour-name"], [data-colour], [class*="selected-colour"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-bag"]:not([disabled]), button[class*="add-to-basket"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const missSelfridgeProduct: ScrapePreset = {
+  id: 'miss-selfridge-product',
+  name: 'Miss Selfridge Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, colour and images from a Miss Selfridge product page.',
+  matchDomains: ['missselfridge.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-title"], h1[itemprop="name"], h1[class*="ProductTitle"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="original-price"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"]',
+    colour:         '[class*="colour-name"], [data-colour], [class*="selected-colour"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-bag"]:not([disabled]), button[class*="add-to-basket"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+// ─── UK Product Presets — Group 3: Sports & Outdoor ──────────────────────────
+
+export const goOutdoorsProduct: ScrapePreset = {
+  id: 'go-outdoors-product',
+  name: 'Go Outdoors Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand, description and images from a Go Outdoors product page.',
+  matchDomains: ['gooutdoors.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-name"], h1[itemprop="name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const mountainWarehouseProduct: ScrapePreset = {
+  id: 'mountain-warehouse-product',
+  name: 'Mountain Warehouse Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand, description and images from a Mountain Warehouse product page.',
+  matchDomains: ['mountainwarehouse.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-name"], h1[itemprop="name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const cotswoldOutdoorProduct: ScrapePreset = {
+  id: 'cotswold-outdoor-product',
+  name: 'Cotswold Outdoor Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand, description and images from a Cotswold Outdoor product page.',
+  matchDomains: ['cotswoldoutdoor.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-name"], h1[itemprop="name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const chainReactionProduct: ScrapePreset = {
+  id: 'chain-reaction-product',
+  name: 'Chain Reaction Cycles Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand, description and images from a Chain Reaction Cycles product page.',
+  matchDomains: ['chainreactioncycles.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-name"], h1[itemprop="name"], h1[data-testid="product-title"]',
+    price:          '[data-testid="product-price"], [itemprop="price"]@content, [class*="product-price"] [class*="price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const sweatyBettyProduct: ScrapePreset = {
+  id: 'sweaty-betty-product',
+  name: 'Sweaty Betty Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, colour and images from a Sweaty Betty product page.',
+  matchDomains: ['sweatybetty.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-name"], h1[itemprop="name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="original-price"], del[class*="price"]',
+    brand:          '[itemprop="brand"]',
+    colour:         '[class*="selected-colour"], [class*="colour-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-bag"]:not([disabled]), button[class*="add-to-basket"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const lululemonUkProduct: ScrapePreset = {
+  id: 'lululemon-uk-product',
+  name: 'lululemon UK Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, colour and images from a lululemon product page.',
+  matchDomains: ['lululemon.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[data-testid="product-name"], h1[class*="product-name"], h1[itemprop="name"]',
+    price:          '[data-testid="product-price"], [itemprop="price"]@content, [class*="product-price"] [class*="price"]',
+    original_price: '[class*="was-price"], [class*="original-price"], del[class*="price"]',
+    brand:          '[itemprop="brand"]',
+    colour:         '[data-testid="colour-name"], [class*="colour-name"]',
+    description:    '[data-testid="product-description"], [itemprop="description"]',
+    in_stock:       'button[data-testid="add-to-bag"]:not([disabled]), button[class*="add-to-bag"]:not([disabled])',
+    images:         'all:[data-testid="product-image"] img@src, all:[class*="product-image"] img@src, all:[class*="carousel"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const blacksProduct: ScrapePreset = {
+  id: 'blacks-product',
+  name: 'Blacks Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand and images from a Blacks product page.',
+  matchDomains: ['blacks.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-name"], h1[itemprop="name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const evansCyclesProduct: ScrapePreset = {
+  id: 'evans-cycles-product',
+  name: 'Evans Cycles Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand, description and images from an Evans Cycles product page.',
+  matchDomains: ['evanscycles.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-name"], h1[itemprop="name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const probikeKitProduct: ScrapePreset = {
+  id: 'probikekit-product',
+  name: 'ProBikeKit Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand and images from a ProBikeKit product page.',
+  matchDomains: ['probikekit.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-name"], h1[itemprop="name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const underArmourUkProduct: ScrapePreset = {
+  id: 'under-armour-uk-product',
+  name: 'Under Armour UK Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, colour and images from an Under Armour product page.',
+  matchDomains: ['underarmour.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-name"], h1[itemprop="name"], h1[data-testid="product-name"]',
+    price:          '[itemprop="price"]@content, [data-testid="product-price"], [class*="product-price"] [class*="price"]',
+    original_price: '[class*="original-price"], [class*="was-price"], del[class*="price"]',
+    brand:          '[itemprop="brand"]',
+    colour:         '[class*="selected-colour"], [data-testid="colour-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-bag"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+// ─── UK Product Presets — Group 4: Beauty & Health ───────────────────────────
+
+export const beautyBayProduct: ScrapePreset = {
+  id: 'beauty-bay-product',
+  name: 'Beauty Bay Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand, description and images from a Beauty Bay product page.',
+  matchDomains: ['beautybay.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-name"], h1[itemprop="name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-bag"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const spaceNkProduct: ScrapePreset = {
+  id: 'space-nk-product',
+  name: 'Space NK Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand, description and images from a Space NK product page.',
+  matchDomains: ['spacenk.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-name"], h1[itemprop="name"], h1[data-testid="product-title"]',
+    price:          '[itemprop="price"]@content, [data-testid="product-price"], [class*="product-price"] [class*="price"]',
+    original_price: '[class*="was-price"], [class*="original-price"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-bag"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const theBodyShopProduct: ScrapePreset = {
+  id: 'the-body-shop-product',
+  name: 'The Body Shop Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand, description and images from a The Body Shop product page.',
+  matchDomains: ['thebodyshop.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-name"], h1[itemprop="name"], h1[data-testid="product-title"]',
+    price:          '[itemprop="price"]@content, [data-testid="product-price"], [class*="product-price"] [class*="price"]',
+    original_price: '[class*="was-price"], [class*="original-price"], del[class*="price"]',
+    brand:          '[itemprop="brand"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-bag"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const hollandBarrettProduct: ScrapePreset = {
+  id: 'holland-barrett-product',
+  name: 'Holland & Barrett Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand, description and images from a Holland & Barrett product page.',
+  matchDomains: ['hollandandbarrett.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-name"], h1[itemprop="name"], h1[data-testid="product-name"]',
+    price:          '[itemprop="price"]@content, [data-testid="price"], [class*="product-price"] [class*="price"]',
+    original_price: '[class*="was-price"], [class*="original-price"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const fragranceDirectProduct: ScrapePreset = {
+  id: 'fragrance-direct-product',
+  name: 'Fragrance Direct Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand and images from a Fragrance Direct product page.',
+  matchDomains: ['fragrancedirect.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1[class*="product-name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const feeluniqueProduct: ScrapePreset = {
+  id: 'feelunique-product',
+  name: 'Feelunique Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand and images from a Feelunique product page.',
+  matchDomains: ['feelunique.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1[class*="product-name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-bag"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const chemistDirectProduct: ScrapePreset = {
+  id: 'chemist-direct-product',
+  name: 'Chemist Direct Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand and images from a Chemist Direct product page.',
+  matchDomains: ['chemistdirect.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1[class*="product-name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const pharmacy2uProduct: ScrapePreset = {
+  id: 'pharmacy2u-product',
+  name: 'Pharmacy2U Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand and images from a Pharmacy2U product page.',
+  matchDomains: ['pharmacy2u.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1[class*="product-name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+// ─── UK Product Presets — Group 5: Toys ──────────────────────────────────────
+
+export const theEntertainerProduct: ScrapePreset = {
+  id: 'the-entertainer-product',
+  name: 'The Entertainer Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand, description and images from The Entertainer product page.',
+  matchDomains: ['thetoyshop.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1[class*="product-name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const hamleysProduct: ScrapePreset = {
+  id: 'hamleys-product',
+  name: 'Hamleys Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand, description and images from a Hamleys product page.',
+  matchDomains: ['hamleys.com'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1[class*="product-name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const characterOnlineProduct: ScrapePreset = {
+  id: 'character-online-product',
+  name: 'Character Online Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand and images from a Character Online product page.',
+  matchDomains: ['character-online.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1[class*="product-name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+// ─── UK Product Presets — Group 6: Books ─────────────────────────────────────
+
+export const whsmithProduct: ScrapePreset = {
+  id: 'whsmith-product',
+  name: 'WHSmith Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, author, ISBN and images from a WHSmith product page.',
+  matchDomains: ['whsmith.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1[class*="product-name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [itemprop="author"], [class*="author"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    isbn:           '[itemprop="isbn"], [class*="isbn"], td[data-label*="ISBN"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const theBookPeopleProduct: ScrapePreset = {
+  id: 'the-book-people-product',
+  name: 'The Book People Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, author and images from a The Book People product page.',
+  matchDomains: ['thebookpeople.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1[class*="product-name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="author"], [class*="author"], [itemprop="brand"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const hiveProduct: ScrapePreset = {
+  id: 'hive-product',
+  name: 'Hive Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, author and images from a Hive.co.uk product page.',
+  matchDomains: ['hive.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1[class*="product-name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="author"], [class*="author"], [itemprop="brand"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const blackwellsProduct: ScrapePreset = {
+  id: 'blackwells-product',
+  name: 'Blackwell\'s Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, author, ISBN and images from a Blackwell\'s product page.',
+  matchDomains: ['blackwells.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1[class*="product-name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="author"], [class*="author"], [itemprop="brand"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    isbn:           '[itemprop="isbn"], [class*="isbn"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+// ─── UK Product Presets — Group 7: Pets ──────────────────────────────────────
+
+export const zooplusProduct: ScrapePreset = {
+  id: 'zooplus-product',
+  name: 'zooplus Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand and images from a zooplus product page.',
+  matchDomains: ['zooplus.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-name"], h1[itemprop="name"], h1[data-testid="product-title"]',
+    price:          '[data-testid="product-price"], [itemprop="price"]@content, [class*="product-price"] [class*="price"]',
+    original_price: '[class*="was-price"], [class*="original-price"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const jollyesProduct: ScrapePreset = {
+  id: 'jollyes-product',
+  name: 'Jollyes Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand and images from a Jollyes product page.',
+  matchDomains: ['jollyes.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1[class*="product-name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const viovetProduct: ScrapePreset = {
+  id: 'viovet-product',
+  name: 'VioVet Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand and images from a VioVet product page.',
+  matchDomains: ['viovet.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1[class*="product-name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const monsterPetProduct: ScrapePreset = {
+  id: 'monster-pet-product',
+  name: 'Monster Pet Supplies Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand and images from a Monster Pet Supplies product page.',
+  matchDomains: ['monsterpetsupplies.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1[class*="product-name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+// ─── UK Product Presets — Group 8: Home ──────────────────────────────────────
+
+export const homebaseProduct: ScrapePreset = {
+  id: 'homebase-product',
+  name: 'Homebase Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand, description and images from a Homebase product page.',
+  matchDomains: ['homebase.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1[class*="product-name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const oakFurniturelandProduct: ScrapePreset = {
+  id: 'oak-furnitureland-product',
+  name: 'Oak Furnitureland Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, description and images from an Oak Furnitureland product page.',
+  matchDomains: ['oakfurnitureland.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1[class*="product-name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const coxAndCoxProduct: ScrapePreset = {
+  id: 'cox-and-cox-product',
+  name: 'Cox & Cox Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, description and images from a Cox & Cox product page.',
+  matchDomains: ['coxandcox.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1[class*="product-name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const gardenTradingProduct: ScrapePreset = {
+  id: 'garden-trading-product',
+  name: 'Garden Trading Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, description and images from a Garden Trading product page.',
+  matchDomains: ['gardentrading.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1[class*="product-name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const wickesProduct: ScrapePreset = {
+  id: 'wickes-product',
+  name: 'Wickes Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand, description and images from a Wickes product page.',
+  matchDomains: ['wickes.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1[class*="product-name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const furnitureBoxProduct: ScrapePreset = {
+  id: 'furniture-box-product',
+  name: 'Furniture Box Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, description and images from a Furniture Box product page.',
+  matchDomains: ['furniturebox.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1[class*="product-name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const furnitureVillageProduct: ScrapePreset = {
+  id: 'furniture-village-product',
+  name: 'Furniture Village Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, description and images from a Furniture Village product page.',
+  matchDomains: ['furniturevillage.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1[class*="product-name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const laRedouteUkProduct: ScrapePreset = {
+  id: 'la-redoute-uk-product',
+  name: 'La Redoute UK Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand and images from a La Redoute product page.',
+  matchDomains: ['laredoute.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1[class*="product-name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="original-price"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
+
+export const jewelleryBoxProduct: ScrapePreset = {
+  id: 'jewellery-box-product',
+  name: 'The Jewellery Box Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, original price, brand and images from The Jewellery Box product page.',
+  matchDomains: ['thejewellerybox.co.uk'],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1[class*="product-name"], h1[class*="product-title"]',
+    price:          '[itemprop="price"]@content, [class*="product-price"] [class*="price"], [class*="selling-price"]',
+    original_price: '[class*="was-price"], [class*="rrp"], del[class*="price"]',
+    brand:          '[itemprop="brand"], [class*="product-brand"], [class*="brand-name"]',
+    description:    '[itemprop="description"], [class*="product-description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[itemprop="image"]@src, all:[class*="product-image"] img@src, all:[class*="product-gallery"] img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};
