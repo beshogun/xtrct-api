@@ -295,9 +295,8 @@ async function runAuto(url: string, opts: RunOptions): Promise<StrategyResult> {
   if ((!forcedTier || forcedTier === 'datacenter') && hasDc) {
     httpSteps.push({ label: 'HTTP + datacenter proxy', proxyUrl: dcProxy, tier: 'datacenter' });
   }
-  if ((!forcedTier || forcedTier === 'residential') && hasRes) {
-    httpSteps.push({ label: 'HTTP + residential proxy', proxyUrl: resProxy, tier: 'residential' });
-  }
+  // HTTP + residential skipped: Bun's fetch() proxy option is silently dropped on Linux (Railway),
+  // so residential proxy only works via Playwright/FlareSolverr (which use Chromium's proxy stack).
 
   if (!forcedTier || forcedTier === 'none') {
     playwrightSteps.push({ label: 'Playwright stealth, no proxy', proxyUrl: null, tier: 'none' });
