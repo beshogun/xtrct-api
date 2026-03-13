@@ -2,6 +2,7 @@ import { httpScraper, CloudflareError } from './http.ts';
 import { playwrightScraper, CloudflareJSError, type PlaywrightOptions } from './playwright.ts';
 import { flareScraper } from './flaresolverr.ts';
 import { proxyManager, selectProxy, type ProxyTier } from '../proxy/manager.ts';
+import { randomBytes } from 'crypto';
 import type { Strategy } from '../db/index.ts';
 
 export interface StrategyResult {
@@ -120,21 +121,23 @@ async function runForced(url: string, opts: RunOptions, strategy: Strategy): Pro
       const r = await tryPlaywright(url, proxy, opts);
       if (r) return { ...r.result, strategyUsed: 'playwright', proxyUsed: proxy, proxyTier: tier, playwright: { page: r.page, context: r.context, release: r.release } };
     }
-    // All playwright attempts blocked by CF — escalate to FlareSolverr + cookie handoff
+    // All playwright attempts blocked by CF — escalate to FlareSolverr + sticky cookie handoff
     if (await flareScraper.isAvailable()) {
       process.stderr.write(`  [strategy] Playwright blocked → FlareSolverr SPA handoff (forced playwright mode)\n`);
-      const flareProxy = resProxy ?? dcProxy ?? null;
-      const flareResult = await flareScraper.fetch(url, opts.timeout, flareProxy);
-      if (flareResult.html.length > 50_000) {
-        return { ...flareResult, strategyUsed: 'flaresolverr', proxyUsed: flareProxy, proxyTier: flareProxy === resProxy ? 'residential' : flareProxy ? 'datacenter' : 'none' };
+      const sessionId = randomBytes(8).toString('hex');
+      const stickyProxy = resProxy ? proxyManager.getStickyResidentialProxy(sessionId) : dcProxy ?? null;
+      const flareResult = await flareScraper.fetch(url, opts.timeout, stickyProxy);
+      if (flareResult.html.length > 50_000 && !flareResult.html.includes("This site can't be reached")) {
+        const proxyTier: ProxyTier = stickyProxy === resProxy ? 'residential' : stickyProxy ? 'datacenter' : 'none';
+        return { ...flareResult, strategyUsed: 'flaresolverr', proxyUsed: stickyProxy, proxyTier };
       }
       const cfCookies = flareResult.cookies.map(c => ({ name: c.name, value: c.value, domain: c.domain }));
-      const pwResult = await tryPlaywright(url, flareProxy, { ...opts, cookies: [...(opts.cookies ?? []), ...cfCookies] });
+      const pwResult = await tryPlaywright(url, stickyProxy, { ...opts, cookies: [...(opts.cookies ?? []), ...cfCookies] });
       if (pwResult) {
-        const proxyTier: ProxyTier = flareProxy === resProxy ? 'residential' : flareProxy ? 'datacenter' : 'none';
-        return { ...pwResult.result, strategyUsed: 'playwright', proxyUsed: flareProxy, proxyTier, playwright: { page: pwResult.page, context: pwResult.context, release: pwResult.release } };
+        const proxyTier: ProxyTier = stickyProxy === resProxy ? 'residential' : stickyProxy ? 'datacenter' : 'none';
+        return { ...pwResult.result, strategyUsed: 'playwright', proxyUsed: stickyProxy, proxyTier, playwright: { page: pwResult.page, context: pwResult.context, release: pwResult.release } };
       }
-      return { ...flareResult, strategyUsed: 'flaresolverr', proxyUsed: flareProxy, proxyTier: flareProxy === resProxy ? 'residential' : flareProxy ? 'datacenter' : 'none' };
+      return { ...flareResult, strategyUsed: 'flaresolverr', proxyUsed: stickyProxy, proxyTier: stickyProxy ? 'residential' : 'none' };
     }
     throw new Error('Cloudflare JS challenge blocked all Playwright attempts and FlareSolverr is not available');
   }
@@ -240,45 +243,44 @@ async function runAuto(url: string, opts: RunOptions): Promise<StrategyResult> {
     );
   }
 
-  // Pass residential proxy to FlareSolverr so cf_clearance is issued for that IP.
-  // This is critical for the cookie handoff: Playwright must use the same IP.
-  const flareProxy = resProxy ?? dcProxy ?? null;
-  const flareResult = await flareScraper.fetch(url, opts.timeout, flareProxy);
+  // Use a sticky session so FlareSolverr and the Playwright handoff share the same exit IP.
+  // cf_clearance cookies are IP-bound — mismatched IPs cause Cloudflare to reject them.
+  const sessionId = randomBytes(8).toString('hex');
+  const stickyProxy = resProxy
+    ? proxyManager.getStickyResidentialProxy(sessionId)
+    : (dcProxy ?? null);
 
-  // If the page looks fully rendered (non-SPA or SSR), return it directly
-  if (flareResult.html.length > 50_000) {
-    return { ...flareResult, strategyUsed: 'flaresolverr', proxyUsed: flareProxy, proxyTier: flareProxy === resProxy ? 'residential' : flareProxy ? 'datacenter' : 'none' };
+  const flareResult = await flareScraper.fetch(url, opts.timeout, stickyProxy);
+
+  // If the page looks fully rendered and not a Chrome error page, return directly
+  if (flareResult.html.length > 50_000 && !flareResult.html.includes("This site can't be reached")) {
+    const proxyTier: ProxyTier = stickyProxy === resProxy ? 'residential' : stickyProxy ? 'datacenter' : 'none';
+    return { ...flareResult, strategyUsed: 'flaresolverr', proxyUsed: stickyProxy, proxyTier };
   }
 
-  // SPA shell — hand off CF cookies to Playwright using the SAME proxy so the
-  // cf_clearance cookie is valid for that IP and the SPA can fully hydrate.
-  process.stderr.write(`  [strategy] step ${stepNum}b: FlareSolverr→Playwright SPA handoff\n`);
-  const cfCookies = flareResult.cookies.map(c => ({
-    name: c.name,
-    value: c.value,
-    domain: c.domain,
-  }));
+  // SPA shell — hand CF cookies to Playwright using the SAME sticky proxy
+  process.stderr.write(`  [strategy] step ${stepNum}b: FlareSolverr→Playwright SPA handoff (sticky session ${sessionId})\n`);
+  const cfCookies = flareResult.cookies.map(c => ({ name: c.name, value: c.value, domain: c.domain }));
 
-  const pwResult = await tryPlaywright(url, flareProxy, {
+  const pwResult = await tryPlaywright(url, stickyProxy, {
     ...opts,
     cookies: [...(opts.cookies ?? []), ...cfCookies],
     timeout: opts.timeout ?? 30_000,
   });
 
   if (pwResult) {
-    const proxyTier = flareProxy === resProxy ? 'residential' : flareProxy ? 'datacenter' : 'none';
+    const proxyTier: ProxyTier = stickyProxy === resProxy ? 'residential' : stickyProxy ? 'datacenter' : 'none';
     return {
       ...pwResult.result,
       strategyUsed: 'playwright',
-      proxyUsed: flareProxy,
+      proxyUsed: stickyProxy,
       proxyTier,
       playwright: { page: pwResult.page, context: pwResult.context, release: pwResult.release },
     };
   }
 
-  // Fall back to raw FlareSolverr result if Playwright also fails
-  const proxyTier = flareProxy === resProxy ? 'residential' : flareProxy ? 'datacenter' : 'none';
-  return { ...flareResult, strategyUsed: 'flaresolverr', proxyUsed: flareProxy, proxyTier };
+  const proxyTier: ProxyTier = stickyProxy === resProxy ? 'residential' : stickyProxy ? 'datacenter' : 'none';
+  return { ...flareResult, strategyUsed: 'flaresolverr', proxyUsed: stickyProxy, proxyTier };
 }
 
 // ─── Public entry point ───────────────────────────────────────────────────────

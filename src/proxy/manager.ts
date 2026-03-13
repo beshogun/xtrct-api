@@ -84,18 +84,53 @@ class ProxyManager {
 
   /**
    * Returns the rotating residential proxy URL if credentials are configured,
-   * otherwise null. Webshare residential is a single rotating endpoint — no
-   * list to fetch.
+   * otherwise null.
    */
   getResidentialProxy(): string | null {
-    // Explicit residential proxy URL (e.g. ProxyJet, Bright Data, etc.)
     if (process.env.RESIDENTIAL_PROXY) return process.env.RESIDENTIAL_PROXY;
-
-    // Legacy Webshare residential credentials
     const user = process.env.WEBSHARE_RESIDENTIAL_USER;
     const pass = process.env.WEBSHARE_RESIDENTIAL_PASS;
     if (!user || !pass) return null;
     return `http://${user}-rotate:${pass}@p.webshare.io:80`;
+  }
+
+  /**
+   * Returns a sticky residential proxy URL pinned to a specific session ID.
+   * Both FlareSolverr and the Playwright cookie handoff must use the same
+   * sessionId so cf_clearance is valid for the exit IP.
+   *
+   * ProxyJet session format: append -session-{id} to the username.
+   * Override with RESIDENTIAL_PROXY_SESSION_FORMAT env var if provider differs.
+   * Format tokens: {user}, {session}, {pass}, {host}, {port}
+   */
+  getStickyResidentialProxy(sessionId: string): string | null {
+    const base = process.env.RESIDENTIAL_PROXY;
+    if (!base) return this.getResidentialProxy(); // fall back to rotating
+
+    // Allow custom format override e.g. "{user}-sticky-{session}:{pass}@{host}:{port}"
+    const fmt = process.env.RESIDENTIAL_PROXY_SESSION_FORMAT;
+    if (fmt) {
+      try {
+        const u = new URL(base);
+        return 'http://' + fmt
+          .replace('{user}',    decodeURIComponent(u.username))
+          .replace('{session}', sessionId)
+          .replace('{pass}',    decodeURIComponent(u.password))
+          .replace('{host}',    u.hostname)
+          .replace('{port}',    u.port);
+      } catch {
+        return base;
+      }
+    }
+
+    // Default: ProxyJet / most providers append -session-{id} to username
+    try {
+      const u = new URL(base);
+      const stickyUser = `${decodeURIComponent(u.username)}-session-${sessionId}`;
+      return `http://${stickyUser}:${decodeURIComponent(u.password)}@${u.host}`;
+    } catch {
+      return base;
+    }
   }
 
   // ── Datacenter proxy ───────────────────────────────────────────────────────
