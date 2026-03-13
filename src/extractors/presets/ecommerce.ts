@@ -153,29 +153,30 @@ export const johnLewisProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price (including Was/Now), availability, brand, MPN, rating and images from a John Lewis product page.',
   matchDomains: ['johnlewis.com'],
-  strategy: 'playwright',
-  waitFor: { type: 'selector', value: 'h1[data-testid="product-title"], h1[class*="ProductDetails"]' },
+  strategy: 'auto',
+  waitFor: { type: 'selector', value: 'h1[data-testid="product-title"], h1[class*="ProductDetails"], script[type="application/ld+json"]' },
   outputFormats: ['structured'],
   selectors: {
-    // John Lewis uses a Next.js front end with data-testid attributes — these tend to be stable
-    title:          'h1[data-testid="product-title"], h1[class*="styled__Title"]',
-    price:          '[data-testid="product-price"] [class*="price-now"], [data-testid="product-price"] span:first-child',
-    original_price: '[data-testid="product-price"] [class*="price-was"], [class*="was-price"], del[class*="price"]',
-    in_stock:       'button[data-testid="add-to-bag"]:not([disabled]), [data-testid="add-to-bag"], [class*="AddToBag"]:not([disabled])',
-    brand:          '[data-testid="product-brand"], a[href*="/brand/"] h2, [class*="BrandName"]',
-    mpn:            '[data-testid="product-code"], [class*="productCode"], [class*="product-code"]',
-    rating:         '[data-testid="overall-rating"] [class*="score"], [class*="RatingSummary"] [class*="score"]',
-    review_count:   '[data-testid="review-count"], [class*="reviewCount"], a[href*="reviews"] span',
-    images:         'all:[data-testid="product-image"] img@src, all:[class*="ProductGallery"] img@src, all:[class*="gallery"] img@src',
+    // JSON-LD Product schema is server-rendered and always present — prefer it over React-rendered DOM
+    title:          'jsonld:name',
+    price:          'jsonld:offers.price',
+    original_price: 'jsonld:offers.highPrice',
+    in_stock:       'jsonld:offers.availability',
+    brand:          'jsonld:brand.name',
+    mpn:            'jsonld:mpn',
+    rating:         'jsonld:aggregateRating.ratingValue',
+    review_count:   'jsonld:aggregateRating.reviewCount',
+    images:         'jsonld[]:image',
   },
   postProcess(raw) {
+    const availability = raw.in_stock as string | null;
     return {
       ...raw,
       price:          parsePrice(raw.price as string | null),
       original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       availability ? availability.toLowerCase().includes('instock') : null,
       rating:         parseRating(raw.rating as string | null),
       review_count:   parseCount(raw.review_count as string | null),
-      in_stock:       !!(raw.in_stock),
     };
   },
 };
