@@ -5475,3 +5475,49 @@ export const jewelleryBoxProduct: ScrapePreset = {
     };
   },
 };
+
+// ─── Jessops ────────────────────────────────────────────────────────────────
+
+export const jessopsCategory: ScrapePreset = {
+  id: 'jessops-category',
+  name: 'Jessops Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Jessops category page.',
+  matchDomains: ['jessops.com'],
+  strategy: 'http',
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-card"] [class*="product-name"], all:[class*="product-card"] h2, all:[class*="product-card"] h3',
+    all_urls:   'all:[class*="product-card"] a@href',
+    all_prices: 'all:[class*="product-card"] [class*="price"]',
+    all_images: 'all:[class*="product-card"] img@src',
+  },
+};
+
+export const jessopsProduct: ScrapePreset = {
+  id: 'jessops-product',
+  name: 'Jessops Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, brand, description and images from a Jessops product page.',
+  matchDomains: ['jessops.com'],
+  strategy: 'http',
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[class*="product-title"], h1[class*="product-name"], h1',
+    price:          '[class*="selling-price"], [class*="product-price"] [class*="price"], [itemprop="price"]@content',
+    original_price: '[class*="was-price"], del[class*="price"], [class*="rrp"]',
+    brand:          '[class*="product-brand"], [itemprop="brand"]',
+    description:    '[class*="product-description"], [itemprop="description"]',
+    in_stock:       'button[class*="add-to-basket"]:not([disabled]), button[class*="add-to-cart"]:not([disabled])',
+    images:         'all:[class*="product-gallery"] img@src, all:[class*="product-image"] img@src, all:[itemprop="image"]@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+      images:         Array.isArray(raw.images) ? (raw.images as string[]).filter(s => s.startsWith('http')) : [],
+    };
+  },
+};

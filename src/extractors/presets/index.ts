@@ -282,6 +282,8 @@ import {
   furnitureVillageProduct,
   laRedouteUkProduct,
   jewelleryBoxProduct,
+  jessopsCategory,
+  jessopsProduct,
 } from './ecommerce.ts';
 import { indeedJob, linkedinJob, glassdoorJob, remoteokListing } from './jobs.ts';
 import { rightmoveProperty, zillowListing, zooplaProperty } from './realestate.ts';
@@ -587,6 +589,8 @@ export const PRESETS: Record<string, ScrapePreset> = {
   'furniture-village-product':   furnitureVillageProduct,
   'la-redoute-uk-product':       laRedouteUkProduct,
   'jewellery-box-product':       jewelleryBoxProduct,
+  'jessops-category':            jessopsCategory,
+  'jessops-product':             jessopsProduct,
 
   // jobs
   'indeed-job':        indeedJob,
