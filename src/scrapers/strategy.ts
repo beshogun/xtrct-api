@@ -34,10 +34,9 @@ export interface RunOptions extends PlaywrightOptions {
   proxyTier?: 'auto' | ProxyTier;
 }
 
-// ─── Domain proxy-tier hints ──────────────────────────────────────────────────
-// Sites known to hard-block datacenter IPs (403/timeout every time on steps 1–4).
-// When proxyTier is 'auto', these domains skip straight to residential tier,
-// saving the wasted time of no-proxy and datacenter attempts.
+// ─── Domain strategy hints ────────────────────────────────────────────────────
+
+// Sites that block datacenter IPs at the HTTP level — skip no-proxy/datacenter steps.
 const RESIDENTIAL_ONLY_DOMAINS = new Set([
   'therealreal.com',
   'stockx.com',
@@ -50,8 +49,19 @@ const RESIDENTIAL_ONLY_DOMAINS = new Set([
   'wayfair.co.uk',
   'wayfair.com',
   'wine-auctioneer.com',
-  'asos.com',
   'waterstones.com',
+]);
+
+// Sites protected by Akamai Bot Manager / Datadome / similar that block at the
+// TCP/TLS level — even residential HTTP fails because they fingerprint the TLS
+// handshake. Only real Chrome (FlareSolverr) + residential proxy gets through.
+// Skip HTTP and Playwright steps entirely and go straight to FlareSolverr.
+const FLARESOLVERR_FIRST_DOMAINS = new Set([
+  'asos.com',
+  'linkedin.com',
+  'ticketmaster.co.uk',
+  'ticketmaster.com',
+  'livenation.co.uk',
 ]);
 
 function getEffectiveProxyTier(url: string, requested: 'auto' | ProxyTier): 'auto' | ProxyTier {
@@ -64,6 +74,15 @@ function getEffectiveProxyTier(url: string, requested: 'auto' | ProxyTier): 'aut
     }
   } catch {}
   return 'auto';
+}
+
+function isFlareSolverrFirst(url: string): boolean {
+  try {
+    const hostname = new URL(url).hostname.replace(/^www\./, '');
+    return FLARESOLVERR_FIRST_DOMAINS.has(hostname);
+  } catch {
+    return false;
+  }
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -229,6 +248,33 @@ function stickyProxyTier(proxy: string | null, resProxy: string | null): ProxyTi
  * corresponding proxy tier and skips earlier proxy steps.
  */
 async function runAuto(url: string, opts: RunOptions): Promise<StrategyResult> {
+  // Akamai/Datadome sites: skip HTTP+Playwright entirely, go straight to FlareSolverr
+  if (isFlareSolverrFirst(url) && (opts.proxyTier == null || opts.proxyTier === 'auto')) {
+    process.stderr.write(`  [strategy] domain hint: FlareSolverr-first for ${new URL(url).hostname}\n`);
+    const resProxy = proxyManager.getResidentialProxy();
+    const dcProxy  = proxyManager.getDatacenterProxy();
+    const sessionId = randomBytes(8).toString('hex');
+    const stickyProxy = resProxy
+      ? proxyManager.getStickyResidentialProxy(sessionId)
+      : (dcProxy ?? null);
+    if (await flareScraper.isAvailable()) {
+      const flareResult = await flareScraper.fetch(url, opts.timeout, stickyProxy);
+      const proxyTier: ProxyTier = stickyProxyTier(stickyProxy, resProxy);
+      if (flareResult.html.length > 15_000) {
+        return { ...flareResult, strategyUsed: 'flaresolverr', proxyUsed: stickyProxy, proxyTier };
+      }
+      // SPA shell — hand off to Playwright
+      const cfCookies = flareResult.cookies.map(c => ({ name: c.name, value: c.value, domain: c.domain }));
+      const pwResult = await tryPlaywright(url, stickyProxy, { ...opts, cookies: [...(opts.cookies ?? []), ...cfCookies] });
+      if (pwResult) {
+        return { ...pwResult.result, strategyUsed: 'playwright', proxyUsed: stickyProxy, proxyTier, playwright: { page: pwResult.page, context: pwResult.context, release: pwResult.release } };
+      }
+      return { ...flareResult, strategyUsed: 'flaresolverr', proxyUsed: stickyProxy, proxyTier };
+    }
+    // FlareSolverr unavailable — fall through to normal chain
+    process.stderr.write(`  [strategy] FlareSolverr unavailable — falling back to normal chain\n`);
+  }
+
   const effectiveTier = getEffectiveProxyTier(url, opts.proxyTier ?? 'auto');
   const forcedTier = (effectiveTier === 'auto') ? null : effectiveTier;
 
