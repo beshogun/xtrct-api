@@ -161,7 +161,17 @@ export async function startWorkers(concurrency = 4): Promise<void> {
     if (!job) return;
 
     active++;
-    processJob(job).finally(() => { active--; });
+    const jobTimeout = ((job.options as Record<string, unknown>)?.timeout as number ?? 30_000) + 120_000; // job timeout + 2 min buffer
+    const timeoutPromise = new Promise<void>((_, reject) =>
+      setTimeout(() => reject(new Error('Job exceeded maximum allowed duration')), jobTimeout)
+    );
+    Promise.race([processJob(job), timeoutPromise])
+      .catch(async (e) => {
+        const errMsg = e instanceof Error ? e.message : String(e);
+        process.stderr.write(`  [worker] job ${job!.id} hard-killed: ${errMsg}\n`);
+        await sql`UPDATE scrape_jobs SET status = 'failed', error = ${errMsg}, completed_at = NOW() WHERE id = ${job!.id} AND status = 'running'`.catch(() => {});
+      })
+      .finally(() => { active--; });
   };
 
   setInterval(poll, POLL_INTERVAL_MS);

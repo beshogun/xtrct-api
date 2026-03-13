@@ -4,6 +4,23 @@ const HOUR_MS = 60 * 60 * 1000;
 
 async function runCleanup(): Promise<void> {
   try {
+    // Mark stale running jobs as failed (zombie detection)
+    // Jobs running > 10 minutes have definitely lost their worker process
+    const [zombieRow] = await sql`
+      WITH killed AS (
+        UPDATE scrape_jobs
+        SET status = 'failed', error = 'Timed out: worker process restarted or job exceeded max duration'
+        WHERE status = 'running'
+          AND started_at < NOW() - INTERVAL '10 minutes'
+        RETURNING id
+      )
+      SELECT COUNT(*) AS n FROM killed
+    `;
+    const zombiesKilled = Number(zombieRow?.n ?? 0);
+    if (zombiesKilled > 0) {
+      console.log(`[cleanup] Killed ${zombiesKilled} zombie running jobs`);
+    }
+
     // Delete completed/failed scrape jobs older than 7 days
     const [jobsRow] = await sql`
       WITH deleted AS (
