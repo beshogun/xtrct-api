@@ -53,6 +53,17 @@ export class PlaywrightScraper {
       if (res.url() === page.url()) statusCode = res.status();
     });
 
+    // Block images, media and fonts — saves bandwidth and speeds up load.
+    // JS and CSS must be allowed so Cloudflare challenge scripts can run.
+    await page.route('**/*', (route) => {
+      const type = route.request().resourceType();
+      if (['image', 'media', 'font'].includes(type)) {
+        route.abort().catch(() => {});
+      } else {
+        route.continue().catch(() => {});
+      }
+    });
+
     const timeout = opts.timeout ?? 30_000;
     try {
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout });
@@ -69,6 +80,18 @@ export class PlaywrightScraper {
       throw e;
     }
 
+    // ── Active Cloudflare challenge wait ───────────────────────────────────
+    // CF JS challenges run in-browser: the page title is "Just a moment..."
+    // while CF's JS solves the challenge, then redirects to the real page.
+    // Wait up to 15s for it to resolve rather than giving up immediately.
+    const cfResolved = await this.waitForCFChallenge(page, 15_000);
+    if (!cfResolved) {
+      await page.close();
+      await context.close();
+      release();
+      throw new CloudflareJSError(url);
+    }
+
     // Apply custom wait strategy
     await this.applyWait(page, opts.waitFor, timeout);
 
@@ -80,7 +103,7 @@ export class PlaywrightScraper {
     const finalUrl = page.url();
     const html = await page.content();
 
-    // Detect Cloudflare JS challenge
+    // Final check — if still showing CF challenge after waiting, escalate
     if (this.isCloudflareChallenge(html)) {
       await page.close();
       await context.close();
@@ -126,6 +149,38 @@ export class PlaywrightScraper {
         await new Promise(r => setTimeout(r, Math.min(waitFor.value, 10_000)));
         break;
     }
+  }
+
+  /**
+   * Wait for a Cloudflare JS challenge to self-resolve.
+   * CF challenges show a "Just a moment..." / "Attention Required" title while
+   * the browser runs CF's JS proof-of-work. The page then auto-redirects.
+   * Returns true if the page cleared (or was never challenged).
+   * Returns false if still blocked after maxWaitMs.
+   */
+  private async waitForCFChallenge(page: Page, maxWaitMs: number): Promise<boolean> {
+    const isCFTitle = (t: string) => {
+      const l = t.toLowerCase();
+      return l.includes('just a moment') || l.includes('attention required') || l.includes('checking your browser');
+    };
+
+    let title = '';
+    try { title = await page.title(); } catch { return true; }
+
+    if (!isCFTitle(title)) return true; // no challenge — proceed
+
+    process.stderr.write(`  [playwright] CF challenge detected ("${title}") — waiting up to ${maxWaitMs / 1000}s\n`);
+    const deadline = Date.now() + maxWaitMs;
+    while (Date.now() < deadline) {
+      await new Promise(r => setTimeout(r, 1_000));
+      try { title = await page.title(); } catch { return false; }
+      if (!isCFTitle(title)) {
+        process.stderr.write(`  [playwright] CF challenge resolved ("${title}")\n`);
+        return true;
+      }
+    }
+    process.stderr.write(`  [playwright] CF challenge did not resolve after ${maxWaitMs / 1000}s\n`);
+    return false;
   }
 
   private isCloudflareChallenge(html: string): boolean {
