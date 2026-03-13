@@ -14,10 +14,19 @@ export class CloudflareError extends Error {
   }
 }
 
-export class HttpScraper {
-  private static readonly UA =
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+// Rotate through recent Chrome UAs — same pool as the Playwright stealth layer
+const USER_AGENTS = [
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+];
+function randomUA(): string {
+  return USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
+}
 
+export class HttpScraper {
   /**
    * Fetch using an explicitly provided proxy URL (or null for no proxy).
    * Used by the strategy layer, which manages proxy selection and tier tracking.
@@ -38,11 +47,16 @@ export class HttpScraper {
       const fetchOpts: RequestInit = {
         method: 'GET',
         headers: {
-          'User-Agent': HttpScraper.UA,
-          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+          'User-Agent': randomUA(),
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
           'Accept-Language': 'en-GB,en;q=0.9',
           'Accept-Encoding': 'gzip, deflate, br',
           'Cache-Control': 'no-cache',
+          'Sec-Fetch-Dest': 'document',
+          'Sec-Fetch-Mode': 'navigate',
+          'Sec-Fetch-Site': 'none',
+          'Sec-Fetch-User': '?1',
+          'Upgrade-Insecure-Requests': '1',
           ...(cookieHeader ? { Cookie: cookieHeader } : {}),
           ...opts.headers,
         },
@@ -69,6 +83,13 @@ export class HttpScraper {
     }
 
     const html = await res.text();
+
+    // Detect CF JS challenge pages that return 200 with a challenge body.
+    // These look like success but contain no real content.
+    if (this.isCloudflareBody(html)) {
+      throw new CloudflareError(url);
+    }
+
     const respHeaders: Record<string, string> = {};
     res.headers.forEach((v, k) => { respHeaders[k] = v; });
 
@@ -94,7 +115,32 @@ export class HttpScraper {
 
   private isCloudflare(status: number, headers: Headers): boolean {
     const server = headers.get('server')?.toLowerCase() ?? '';
-    return (status === 403 || status === 503) && server.includes('cloudflare');
+    const cfRay = headers.has('cf-ray');
+    // Status-level CF block (header-based)
+    if ((status === 403 || status === 503) && (server.includes('cloudflare') || cfRay)) return true;
+    // Turnstile / managed challenge — CF returns 403 with cf-mitigated header
+    if (status === 403 && headers.has('cf-mitigated')) return true;
+    return false;
+  }
+
+  /**
+   * Detect Cloudflare JS challenge pages that slip through as HTTP 200.
+   * CF increasingly serves a browser JS proof-of-work page with a 200 status —
+   * the real content only appears after the challenge script runs in a browser.
+   */
+  private isCloudflareBody(html: string): boolean {
+    // Must be short — real pages are rarely under 15 KB
+    if (html.length > 15_000) return false;
+    const lower = html.toLowerCase();
+    return (
+      lower.includes('just a moment') ||
+      lower.includes('cf-mitigated') ||
+      lower.includes('enable javascript and cookies') ||
+      lower.includes('checking your browser') ||
+      lower.includes('error 1015') ||      // CF rate limit page
+      lower.includes('error 1020') ||      // CF access denied
+      (lower.includes('cloudflare') && lower.includes('challenge'))
+    );
   }
 }
 

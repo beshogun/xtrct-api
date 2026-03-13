@@ -34,6 +34,38 @@ export interface RunOptions extends PlaywrightOptions {
   proxyTier?: 'auto' | ProxyTier;
 }
 
+// ─── Domain proxy-tier hints ──────────────────────────────────────────────────
+// Sites known to hard-block datacenter IPs (403/timeout every time on steps 1–4).
+// When proxyTier is 'auto', these domains skip straight to residential tier,
+// saving the wasted time of no-proxy and datacenter attempts.
+const RESIDENTIAL_ONLY_DOMAINS = new Set([
+  'therealreal.com',
+  'stockx.com',
+  'zalando.co.uk',
+  'zalando.com',
+  'farfetch.com',
+  'net-a-porter.com',
+  'matchesfashion.com',
+  'ssense.com',
+  'wayfair.co.uk',
+  'wayfair.com',
+  'wine-auctioneer.com',
+  'asos.com',
+  'waterstones.com',
+]);
+
+function getEffectiveProxyTier(url: string, requested: 'auto' | ProxyTier): 'auto' | ProxyTier {
+  if (requested !== 'auto') return requested;
+  try {
+    const hostname = new URL(url).hostname.replace(/^www\./, '');
+    if (RESIDENTIAL_ONLY_DOMAINS.has(hostname)) {
+      process.stderr.write(`  [strategy] domain hint: ${hostname} → residential only\n`);
+      return 'residential';
+    }
+  } catch {}
+  return 'auto';
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function isNetworkError(e: Error): boolean {
@@ -187,7 +219,8 @@ function stickyProxyTier(proxy: string | null, resProxy: string | null): ProxyTi
  * corresponding proxy tier and skips earlier proxy steps.
  */
 async function runAuto(url: string, opts: RunOptions): Promise<StrategyResult> {
-  const forcedTier = (opts.proxyTier === 'auto' || opts.proxyTier == null) ? null : opts.proxyTier;
+  const effectiveTier = getEffectiveProxyTier(url, opts.proxyTier ?? 'auto');
+  const forcedTier = (effectiveTier === 'auto') ? null : effectiveTier;
 
   const dcProxy   = proxyManager.getDatacenterProxy();
   const resProxy  = proxyManager.getResidentialProxy();
