@@ -95,15 +95,35 @@ class ProxyManager {
   }
 
   /**
-   * Returns a sticky residential proxy URL pinned to a specific session ID.
-   * Both FlareSolverr and the Playwright cookie handoff must use the same
-   * sessionId so cf_clearance is valid for the exit IP.
+   * Returns a static residential proxy URL for sticky sessions.
+   * Static proxies guarantee the same exit IP on every request — required for
+   * FlareSolverr→Playwright handoff where cf_clearance cookies are IP-locked.
    *
-   * ProxyJet session format: append -session-{id} to the username.
-   * Override with RESIDENTIAL_PROXY_SESSION_FORMAT env var if provider differs.
-   * Format tokens: {user}, {session}, {pass}, {host}, {port}
+   * Configured via STATIC_RESIDENTIAL_PROXY_1 / _2 (round-robin).
+   * Falls back to getStickyResidentialProxy() if not configured.
+   */
+  private staticRoundRobin = 0;
+  getStaticResidentialProxy(): string | null {
+    const proxies = [
+      process.env.STATIC_RESIDENTIAL_PROXY_1,
+      process.env.STATIC_RESIDENTIAL_PROXY_2,
+    ].filter(Boolean) as string[];
+    if (proxies.length === 0) return null;
+    const proxy = proxies[this.staticRoundRobin % proxies.length];
+    this.staticRoundRobin++;
+    return proxy;
+  }
+
+  /**
+   * Returns a sticky residential proxy URL pinned to a specific session ID.
+   * Prefers static residential proxies (guaranteed same IP) when configured.
+   * Falls back to rotating residential with session suffix if not.
    */
   getStickyResidentialProxy(sessionId: string): string | null {
+    // Prefer static IPs — they never rotate so no suffix needed
+    const staticProxy = this.getStaticResidentialProxy();
+    if (staticProxy) return staticProxy;
+
     const base = process.env.RESIDENTIAL_PROXY;
     if (!base) return this.getResidentialProxy(); // fall back to rotating
 
@@ -123,7 +143,7 @@ class ProxyManager {
       }
     }
 
-    // Default: ProxyJet / most providers append -session-{id} to username
+    // Default: append -session-{id} to username
     try {
       const u = new URL(base);
       const stickyUser = `${decodeURIComponent(u.username)}-session-${sessionId}`;
@@ -259,6 +279,8 @@ class ProxyManager {
 
   private isResidentialUrl(url: string): boolean {
     if (process.env.RESIDENTIAL_PROXY && url === process.env.RESIDENTIAL_PROXY) return true;
+    if (process.env.STATIC_RESIDENTIAL_PROXY_1 && url === process.env.STATIC_RESIDENTIAL_PROXY_1) return true;
+    if (process.env.STATIC_RESIDENTIAL_PROXY_2 && url === process.env.STATIC_RESIDENTIAL_PROXY_2) return true;
     try {
       return new URL(url).hostname === 'p.webshare.io';
     } catch {
@@ -330,7 +352,7 @@ class ProxyManager {
 
   // ── Stats ─────────────────────────────────────────────────────────────────
 
-  getStats(): { total: number; healthy: number; sources: Record<string, number>; residential: boolean } {
+  getStats(): { total: number; healthy: number; sources: Record<string, number>; residential: boolean; staticResidential: number } {
     const now = Date.now();
     let healthyCount = 0;
     const sources: Record<string, number> = {};
@@ -341,11 +363,17 @@ class ProxyManager {
       sources[p.source] = (sources[p.source] ?? 0) + 1;
     }
 
+    const staticCount = [
+      process.env.STATIC_RESIDENTIAL_PROXY_1,
+      process.env.STATIC_RESIDENTIAL_PROXY_2,
+    ].filter(Boolean).length;
+
     return {
       total: this.proxies.length,
       healthy: healthyCount,
       sources,
       residential: this.getResidentialProxy() !== null,
+      staticResidential: staticCount,
     };
   }
 
