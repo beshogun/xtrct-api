@@ -1482,12 +1482,11 @@ export const currysCategory: ScrapePreset = {
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
-    // Currys 2025/2026 — anchor links to product pages under /products/
-    // Use [href^="/products/"] to match only root-relative paths, not external links
-    all_titles: 'all:[href^="/products/"] [class*="Title"], all:[href^="/products/"] h2, all:[href^="/products/"] h3, all:[href^="/products/"] span[class*="name"]',
-    all_urls:   'all:[href^="/products/"]@href',
-    all_prices: 'all:[href^="/products/"] [class*="price__current"], all:[href^="/products/"] [class*="priceNow"], all:[href^="/products/"] span[class*="price"]',
-    all_images: 'all:[href^="/products/"] img@src',
+    // Currys product cards — use container class to avoid picking up nav links
+    all_titles: 'all:[class*="ProductCardstyles"] [class*="Title"], all:[class*="ProductCard"] [class*="Title"]',
+    all_urls:   'all:[class*="ProductCardstyles"] a@href, all:[class*="ProductCard"] a@href',
+    all_prices: 'all:[class*="ProductCardstyles"] [class*="price"], all:[class*="ProductCard"] [class*="price"]',
+    all_images: 'all:[class*="ProductCardstyles"] img@src, all:[class*="ProductCard"] img@src',
   },
 };
 
