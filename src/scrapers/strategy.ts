@@ -136,13 +136,13 @@ async function runForced(url: string, opts: RunOptions, strategy: Strategy): Pro
       const stickyProxy = resProxy ? proxyManager.getStickyResidentialProxy(sessionId) : dcProxy ?? null;
       const flareResult = await flareScraper.fetch(url, opts.timeout, stickyProxy);
       if (flareResult.html.length > 50_000 && !flareResult.html.includes("This site can't be reached")) {
-        const proxyTier: ProxyTier = stickyProxy === resProxy ? 'residential' : stickyProxy ? 'datacenter' : 'none';
+        const proxyTier: ProxyTier = stickyProxyTier(stickyProxy, resProxy);
         return { ...flareResult, strategyUsed: 'flaresolverr', proxyUsed: stickyProxy, proxyTier };
       }
       const cfCookies = flareResult.cookies.map(c => ({ name: c.name, value: c.value, domain: c.domain }));
       const pwResult = await tryPlaywright(url, stickyProxy, { ...opts, cookies: [...(opts.cookies ?? []), ...cfCookies] });
       if (pwResult) {
-        const proxyTier: ProxyTier = stickyProxy === resProxy ? 'residential' : stickyProxy ? 'datacenter' : 'none';
+        const proxyTier: ProxyTier = stickyProxyTier(stickyProxy, resProxy);
         return { ...pwResult.result, strategyUsed: 'playwright', proxyUsed: stickyProxy, proxyTier, playwright: { page: pwResult.page, context: pwResult.context, release: pwResult.release } };
       }
       return { ...flareResult, strategyUsed: 'flaresolverr', proxyUsed: stickyProxy, proxyTier: stickyProxy ? 'residential' : 'none' };
@@ -156,6 +156,14 @@ async function runForced(url: string, opts: RunOptions, strategy: Strategy): Pro
   }
 
   throw new Error(`[strategy] Unknown strategy: ${strategy}`);
+}
+
+function stickyProxyTier(proxy: string | null, resProxy: string | null): ProxyTier {
+  if (!proxy) return 'none';
+  if (proxy === resProxy) return 'residential';
+  const statics = [process.env.STATIC_RESIDENTIAL_PROXY_1, process.env.STATIC_RESIDENTIAL_PROXY_2].filter(Boolean);
+  if (statics.includes(proxy)) return 'residential';
+  return 'datacenter';
 }
 
 // ─── Auto-escalation chain ────────────────────────────────────────────────────
@@ -262,7 +270,7 @@ async function runAuto(url: string, opts: RunOptions): Promise<StrategyResult> {
 
   // If the page looks fully rendered and not a Chrome error page, return directly
   if (flareResult.html.length > 50_000 && !flareResult.html.includes("This site can't be reached")) {
-    const proxyTier: ProxyTier = stickyProxy === resProxy ? 'residential' : stickyProxy ? 'datacenter' : 'none';
+    const proxyTier: ProxyTier = stickyProxyTier(stickyProxy, resProxy);
     return { ...flareResult, strategyUsed: 'flaresolverr', proxyUsed: stickyProxy, proxyTier };
   }
 
@@ -277,7 +285,7 @@ async function runAuto(url: string, opts: RunOptions): Promise<StrategyResult> {
   });
 
   if (pwResult) {
-    const proxyTier: ProxyTier = stickyProxy === resProxy ? 'residential' : stickyProxy ? 'datacenter' : 'none';
+    const proxyTier: ProxyTier = stickyProxyTier(stickyProxy, resProxy);
     return {
       ...pwResult.result,
       strategyUsed: 'playwright',
@@ -287,7 +295,7 @@ async function runAuto(url: string, opts: RunOptions): Promise<StrategyResult> {
     };
   }
 
-  const proxyTier: ProxyTier = stickyProxy === resProxy ? 'residential' : stickyProxy ? 'datacenter' : 'none';
+  const proxyTier: ProxyTier = stickyProxyTier(stickyProxy, resProxy);
   return { ...flareResult, strategyUsed: 'flaresolverr', proxyUsed: stickyProxy, proxyTier };
 }
 
