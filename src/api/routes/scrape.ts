@@ -36,7 +36,7 @@ export const scrapeRoutes = new Elysia()
     // ─── Preset resolution ─────────────────────────────────────────────────────
     let presetApplied: string | null = null;
     let resolvedStrategy: Strategy = (strategyParam as Strategy) ?? 'auto';
-    let resolvedFormats: OutputFormat[] = Array.isArray(output) ? output : [output];
+    let resolvedFormats: OutputFormat[] = output ? (Array.isArray(output) ? output : [output]) : [];
     let resolvedSelectors: Record<string, string> = selectors ?? {};
     let resolvedWaitFor = wait_for ?? null;
 
