@@ -65,6 +65,11 @@ async function tryHttp(
       if (proxyUrl) proxyManager.markFailed(proxyUrl);
       return null;
     }
+    // Proxy auth failure — skip this proxy and try the next step
+    if (e instanceof Error && e.message.includes('407')) {
+      if (proxyUrl) proxyManager.markFailed(proxyUrl);
+      return null;
+    }
     throw e;
   }
 }
