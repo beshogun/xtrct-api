@@ -2628,15 +2628,15 @@ export const boohooCategory: ScrapePreset = {
   name: 'Boohoo Category Listing',
   category: 'ecommerce',
   description: 'Discovers products from a Boohoo category page.',
-  matchDomains: [],
-  strategy: 'auto',
-  waitFor: { type: 'selector', value: 'a[href*="/product/"]' },
+  matchDomains: ['boohoo.com'],
+  strategy: 'playwright',
+  waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
-    all_titles: 'all:a[href*="/product/"] [class*="product-name"], all:a[href*="/product/"] h3',
-    all_urls:   'all:a[href*="/product/"]@href',
-    all_prices: 'all:a[href*="/product/"] [class*="price"]',
-    all_images: 'all:a[href*="/product/"] img@src',
+    all_titles: 'all:[class*="product-card"] [class*="name"], all:[class*="ProductCard"] [class*="name"]',
+    all_urls:   'all:[class*="product-card"] a@href, all:[class*="ProductCard"] a@href',
+    all_prices: 'all:[class*="product-card"] [class*="price"], all:[class*="ProductCard"] [class*="price"]',
+    all_images: 'all:[class*="product-card"] img@src, all:[class*="ProductCard"] img@src',
   },
 };
 
@@ -2645,15 +2645,15 @@ export const prettylittlethingCategory: ScrapePreset = {
   name: 'PrettyLittleThing Category Listing',
   category: 'ecommerce',
   description: 'Discovers products from a PrettyLittleThing category page.',
-  matchDomains: [],
-  strategy: 'auto',
-  waitFor: { type: 'selector', value: 'a[href*="/product/"]' },
+  matchDomains: ['prettylittlething.com'],
+  strategy: 'playwright',
+  waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
-    all_titles: 'all:a[href*="/product/"] [class*="product-name"], all:a[href*="/product/"] h3',
-    all_urls:   'all:a[href*="/product/"]@href',
-    all_prices: 'all:a[href*="/product/"] [class*="price"]',
-    all_images: 'all:a[href*="/product/"] img@src',
+    all_titles: 'all:[class*="product-card"] [class*="name"], all:[class*="ProductCard"] [class*="name"]',
+    all_urls:   'all:[class*="product-card"] a@href, all:[class*="ProductCard"] a@href',
+    all_prices: 'all:[class*="product-card"] [class*="price"], all:[class*="ProductCard"] [class*="price"]',
+    all_images: 'all:[class*="product-card"] img@src, all:[class*="ProductCard"] img@src',
   },
 };
 
@@ -2662,15 +2662,15 @@ export const newLookCategory: ScrapePreset = {
   name: 'New Look Category Listing',
   category: 'ecommerce',
   description: 'Discovers products from a New Look category page.',
-  matchDomains: [],
-  strategy: 'auto',
+  matchDomains: ['newlook.com'],
+  strategy: 'playwright',
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
-    all_titles: 'all:a[href*="/p/"] [class*="product-name"], all:a[href*="/p/"] h3',
-    all_urls:   'all:a[href*="/p/"]@href',
-    all_prices: 'all:a[href*="/p/"] [class*="price"]',
-    all_images: 'all:a[href*="/p/"] img@src',
+    all_titles: 'all:[class*="productCard"] [class*="name"], all:[class*="product-card"] [class*="name"]',
+    all_urls:   'all:[class*="productCard"] a@href, all:[class*="product-card"] a@href',
+    all_prices: 'all:[class*="productCard"] [class*="price"], all:[class*="product-card"] [class*="price"]',
+    all_images: 'all:[class*="productCard"] img@src, all:[class*="product-card"] img@src',
   },
 };
 
@@ -2679,13 +2679,13 @@ export const riverIslandCategory: ScrapePreset = {
   name: 'River Island Category Listing',
   category: 'ecommerce',
   description: 'Discovers products from a River Island category page.',
-  matchDomains: [],
-  strategy: 'auto',
+  matchDomains: ['riverisland.com'],
+  strategy: 'playwright',
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
-    all_titles: 'all:a[href*="/p/"] [class*="name"], all:[class*="product-card"] h3',
-    all_urls:   'all:[class*="product-card"] a@href',
+    all_titles: 'all:[class*="product-card"] [class*="name"], all:[class*="product-list"] h3',
+    all_urls:   'all:[class*="product-card"] a@href, all:a[href*="/p/"]@href',
     all_prices: 'all:[class*="product-card"] [class*="price"]',
     all_images: 'all:[class*="product-card"] img@src',
   },
@@ -2696,15 +2696,15 @@ export const houseOfFraserCategory: ScrapePreset = {
   name: 'House of Fraser Category Listing',
   category: 'ecommerce',
   description: 'Discovers products from a House of Fraser category page.',
-  matchDomains: [],
-  strategy: 'auto',
+  matchDomains: ['houseoffraser.co.uk'],
+  strategy: 'playwright',
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
-    all_titles: 'all:[class*="product-card"] [class*="product-name"], all:[class*="product-card"] h3',
-    all_urls:   'all:[class*="product-card"] a@href',
-    all_prices: 'all:[class*="product-card"] [class*="price"]',
-    all_images: 'all:[class*="product-card"] img@src',
+    all_titles: 'all:[class*="product-card"] [class*="name"], all:[class*="ProductCard"] [class*="name"]',
+    all_urls:   'all:[class*="product-card"] a@href, all:[class*="ProductCard"] a@href',
+    all_prices: 'all:[class*="product-card"] [class*="price"], all:[class*="ProductCard"] [class*="price"]',
+    all_images: 'all:[class*="product-card"] img@src, all:[class*="ProductCard"] img@src',
   },
 };
 
@@ -2713,15 +2713,15 @@ export const flannelsCategory: ScrapePreset = {
   name: 'FLANNELS Category Listing',
   category: 'ecommerce',
   description: 'Discovers products from a FLANNELS category page.',
-  matchDomains: [],
-  strategy: 'auto',
+  matchDomains: ['flannels.com'],
+  strategy: 'playwright',
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
-    all_titles: 'all:[class*="product-card"] [class*="product-name"], all:[class*="product-card"] h3',
-    all_urls:   'all:[class*="product-card"] a@href',
-    all_prices: 'all:[class*="product-card"] [class*="price"]',
-    all_images: 'all:[class*="product-card"] img@src',
+    all_titles: 'all:[class*="product-card"] [class*="name"], all:[class*="ProductCard"] [class*="name"]',
+    all_urls:   'all:[class*="product-card"] a@href, all:[class*="ProductCard"] a@href',
+    all_prices: 'all:[class*="product-card"] [class*="price"], all:[class*="ProductCard"] [class*="price"]',
+    all_images: 'all:[class*="product-card"] img@src, all:[class*="ProductCard"] img@src',
   },
 };
 
@@ -2902,7 +2902,7 @@ export const goOutdoorsCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a Go Outdoors category page.',
   matchDomains: [],
-  strategy: 'auto',
+  strategy: 'playwright',
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
@@ -2919,7 +2919,7 @@ export const mountainWarehouseCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a Mountain Warehouse category page.',
   matchDomains: [],
-  strategy: 'auto',
+  strategy: 'playwright',
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
@@ -2936,7 +2936,7 @@ export const cotswoldOutdoorCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a Cotswold Outdoor category page.',
   matchDomains: [],
-  strategy: 'auto',
+  strategy: 'playwright',
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
@@ -2953,7 +2953,7 @@ export const chainReactionCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a Chain Reaction Cycles category page.',
   matchDomains: [],
-  strategy: 'auto',
+  strategy: 'playwright',
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
@@ -2970,7 +2970,7 @@ export const sweatyBettyCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a Sweaty Betty category page.',
   matchDomains: [],
-  strategy: 'auto',
+  strategy: 'playwright',
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
@@ -2987,7 +2987,7 @@ export const lululemonUkCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a Lululemon UK category page.',
   matchDomains: [],
-  strategy: 'auto',
+  strategy: 'playwright',
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
@@ -3006,7 +3006,7 @@ export const beautyBayCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a Beauty Bay category page.',
   matchDomains: [],
-  strategy: 'auto',
+  strategy: 'playwright',
   waitFor: { type: 'selector', value: 'a[href*="/products/"]' },
   outputFormats: ['structured'],
   selectors: {
@@ -3023,7 +3023,7 @@ export const spaceNkCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a Space NK category page.',
   matchDomains: [],
-  strategy: 'auto',
+  strategy: 'playwright',
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
@@ -3040,7 +3040,7 @@ export const theBodyShopCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a The Body Shop category page.',
   matchDomains: [],
-  strategy: 'auto',
+  strategy: 'playwright',
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
@@ -3057,7 +3057,7 @@ export const hollandBarrettCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a Holland & Barrett category page.',
   matchDomains: [],
-  strategy: 'auto',
+  strategy: 'playwright',
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
@@ -3092,7 +3092,7 @@ export const theEntertainerCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from The Entertainer category page.',
   matchDomains: [],
-  strategy: 'auto',
+  strategy: 'playwright',
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
@@ -3109,7 +3109,7 @@ export const hamleysCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a Hamleys category page.',
   matchDomains: [],
-  strategy: 'auto',
+  strategy: 'playwright',
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
@@ -3128,7 +3128,7 @@ export const whsmithCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a WHSmith category page.',
   matchDomains: [],
-  strategy: 'auto',
+  strategy: 'playwright',
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
@@ -3145,7 +3145,7 @@ export const theBookPeopleCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from The Book People category page.',
   matchDomains: [],
-  strategy: 'auto',
+  strategy: 'playwright',
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
@@ -3196,7 +3196,7 @@ export const zooplusCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a Zooplus category page.',
   matchDomains: [],
-  strategy: 'auto',
+  strategy: 'playwright',
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
@@ -3213,7 +3213,7 @@ export const jollyesCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a Jollyes category page.',
   matchDomains: [],
-  strategy: 'auto',
+  strategy: 'playwright',
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
@@ -3248,7 +3248,7 @@ export const homebaseCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a Homebase category page.',
   matchDomains: [],
-  strategy: 'auto',
+  strategy: 'playwright',
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
@@ -3265,7 +3265,7 @@ export const oakFurniturelandCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from an Oak Furnitureland category page.',
   matchDomains: [],
-  strategy: 'auto',
+  strategy: 'playwright',
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
@@ -3282,7 +3282,7 @@ export const coxAndCoxCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a Cox & Cox category page.',
   matchDomains: [],
-  strategy: 'auto',
+  strategy: 'playwright',
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
@@ -3299,7 +3299,7 @@ export const gardenTradingCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a Garden Trading category page.',
   matchDomains: [],
-  strategy: 'auto',
+  strategy: 'playwright',
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
