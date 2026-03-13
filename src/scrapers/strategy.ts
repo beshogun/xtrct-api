@@ -42,7 +42,10 @@ function isNetworkError(e: Error): boolean {
     e.message.includes('ECONNREFUSED') ||
     e.message.includes('ETIMEDOUT') ||
     e.message.includes('ECONNRESET') ||
-    e.message.includes('fetch failed')
+    e.message.includes('fetch failed') ||
+    e.message.includes('certificate') ||
+    e.message.includes('SSL') ||
+    e.message.includes('TLS')
   );
 }
 
