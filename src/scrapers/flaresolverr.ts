@@ -1,4 +1,18 @@
-const FLARESOLVERR_URL = process.env.FLARESOLVERR_URL ?? 'http://localhost:8191';
+// Support multiple FlareSolverr instances for load balancing.
+// Configure via FLARESOLVERR_URL (primary) and FLARESOLVERR_URL_2 / _3 etc.
+// Falls back to localhost:8191 if none set.
+function parseUrls(): string[] {
+  const urls: string[] = [];
+  const primary = process.env.FLARESOLVERR_URL;
+  if (primary) urls.push(primary);
+  for (let i = 2; i <= 9; i++) {
+    const u = process.env[`FLARESOLVERR_URL_${i}`];
+    if (u) urls.push(u);
+  }
+  return urls.length > 0 ? urls : ['http://localhost:8191'];
+}
+
+const FLARESOLVERR_URLS = parseUrls();
 
 export interface FlareResult {
   html: string;
@@ -7,38 +21,70 @@ export interface FlareResult {
   cookies: Array<{ name: string; value: string; domain: string }>;
 }
 
+interface InstanceState {
+  url: string;
+  activeRequests: number;
+  available: boolean;
+  availabilityCheckedAt: number;
+}
+
 export class FlareSolverrScraper {
-  private _availabilityCache: { result: boolean; expiresAt: number } | null = null;
+  private instances: InstanceState[] = FLARESOLVERR_URLS.map(url => ({
+    url,
+    activeRequests: 0,
+    available: true,
+    availabilityCheckedAt: 0,
+  }));
 
-  /** Health-check the FlareSolverr instance. Result is cached for 60 seconds. */
-  async isAvailable(): Promise<boolean> {
+  /** Pick the least-loaded available instance. */
+  private async pickInstance(): Promise<InstanceState | null> {
+    // Refresh availability for any instance not checked in the last 60s
     const now = Date.now();
-    if (this._availabilityCache && now < this._availabilityCache.expiresAt) {
-      return this._availabilityCache.result;
-    }
+    await Promise.all(
+      this.instances
+        .filter(i => now - i.availabilityCheckedAt > 60_000)
+        .map(i => this.checkInstance(i))
+    );
 
-    let result = false;
-    try {
-      const res = await fetch(`${FLARESOLVERR_URL}/health`, {
-        signal: AbortSignal.timeout(3_000),
-      });
-      result = res.ok;
-    } catch {
-      result = false;
-    }
+    const available = this.instances
+      .filter(i => i.available)
+      .sort((a, b) => a.activeRequests - b.activeRequests);
 
-    this._availabilityCache = { result, expiresAt: now + 60_000 };
-    return result;
+    return available[0] ?? null;
   }
 
+  private async checkInstance(inst: InstanceState): Promise<void> {
+    try {
+      const res = await fetch(`${inst.url}/health`, { signal: AbortSignal.timeout(3_000) });
+      inst.available = res.ok;
+    } catch {
+      inst.available = false;
+    }
+    inst.availabilityCheckedAt = Date.now();
+  }
+
+  /** Health-check — true if at least one instance is reachable. */
+  async isAvailable(): Promise<boolean> {
+    const inst = await this.pickInstance();
+    return inst !== null;
+  }
+
+  /** URL of the primary instance (used in error messages). */
   get url(): string {
-    return FLARESOLVERR_URL;
+    return this.instances[0].url;
   }
 
   async fetch(url: string, timeout = 60_000, proxyUrl?: string | null): Promise<FlareResult> {
+    const inst = await this.pickInstance();
+    if (!inst) {
+      throw new Error(
+        `[strategy] FlareSolverr not reachable at ${this.instances.map(i => i.url).join(', ')} — ` +
+        `install it: docker run -p 8191:8191 ghcr.io/flaresolverr/flaresolverr:latest`,
+      );
+    }
+
     const body: Record<string, unknown> = { cmd: 'request.get', url, maxTimeout: timeout };
     if (proxyUrl) {
-      // FlareSolverr requires credentials separate from the server URL
       try {
         const u = new URL(proxyUrl);
         const proxy: Record<string, string> = { url: `${u.protocol}//${u.host}` };
@@ -50,36 +96,41 @@ export class FlareSolverrScraper {
       }
     }
 
-    const res = await fetch(`${FLARESOLVERR_URL}/v1`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(timeout + 30_000),
-    });
+    inst.activeRequests++;
+    try {
+      const res = await fetch(`${inst.url}/v1`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(timeout + 30_000),
+      });
 
-    if (!res.ok) throw new Error(`FlareSolverr HTTP ${res.status}`);
+      if (!res.ok) throw new Error(`FlareSolverr HTTP ${res.status}`);
 
-    const data = await res.json() as {
-      status: string;
-      solution?: {
-        status: number;
-        response: string;
-        url: string;
-        cookies: Array<{ name: string; value: string; domain: string }>;
+      const data = await res.json() as {
+        status: string;
+        solution?: {
+          status: number;
+          response: string;
+          url: string;
+          cookies: Array<{ name: string; value: string; domain: string }>;
+        };
+        message?: string;
       };
-      message?: string;
-    };
 
-    if (data.status !== 'ok' || !data.solution) {
-      throw new Error(`FlareSolverr failed: ${data.message ?? 'unknown error'}`);
+      if (data.status !== 'ok' || !data.solution) {
+        throw new Error(`FlareSolverr failed: ${data.message ?? 'unknown error'}`);
+      }
+
+      return {
+        html:       data.solution.response,
+        statusCode: data.solution.status,
+        finalUrl:   data.solution.url,
+        cookies:    data.solution.cookies,
+      };
+    } finally {
+      inst.activeRequests = Math.max(0, inst.activeRequests - 1);
     }
-
-    return {
-      html:       data.solution.response,
-      statusCode: data.solution.status,
-      finalUrl:   data.solution.url,
-      cookies:    data.solution.cookies,
-    };
   }
 }
 

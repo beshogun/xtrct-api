@@ -108,6 +108,16 @@ async function tryHttp(
       if (proxyUrl) proxyManager.markFailed(proxyUrl);
       return null;
     }
+    // 403/401/429 are access-denied responses — try next step (proxy/browser may help)
+    // Only 404 should hard-fail (URL doesn't exist regardless of strategy)
+    if (e instanceof Error && (
+      e.message.includes('HTTP 403') ||
+      e.message.includes('HTTP 401') ||
+      e.message.includes('HTTP 429') ||
+      e.message.includes('HTTP 503')
+    )) {
+      return null;
+    }
     throw e;
   }
 }
