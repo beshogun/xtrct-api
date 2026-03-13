@@ -76,6 +76,17 @@ export const scrapeRoutes = new Elysia()
     // ─── Free tier: no proxy access / Internal tier: full access ───────────────
     const effective_proxy_tier = (apiKey.tier === 'free' && proxy_tier !== 'none') ? 'none' as typeof proxy_tier : proxy_tier;
 
+    // ─── Priority: tier-based default, explicit request value capped by tier ───
+    // internal/free → max priority 0 (background, never blocks customers)
+    // starter       → max priority 1
+    // growth/enterprise → max priority 2
+    const tierMaxPriority: Record<string, number> = {
+      free: 0, internal: 0, starter: 1, growth: 2, enterprise: 2,
+    };
+    const maxPrio = tierMaxPriority[apiKey.tier] ?? 1;
+    const defaultPrio = apiKey.tier === 'free' || apiKey.tier === 'internal' ? 0 : 1;
+    const effectivePriority = Math.min(priority, maxPrio) || defaultPrio;
+
     // ─── Validation ────────────────────────────────────────────────────────────
 
     // Structured requires selectors (preset satisfies this automatically)
@@ -119,7 +130,7 @@ export const scrapeRoutes = new Elysia()
           presetApplied,
           proxyTier:         effective_proxy_tier,
         })},
-        ${priority}, ${webhook_url ?? null}
+        ${effectivePriority}, ${webhook_url ?? null}
       )
       RETURNING id
     `;
@@ -145,6 +156,7 @@ export const scrapeRoutes = new Elysia()
     return {
       job_id:            jobId,
       status:            'queued',
+      priority:          effectivePriority,
       credits_estimated: estimatedCredits,
       ...(presetApplied ? { preset_applied: presetApplied } : {}),
     };
