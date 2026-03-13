@@ -4,18 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>xtrct — Web Scraper API</title>
-  <meta name="description" content="Extract anything. Get clean data. Auto-escalating scraper API with Cloudflare bypass, 9 output formats, and 20 zero-config presets." />
+  <meta name="description" content="Extract anything. Cloudflare bypass, JS rendering, residential proxies, JSON-LD &amp; __NEXT_DATA__ extraction. 9 output formats, 20 zero-config presets." />
   <link rel="canonical" href="https://xtrct.io" />
   <!-- Open Graph -->
   <meta property="og:type"        content="website" />
   <meta property="og:url"         content="https://xtrct.io" />
   <meta property="og:title"       content="xtrct — Web Scraper API" />
-  <meta property="og:description" content="Extract anything. Get clean data. Auto-escalating scraper API with Cloudflare bypass, 9 output formats, and 20 zero-config presets." />
+  <meta property="og:description" content="Extract anything. Cloudflare bypass, JS rendering, residential proxies, JSON-LD &amp; __NEXT_DATA__ extraction. 9 output formats, 20 zero-config presets." />
   <meta property="og:image"       content="https://xtrct.io/og.png" />
   <!-- Twitter Card -->
   <meta name="twitter:card"        content="summary_large_image" />
   <meta name="twitter:title"       content="xtrct — Web Scraper API" />
-  <meta name="twitter:description" content="Extract anything. Get clean data. Auto-escalating scraper API with Cloudflare bypass, 9 output formats, and 20 zero-config presets." />
+  <meta name="twitter:description" content="Extract anything. Cloudflare bypass, JS rendering, residential proxies, JSON-LD &amp; __NEXT_DATA__ extraction. 9 output formats, 20 zero-config presets." />
   <meta name="twitter:image"       content="https://xtrct.io/og.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -174,7 +174,7 @@
         Extract anything.<br>Get <span class="grad">clean data</span>
       </h1>
       <p class="text-lg text-muted leading-relaxed mb-8 max-w-md">
-        One API endpoint. 9 output formats. Automatic Cloudflare bypass.
+        One API endpoint. Cloudflare bypass. JS rendering. Residential proxies. 9 output formats.
         Zero-config presets for 20 popular sites. Just send a URL.
       </p>
       <div class="flex flex-wrap gap-3 mb-10">
@@ -328,15 +328,15 @@
       <!-- Cloudflare -->
       <div class="bento-card rounded-2xl border border-border p-7" style="background:#0f0d1a;">
         <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl mb-4" style="background:rgba(124,58,237,.15);">🛡</div>
-        <h3 class="font-display font-bold text-lg text-text mb-2">Cloudflare Bypass</h3>
-        <p class="text-sm text-muted">Multi-layer bot detection bypass. Defeats JS challenges, browser fingerprinting, and behavioural analysis — without you writing a single line of anti-bot code.</p>
+        <h3 class="font-display font-bold text-lg text-text mb-2">Cloudflare &amp; JS Rendering</h3>
+        <p class="text-sm text-muted">Real Chrome browser defeats JS challenges, Turnstile, and bot fingerprinting. Playwright stealth mode handles dynamic SPAs — content rendered before you receive it.</p>
       </div>
 
       <!-- Proxies -->
       <div class="bento-card rounded-2xl border border-border p-7" style="background:#0f0d1a;">
         <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl mb-4" style="background:rgba(124,58,237,.15);">🌐</div>
-        <h3 class="font-display font-bold text-lg text-text mb-2">Smart Proxy Pool</h3>
-        <p class="text-sm text-muted leading-relaxed">Datacenter and residential proxies with EMA health tracking and 5-min failure blacklist. Only used when needed — saves credits.</p>
+        <h3 class="font-display font-bold text-lg text-text mb-2">Residential Proxy Routing</h3>
+        <p class="text-sm text-muted leading-relaxed">UK residential IPs for sites that block datacenters. Sticky sessions for cookie-locked scrapes. Only charged when a proxy is actually used — not per request.</p>
       </div>
 
       <!-- Batch -->
@@ -360,11 +360,11 @@
         <p class="text-sm text-muted">Add <code class="text-bright text-xs">wait=true</code> for an immediate inline response, or use the job queue with webhooks for long-running scrapes.</p>
       </div>
 
-      <!-- Rate limits -->
+      <!-- Structured Extraction -->
       <div class="bento-card rounded-2xl border border-border p-7" style="background:#0f0d1a;">
-        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl mb-4" style="background:rgba(124,58,237,.15);">🚦</div>
-        <h3 class="font-display font-bold text-lg text-text mb-2">Fair Rate Limiting</h3>
-        <p class="text-sm text-muted">Per-tier sliding window limits. Queue depth guards. Global overload protection. Predictable behaviour under load.</p>
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl mb-4" style="background:rgba(124,58,237,.15);">🧩</div>
+        <h3 class="font-display font-bold text-lg text-text mb-2">Structured Data Extraction</h3>
+        <p class="text-sm text-muted">Pull data via CSS selectors, JSON-LD schema, or <code class="text-bright text-xs">__NEXT_DATA__</code> — resilient to layout changes. LLM fallback via Claude when selectors miss.</p>
       </div>
 
     </div>
