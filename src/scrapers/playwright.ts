@@ -49,8 +49,19 @@ export class PlaywrightScraper {
     const page = await context.newPage();
     let statusCode = 200;
 
+    // ── XHR/fetch capture ──────────────────────────────────────────────────
+    // Capture JSON API responses so structured extractors can use xhr: selectors.
+    const xhrCaptures: Record<string, unknown> = {};
     page.on('response', async res => {
-      try { if (res.url() === page.url()) statusCode = res.status(); } catch {}
+      try {
+        if (res.url() === page.url()) statusCode = res.status();
+        const ct = res.headers()['content-type'] ?? '';
+        if (ct.includes('application/json')) {
+          const pathname = new URL(res.url()).pathname;
+          const json = await res.json().catch(() => null);
+          if (json !== null) xhrCaptures[pathname] = json;
+        }
+      } catch {}
     });
 
     // Block images, media and fonts — saves bandwidth and speeds up load.
@@ -99,13 +110,16 @@ export class PlaywrightScraper {
     // Apply custom wait strategy
     await this.applyWait(page, opts.waitFor, timeout);
 
+    // ── CapSolver CAPTCHA handling ─────────────────────────────────────────
+    await this.solveCapsolverIfPresent(page, url);
+
     // Inject custom JS if requested
     if (opts.jsInject) {
       await page.evaluate(opts.jsInject);
     }
 
     const finalUrl = page.url();
-    const html = await page.content();
+    let html = await page.content();
 
     // Final check — if still showing CF challenge after waiting, escalate
     if (this.isCloudflareChallenge(html)) {
@@ -113,6 +127,16 @@ export class PlaywrightScraper {
       await context.close();
       release();
       throw new CloudflareJSError(url);
+    }
+
+    // Inject XHR captures into HTML so structured extractors can access them
+    if (Object.keys(xhrCaptures).length > 0) {
+      const capturesJson = JSON.stringify(xhrCaptures).replace(/<\/script>/gi, '<\\/script>');
+      html = html.replace('</body>', `<script id="__XHR_CAPTURES__" type="application/json">${capturesJson}</script></body>`);
+      if (!html.includes('__XHR_CAPTURES__')) {
+        // No </body> tag — append at end
+        html += `<script id="__XHR_CAPTURES__" type="application/json">${capturesJson}</script>`;
+      }
     }
 
     return { result: { html, statusCode, finalUrl }, page, context, release };
@@ -185,6 +209,115 @@ export class PlaywrightScraper {
     }
     process.stderr.write(`  [playwright] CF challenge did not resolve after ${maxWaitMs / 1000}s\n`);
     return false;
+  }
+
+  /**
+   * Detect common CAPTCHA widgets and solve them via CapSolver if API key is set.
+   * Supports hCaptcha, reCAPTCHA v2, and Cloudflare Turnstile.
+   */
+  private async solveCapsolverIfPresent(page: Page, pageUrl: string): Promise<void> {
+    const apiKey = process.env.CAPSOLVER_API_KEY;
+    if (!apiKey) return;
+
+    try {
+      // Detect which CAPTCHA is present
+      const captchaType = await page.evaluate(() => {
+        if (document.querySelector('.h-captcha, [data-hcaptcha-widget-id]')) return 'hcaptcha';
+        if (document.querySelector('.g-recaptcha, [data-sitekey]')) return 'recaptcha';
+        if (document.querySelector('.cf-turnstile')) return 'turnstile';
+        return null;
+      });
+      if (!captchaType) return;
+
+      const siteKey = await page.evaluate((type: string) => {
+        if (type === 'hcaptcha') {
+          const el = document.querySelector('.h-captcha') as HTMLElement | null;
+          return el?.dataset.sitekey ?? null;
+        }
+        if (type === 'turnstile') {
+          const el = document.querySelector('.cf-turnstile') as HTMLElement | null;
+          return el?.dataset.sitekey ?? null;
+        }
+        const el = document.querySelector('.g-recaptcha') as HTMLElement | null;
+        return el?.dataset.sitekey ?? null;
+      }, captchaType);
+
+      if (!siteKey) return;
+      process.stderr.write(`  [playwright] CAPTCHA detected: ${captchaType} sitekey=${siteKey} — calling CapSolver\n`);
+
+      const taskTypeMap: Record<string, string> = {
+        hcaptcha: 'HCaptchaTaskProxyLess',
+        recaptcha: 'ReCaptchaV2TaskProxyLess',
+        turnstile: 'AntiTurnstileTaskProxyLess',
+      };
+
+      const createRes = await fetch('https://api.capsolver.com/createTask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clientKey: apiKey,
+          task: { type: taskTypeMap[captchaType], websiteURL: pageUrl, websiteKey: siteKey },
+        }),
+        signal: AbortSignal.timeout(10_000),
+      });
+
+      const createData = await createRes.json() as { taskId?: string; errorCode?: string };
+      if (!createData.taskId) {
+        process.stderr.write(`  [playwright] CapSolver createTask failed: ${createData.errorCode}\n`);
+        return;
+      }
+
+      // Poll for result (up to 90s)
+      let token: string | null = null;
+      const deadline = Date.now() + 90_000;
+      while (Date.now() < deadline) {
+        await new Promise(r => setTimeout(r, 3_000));
+        const resultRes = await fetch('https://api.capsolver.com/getTaskResult', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clientKey: apiKey, taskId: createData.taskId }),
+          signal: AbortSignal.timeout(10_000),
+        });
+        const resultData = await resultRes.json() as { status: string; solution?: { gRecaptchaResponse?: string; token?: string } };
+        if (resultData.status === 'ready') {
+          token = resultData.solution?.gRecaptchaResponse ?? resultData.solution?.token ?? null;
+          break;
+        }
+        if (resultData.status !== 'processing') break;
+      }
+
+      if (!token) {
+        process.stderr.write(`  [playwright] CapSolver: no token received\n`);
+        return;
+      }
+
+      // Inject the token into the page
+      await page.evaluate(({ type, tok }: { type: string; tok: string }) => {
+        if (type === 'hcaptcha') {
+          const ta = document.querySelector('textarea[name="h-captcha-response"]') as HTMLTextAreaElement | null;
+          if (ta) ta.value = tok;
+        } else if (type === 'turnstile') {
+          const inp = document.querySelector('input[name="cf-turnstile-response"]') as HTMLInputElement | null;
+          if (inp) inp.value = tok;
+        } else {
+          const ta = document.querySelector('#g-recaptcha-response') as HTMLTextAreaElement | null;
+          if (ta) ta.value = tok;
+        }
+      }, { type: captchaType, tok: token });
+
+      // Submit the form if there is one
+      await page.evaluate(() => {
+        const form = document.querySelector('form');
+        if (form) form.submit();
+      });
+
+      // Wait for navigation after form submit
+      await page.waitForLoadState('domcontentloaded', { timeout: 15_000 }).catch(() => {});
+      process.stderr.write(`  [playwright] CapSolver: token injected and form submitted\n`);
+    } catch (e) {
+      // Non-fatal — log and continue without solving
+      process.stderr.write(`  [playwright] CapSolver error: ${e instanceof Error ? e.message : String(e)}\n`);
+    }
   }
 
   private isCloudflareChallenge(html: string): boolean {

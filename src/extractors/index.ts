@@ -4,7 +4,7 @@ import { extractHtml, extractCleanedHtml, extractText } from './html.ts';
 import { extractMarkdown } from './markdown.ts';
 import { extractMetadata, type PageMetadata } from './metadata.ts';
 import { extractLinks } from './links.ts';
-import { extractStructured } from './structured.ts';
+import { extractStructuredWithLLMFallback } from './structured.ts';
 import { uploadBuffer, makeStorageKey } from '../storage/r2.ts';
 
 export interface ExtractOptions {
@@ -77,7 +77,7 @@ export async function extractAll(opts: ExtractOptions): Promise<ExtractResult> {
         break;
 
       case 'structured':
-        result.structured = extractStructured(html, opts.selectors ?? {});
+        result.structured = await extractStructuredWithLLMFallback(html, opts.selectors ?? {});
         break;
 
       case 'screenshot': {
