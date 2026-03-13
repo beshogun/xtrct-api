@@ -119,29 +119,30 @@ export const currysProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price, availability, brand, MPN, rating and images from a Currys product page.',
   matchDomains: ['currys.co.uk'],
-  strategy: 'playwright',
-  waitFor: { type: 'selector', value: 'h1[class*="product-title"], h1[class*="Title"]' },
+  strategy: 'auto',
+  waitFor: { type: 'selector', value: 'h1.product-name, h1[class*="product-title"]' },
   outputFormats: ['structured'],
   selectors: {
-    // Currys uses React — classes are stable but may include hash suffixes; prefer attribute selectors where possible
-    title:          'h1[class*="product-title"], h1[class*="ProductTitle"], h1[data-component="ProductTitle"]',
-    price:          '[class*="price__current"] span, [data-component="PriceBlock"] [class*="current"], [class*="productPrice"] [class*="current"]',
-    original_price: '[class*="price__previous"], [data-component="PriceBlock"] [class*="previous"], [class*="was-price"]',
-    in_stock:       'button[data-component="AddToBasket"], button[class*="add-to-basket"]:not([disabled]), [class*="availability"][class*="InStock"]',
-    brand:          '[class*="brand-name"] a, [data-component="BrandName"], nav[aria-label="breadcrumb"] li:nth-child(3) a',
-    mpn:            'td[data-component="SpecValue"]:first-of-type, [class*="spec-table"] tr:first-child td:last-child, [data-spec-key="Model Number"] + td',
-    rating:         '[class*="rating__score"], [data-component="RatingScore"], [class*="StarRating"] [class*="score"]',
-    review_count:   '[class*="rating__count"], [data-component="ReviewCount"], [class*="review-count"]',
-    images:         'all:[class*="product-image"] img@src, all:[data-component="ProductImages"] img@src, all:.swiper-slide img@src',
+    // Currys server-renders JSON-LD with all critical data — prices are React client-side so we pull from JSON-LD
+    title:          'h1.product-name, h1[class*="product-title"]',
+    price:          'jsonld:offers.price',
+    original_price: 'jsonld:offers.highPrice',
+    in_stock:       'jsonld:offers.availability',
+    brand:          'jsonld:brand.name',
+    mpn:            'jsonld:mpn',
+    rating:         'jsonld:aggregateRating.ratingValue',
+    review_count:   'jsonld:aggregateRating.reviewCount',
+    images:         'jsonld[]:image',
   },
   postProcess(raw) {
+    const availability = raw.in_stock as string | null;
     return {
       ...raw,
       price:          parsePrice(raw.price as string | null),
       original_price: parsePrice(raw.original_price as string | null),
       rating:         parseRating(raw.rating as string | null),
       review_count:   parseCount(raw.review_count as string | null),
-      in_stock:       !!(raw.in_stock),
+      in_stock:       availability ? availability.includes('InStock') : null,
     };
   },
 };
