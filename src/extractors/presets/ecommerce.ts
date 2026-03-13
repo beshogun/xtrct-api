@@ -2387,3 +2387,925 @@ export function parseCount(raw: string | null): number | null {
   const n = parseInt(cleaned, 10);
   return isNaN(n) ? null : n;
 }
+
+// ─── UK Tech / Electronics category listings ──────────────────────────────────
+
+export const overclockersCategoryUk: ScrapePreset = {
+  id: 'overclockers-category',
+  name: 'Overclockers UK Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from an Overclockers UK category page.',
+  matchDomains: [],
+  strategy: 'http',
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:.product-info .product-title a, all:.product-listing-item h3 a',
+    all_urls:   'all:.product-info .product-title a@href, all:.product-listing-item h3 a@href',
+    all_prices: 'all:.product-info .price, all:.product-listing-item .price',
+    all_images: 'all:.product-info img@src, all:.product-listing-item img@src',
+  },
+};
+
+export const boxCategory: ScrapePreset = {
+  id: 'box-category',
+  name: 'Box.co.uk Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Box.co.uk category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-item"] [class*="product-name"] a, all:[class*="product-card"] h3 a',
+    all_urls:   'all:[class*="product-item"] [class*="product-name"] a@href, all:[class*="product-card"] h3 a@href',
+    all_prices: 'all:[class*="product-item"] [class*="price"], all:[class*="product-card"] [class*="price"]',
+    all_images: 'all:[class*="product-item"] img@src, all:[class*="product-card"] img@src',
+  },
+};
+
+export const cclComputersCategory: ScrapePreset = {
+  id: 'ccl-computers-category',
+  name: 'CCL Computers Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a CCL Computers category page.',
+  matchDomains: [],
+  strategy: 'http',
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:.product-listing .product-name a, all:.category-product h3 a',
+    all_urls:   'all:.product-listing .product-name a@href, all:.category-product h3 a@href',
+    all_prices: 'all:.product-listing .price, all:.category-product .price',
+    all_images: 'all:.product-listing img@src, all:.category-product img@src',
+  },
+};
+
+export const novatechCategory: ScrapePreset = {
+  id: 'novatech-category',
+  name: 'Novatech Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Novatech category page.',
+  matchDomains: [],
+  strategy: 'http',
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:.product-list .product-title a, all:article.product h3 a',
+    all_urls:   'all:.product-list .product-title a@href, all:article.product h3 a@href',
+    all_prices: 'all:.product-list .price, all:article.product .price',
+    all_images: 'all:.product-list img@src, all:article.product img@src',
+  },
+};
+
+export const backMarketCategory: ScrapePreset = {
+  id: 'back-market-category',
+  name: 'Back Market Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Back Market category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'selector', value: 'a[href*="/p/"], a[data-test="product-link"]' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:a[data-test="product-link"] [data-test="product-title"], all:a[data-test="product-link"] h3',
+    all_urls:   'all:a[data-test="product-link"]@href',
+    all_prices: 'all:a[data-test="product-link"] [data-test="product-price"], all:a[data-test="product-link"] [class*="price"]',
+    all_images: 'all:a[data-test="product-link"] img@src',
+  },
+};
+
+export const musicMagpieCategory: ScrapePreset = {
+  id: 'music-magpie-category',
+  name: 'Music Magpie Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Music Magpie category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-card"] [class*="product-name"], all:[class*="product-card"] h3',
+    all_urls:   'all:[class*="product-card"] a@href',
+    all_prices: 'all:[class*="product-card"] [class*="price"]',
+    all_images: 'all:[class*="product-card"] img@src',
+  },
+};
+
+export const richerSoundsCategory: ScrapePreset = {
+  id: 'richer-sounds-category',
+  name: 'Richer Sounds Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Richer Sounds category page.',
+  matchDomains: [],
+  strategy: 'http',
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:.product-item .product-name a, all:li.product h3 a',
+    all_urls:   'all:.product-item .product-name a@href, all:li.product h3 a@href',
+    all_prices: 'all:.product-item .price, all:li.product .price',
+    all_images: 'all:.product-item img@src, all:li.product img@src',
+  },
+};
+
+export const gameUkCategory: ScrapePreset = {
+  id: 'game-uk-category',
+  name: 'GAME UK Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a GAME category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:a[href*="/products/"] [class*="product-name"], all:a[href*="/products/"] h3',
+    all_urls:   'all:a[href*="/products/"]@href',
+    all_prices: 'all:a[href*="/products/"] [class*="price"]',
+    all_images: 'all:a[href*="/products/"] img@src',
+  },
+};
+
+export const shoptoCategory: ScrapePreset = {
+  id: 'shopto-category',
+  name: 'ShopTo Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a ShopTo category page.',
+  matchDomains: [],
+  strategy: 'http',
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:.product-list-item .product-title a, all:li.productItem h3 a',
+    all_urls:   'all:.product-list-item .product-title a@href, all:li.productItem h3 a@href',
+    all_prices: 'all:.product-list-item .price, all:li.productItem .price',
+    all_images: 'all:.product-list-item img@src, all:li.productItem img@src',
+  },
+};
+
+export const zavviCategory: ScrapePreset = {
+  id: 'zavvi-category',
+  name: 'Zavvi Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Zavvi category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:a[href*="/products/"] [class*="product-name"], all:a[href*="/products/"] h3',
+    all_urls:   'all:a[href*="/products/"]@href',
+    all_prices: 'all:a[href*="/products/"] [class*="price"]',
+    all_images: 'all:a[href*="/products/"] img@src',
+  },
+};
+
+export const gamesCategory: ScrapePreset = {
+  id: '365games-category',
+  name: '365 Games Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a 365 Games category page.',
+  matchDomains: [],
+  strategy: 'http',
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:.product-list .product-title a, all:.ProductCard h3 a',
+    all_urls:   'all:.product-list .product-title a@href, all:.ProductCard h3 a@href',
+    all_prices: 'all:.product-list .price, all:.ProductCard .price',
+    all_images: 'all:.product-list img@src, all:.ProductCard img@src',
+  },
+};
+
+export const halfordsCategory: ScrapePreset = {
+  id: 'halfords-category',
+  name: 'Halfords Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Halfords category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-tile"] [class*="product-name"], all:[class*="product-card"] h3',
+    all_urls:   'all:[class*="product-tile"] a@href, all:[class*="product-card"] a@href',
+    all_prices: 'all:[class*="product-tile"] [class*="price"], all:[class*="product-card"] [class*="price"]',
+    all_images: 'all:[class*="product-tile"] img@src, all:[class*="product-card"] img@src',
+  },
+};
+
+export const appliancesDirectCategory: ScrapePreset = {
+  id: 'appliances-direct-category',
+  name: 'Appliances Direct Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from an Appliances Direct category page.',
+  matchDomains: [],
+  strategy: 'http',
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:.product-list-item .product-title a, all:[class*="product-item"] h3 a',
+    all_urls:   'all:.product-list-item .product-title a@href, all:[class*="product-item"] h3 a@href',
+    all_prices: 'all:.product-list-item [class*="price"], all:[class*="product-item"] [class*="price"]',
+    all_images: 'all:.product-list-item img@src, all:[class*="product-item"] img@src',
+  },
+};
+
+export const lakelandCategory: ScrapePreset = {
+  id: 'lakeland-category',
+  name: 'Lakeland Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Lakeland category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:a[href*="/p/"] [class*="product-title"], all:a[href*="/p/"] h3',
+    all_urls:   'all:a[href*="/p/"]@href',
+    all_prices: 'all:a[href*="/p/"] [class*="price"]',
+    all_images: 'all:a[href*="/p/"] img@src',
+  },
+};
+
+// ─── UK Fashion category listings ─────────────────────────────────────────────
+
+export const boohooCategory: ScrapePreset = {
+  id: 'boohoo-category',
+  name: 'Boohoo Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Boohoo category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'selector', value: 'a[href*="/product/"]' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:a[href*="/product/"] [class*="product-name"], all:a[href*="/product/"] h3',
+    all_urls:   'all:a[href*="/product/"]@href',
+    all_prices: 'all:a[href*="/product/"] [class*="price"]',
+    all_images: 'all:a[href*="/product/"] img@src',
+  },
+};
+
+export const prettylittlethingCategory: ScrapePreset = {
+  id: 'prettylittlething-category',
+  name: 'PrettyLittleThing Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a PrettyLittleThing category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'selector', value: 'a[href*="/product/"]' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:a[href*="/product/"] [class*="product-name"], all:a[href*="/product/"] h3',
+    all_urls:   'all:a[href*="/product/"]@href',
+    all_prices: 'all:a[href*="/product/"] [class*="price"]',
+    all_images: 'all:a[href*="/product/"] img@src',
+  },
+};
+
+export const newLookCategory: ScrapePreset = {
+  id: 'new-look-category',
+  name: 'New Look Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a New Look category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:a[href*="/p/"] [class*="product-name"], all:a[href*="/p/"] h3',
+    all_urls:   'all:a[href*="/p/"]@href',
+    all_prices: 'all:a[href*="/p/"] [class*="price"]',
+    all_images: 'all:a[href*="/p/"] img@src',
+  },
+};
+
+export const riverIslandCategory: ScrapePreset = {
+  id: 'river-island-category',
+  name: 'River Island Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a River Island category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:a[href*="/p/"] [class*="name"], all:[class*="product-card"] h3',
+    all_urls:   'all:[class*="product-card"] a@href',
+    all_prices: 'all:[class*="product-card"] [class*="price"]',
+    all_images: 'all:[class*="product-card"] img@src',
+  },
+};
+
+export const houseOfFraserCategory: ScrapePreset = {
+  id: 'house-of-fraser-category',
+  name: 'House of Fraser Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a House of Fraser category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-card"] [class*="product-name"], all:[class*="product-card"] h3',
+    all_urls:   'all:[class*="product-card"] a@href',
+    all_prices: 'all:[class*="product-card"] [class*="price"]',
+    all_images: 'all:[class*="product-card"] img@src',
+  },
+};
+
+export const flannelsCategory: ScrapePreset = {
+  id: 'flannels-category',
+  name: 'FLANNELS Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a FLANNELS category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-card"] [class*="product-name"], all:[class*="product-card"] h3',
+    all_urls:   'all:[class*="product-card"] a@href',
+    all_prices: 'all:[class*="product-card"] [class*="price"]',
+    all_images: 'all:[class*="product-card"] img@src',
+  },
+};
+
+export const mainlineMenswearCategory: ScrapePreset = {
+  id: 'mainline-menswear-category',
+  name: 'Mainline Menswear Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Mainline Menswear category page.',
+  matchDomains: [],
+  strategy: 'http',
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:a[href*="/product/"] [class*="product-name"], all:a[href*="/product/"] h3',
+    all_urls:   'all:a[href*="/product/"]@href',
+    all_prices: 'all:a[href*="/product/"] [class*="price"]',
+    all_images: 'all:a[href*="/product/"] img@src',
+  },
+};
+
+export const fatFaceCategory: ScrapePreset = {
+  id: 'fat-face-category',
+  name: 'Fat Face Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Fat Face category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-tile"] [class*="product-name"], all:[class*="product-tile"] h3',
+    all_urls:   'all:[class*="product-tile"] a@href',
+    all_prices: 'all:[class*="product-tile"] [class*="price"]',
+    all_images: 'all:[class*="product-tile"] img@src',
+  },
+};
+
+export const whiteStuffCategory: ScrapePreset = {
+  id: 'white-stuff-category',
+  name: 'White Stuff Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a White Stuff category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-tile"] [class*="product-name"], all:[class*="product-card"] h3',
+    all_urls:   'all:[class*="product-tile"] a@href, all:[class*="product-card"] a@href',
+    all_prices: 'all:[class*="product-tile"] [class*="price"], all:[class*="product-card"] [class*="price"]',
+    all_images: 'all:[class*="product-tile"] img@src, all:[class*="product-card"] img@src',
+  },
+};
+
+export const joulesCategory: ScrapePreset = {
+  id: 'joules-category',
+  name: 'Joules Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Joules category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-tile"] [class*="product-name"], all:[class*="product-card"] h3',
+    all_urls:   'all:[class*="product-tile"] a@href, all:[class*="product-card"] a@href',
+    all_prices: 'all:[class*="product-tile"] [class*="price"], all:[class*="product-card"] [class*="price"]',
+    all_images: 'all:[class*="product-tile"] img@src, all:[class*="product-card"] img@src',
+  },
+};
+
+export const tedBakerCategory: ScrapePreset = {
+  id: 'ted-baker-category',
+  name: 'Ted Baker Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Ted Baker category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-tile"] [class*="product-name"], all:[class*="product-card"] h3',
+    all_urls:   'all:[class*="product-tile"] a@href, all:[class*="product-card"] a@href',
+    all_prices: 'all:[class*="product-tile"] [class*="price"], all:[class*="product-card"] [class*="price"]',
+    all_images: 'all:[class*="product-tile"] img@src, all:[class*="product-card"] img@src',
+  },
+};
+
+export const reissCategory: ScrapePreset = {
+  id: 'reiss-category',
+  name: 'Reiss Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Reiss category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-tile"] [class*="product-name"], all:[class*="product-card"] h3',
+    all_urls:   'all:[class*="product-tile"] a@href, all:[class*="product-card"] a@href',
+    all_prices: 'all:[class*="product-tile"] [class*="price"], all:[class*="product-card"] [class*="price"]',
+    all_images: 'all:[class*="product-tile"] img@src, all:[class*="product-card"] img@src',
+  },
+};
+
+export const superdryCategory: ScrapePreset = {
+  id: 'superdry-category',
+  name: 'Superdry Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Superdry category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-tile"] [class*="product-name"], all:[class*="product-card"] h3',
+    all_urls:   'all:[class*="product-tile"] a@href, all:[class*="product-card"] a@href',
+    all_prices: 'all:[class*="product-tile"] [class*="price"], all:[class*="product-card"] [class*="price"]',
+    all_images: 'all:[class*="product-tile"] img@src, all:[class*="product-card"] img@src',
+  },
+};
+
+export const matalanCategory: ScrapePreset = {
+  id: 'matalan-category',
+  name: 'Matalan Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Matalan category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-card"] [class*="product-name"], all:[class*="product-card"] h3',
+    all_urls:   'all:[class*="product-card"] a@href',
+    all_prices: 'all:[class*="product-card"] [class*="price"]',
+    all_images: 'all:[class*="product-card"] img@src',
+  },
+};
+
+export const quizCategory: ScrapePreset = {
+  id: 'quiz-category',
+  name: 'Quiz Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Quiz category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-tile"] [class*="product-name"], all:[class*="product-card"] h3',
+    all_urls:   'all:[class*="product-tile"] a@href, all:[class*="product-card"] a@href',
+    all_prices: 'all:[class*="product-tile"] [class*="price"], all:[class*="product-card"] [class*="price"]',
+    all_images: 'all:[class*="product-tile"] img@src, all:[class*="product-card"] img@src',
+  },
+};
+
+export const georgeAsdaCategory: ScrapePreset = {
+  id: 'george-asda-category',
+  name: 'George at ASDA Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a George at ASDA category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-card"] [class*="product-title"], all:[class*="product-card"] h3',
+    all_urls:   'all:[class*="product-card"] a@href',
+    all_prices: 'all:[class*="product-card"] [class*="price"]',
+    all_images: 'all:[class*="product-card"] img@src',
+  },
+};
+
+// ─── UK Sports & Outdoor category listings ────────────────────────────────────
+
+export const goOutdoorsCategory: ScrapePreset = {
+  id: 'go-outdoors-category',
+  name: 'Go Outdoors Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Go Outdoors category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-card"] [class*="product-name"], all:[class*="product-tile"] h3',
+    all_urls:   'all:[class*="product-card"] a@href, all:[class*="product-tile"] a@href',
+    all_prices: 'all:[class*="product-card"] [class*="price"], all:[class*="product-tile"] [class*="price"]',
+    all_images: 'all:[class*="product-card"] img@src, all:[class*="product-tile"] img@src',
+  },
+};
+
+export const mountainWarehouseCategory: ScrapePreset = {
+  id: 'mountain-warehouse-category',
+  name: 'Mountain Warehouse Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Mountain Warehouse category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:a[href*="/p/"] [class*="product-name"], all:a[href*="/p/"] h3, all:[class*="product-card"] h3',
+    all_urls:   'all:[class*="product-card"] a@href',
+    all_prices: 'all:[class*="product-card"] [class*="price"]',
+    all_images: 'all:[class*="product-card"] img@src',
+  },
+};
+
+export const cotswoldOutdoorCategory: ScrapePreset = {
+  id: 'cotswold-outdoor-category',
+  name: 'Cotswold Outdoor Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Cotswold Outdoor category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-card"] [class*="product-name"], all:[class*="product-card"] h3',
+    all_urls:   'all:[class*="product-card"] a@href',
+    all_prices: 'all:[class*="product-card"] [class*="price"]',
+    all_images: 'all:[class*="product-card"] img@src',
+  },
+};
+
+export const chainReactionCategory: ScrapePreset = {
+  id: 'chain-reaction-category',
+  name: 'Chain Reaction Cycles Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Chain Reaction Cycles category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-card"] [class*="product-name"], all:[class*="product-tile"] h3',
+    all_urls:   'all:[class*="product-card"] a@href, all:[class*="product-tile"] a@href',
+    all_prices: 'all:[class*="product-card"] [class*="price"], all:[class*="product-tile"] [class*="price"]',
+    all_images: 'all:[class*="product-card"] img@src, all:[class*="product-tile"] img@src',
+  },
+};
+
+export const sweatyBettyCategory: ScrapePreset = {
+  id: 'sweaty-betty-category',
+  name: 'Sweaty Betty Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Sweaty Betty category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-tile"] [class*="product-name"], all:[class*="product-card"] h3',
+    all_urls:   'all:[class*="product-tile"] a@href, all:[class*="product-card"] a@href',
+    all_prices: 'all:[class*="product-tile"] [class*="price"], all:[class*="product-card"] [class*="price"]',
+    all_images: 'all:[class*="product-tile"] img@src, all:[class*="product-card"] img@src',
+  },
+};
+
+export const lululemonUkCategory: ScrapePreset = {
+  id: 'lululemon-uk-category',
+  name: 'Lululemon UK Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Lululemon UK category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[data-testid="product-card"] [data-testid="product-tile-title"], all:[class*="product-card"] h3',
+    all_urls:   'all:[data-testid="product-card"] a@href, all:[class*="product-card"] a@href',
+    all_prices: 'all:[data-testid="product-card"] [data-testid="price"], all:[class*="product-card"] [class*="price"]',
+    all_images: 'all:[data-testid="product-card"] img@src, all:[class*="product-card"] img@src',
+  },
+};
+
+// ─── UK Beauty category listings ──────────────────────────────────────────────
+
+export const beautyBayCategory: ScrapePreset = {
+  id: 'beauty-bay-category',
+  name: 'Beauty Bay Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Beauty Bay category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'selector', value: 'a[href*="/products/"]' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:a[href*="/products/"] [class*="product-name"], all:a[href*="/products/"] h3',
+    all_urls:   'all:a[href*="/products/"]@href',
+    all_prices: 'all:a[href*="/products/"] [class*="price"]',
+    all_images: 'all:a[href*="/products/"] img@src',
+  },
+};
+
+export const spaceNkCategory: ScrapePreset = {
+  id: 'space-nk-category',
+  name: 'Space NK Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Space NK category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-tile"] [class*="product-name"], all:[class*="product-card"] h3',
+    all_urls:   'all:[class*="product-tile"] a@href, all:[class*="product-card"] a@href',
+    all_prices: 'all:[class*="product-tile"] [class*="price"], all:[class*="product-card"] [class*="price"]',
+    all_images: 'all:[class*="product-tile"] img@src, all:[class*="product-card"] img@src',
+  },
+};
+
+export const theBodyShopCategory: ScrapePreset = {
+  id: 'the-body-shop-category',
+  name: 'The Body Shop Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a The Body Shop category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-tile"] [class*="product-name"], all:[class*="product-card"] h3',
+    all_urls:   'all:[class*="product-tile"] a@href, all:[class*="product-card"] a@href',
+    all_prices: 'all:[class*="product-tile"] [class*="price"], all:[class*="product-card"] [class*="price"]',
+    all_images: 'all:[class*="product-tile"] img@src, all:[class*="product-card"] img@src',
+  },
+};
+
+export const hollandBarrettCategory: ScrapePreset = {
+  id: 'holland-barrett-category',
+  name: 'Holland & Barrett Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Holland & Barrett category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-card"] [class*="product-name"], all:[class*="product-card"] h3',
+    all_urls:   'all:[class*="product-card"] a@href',
+    all_prices: 'all:[class*="product-card"] [class*="price"]',
+    all_images: 'all:[class*="product-card"] img@src',
+  },
+};
+
+export const fragranceDirectCategory: ScrapePreset = {
+  id: 'fragrance-direct-category',
+  name: 'Fragrance Direct Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Fragrance Direct category page.',
+  matchDomains: [],
+  strategy: 'http',
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:.product-item .product-name a, all:li.product-grid-item h3 a',
+    all_urls:   'all:.product-item .product-name a@href, all:li.product-grid-item h3 a@href',
+    all_prices: 'all:.product-item .price, all:li.product-grid-item .price',
+    all_images: 'all:.product-item img@src, all:li.product-grid-item img@src',
+  },
+};
+
+// ─── UK Toys category listings ────────────────────────────────────────────────
+
+export const theEntertainerCategory: ScrapePreset = {
+  id: 'the-entertainer-category',
+  name: 'The Entertainer Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from The Entertainer category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-card"] [class*="product-name"], all:[class*="product-tile"] h3',
+    all_urls:   'all:[class*="product-card"] a@href, all:[class*="product-tile"] a@href',
+    all_prices: 'all:[class*="product-card"] [class*="price"], all:[class*="product-tile"] [class*="price"]',
+    all_images: 'all:[class*="product-card"] img@src, all:[class*="product-tile"] img@src',
+  },
+};
+
+export const hamleysCategory: ScrapePreset = {
+  id: 'hamleys-category',
+  name: 'Hamleys Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Hamleys category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-card"] [class*="product-name"], all:[class*="product-tile"] h3',
+    all_urls:   'all:[class*="product-card"] a@href, all:[class*="product-tile"] a@href',
+    all_prices: 'all:[class*="product-card"] [class*="price"], all:[class*="product-tile"] [class*="price"]',
+    all_images: 'all:[class*="product-card"] img@src, all:[class*="product-tile"] img@src',
+  },
+};
+
+// ─── UK Books category listings ───────────────────────────────────────────────
+
+export const whsmithCategory: ScrapePreset = {
+  id: 'whsmith-category',
+  name: 'WHSmith Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a WHSmith category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-card"] [class*="product-name"], all:[class*="product-tile"] h3',
+    all_urls:   'all:[class*="product-card"] a@href, all:[class*="product-tile"] a@href',
+    all_prices: 'all:[class*="product-card"] [class*="price"], all:[class*="product-tile"] [class*="price"]',
+    all_images: 'all:[class*="product-card"] img@src, all:[class*="product-tile"] img@src',
+  },
+};
+
+export const theBookPeopleCategory: ScrapePreset = {
+  id: 'the-book-people-category',
+  name: 'The Book People Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from The Book People category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-card"] [class*="product-name"], all:[class*="product-tile"] h3',
+    all_urls:   'all:[class*="product-card"] a@href, all:[class*="product-tile"] a@href',
+    all_prices: 'all:[class*="product-card"] [class*="price"], all:[class*="product-tile"] [class*="price"]',
+    all_images: 'all:[class*="product-card"] img@src, all:[class*="product-tile"] img@src',
+  },
+};
+
+export const hiveCategory: ScrapePreset = {
+  id: 'hive-category',
+  name: 'Hive Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Hive category page.',
+  matchDomains: [],
+  strategy: 'http',
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:a[href*="/product/"] [class*="title"], all:a[href*="/product/"] h3',
+    all_urls:   'all:a[href*="/product/"]@href',
+    all_prices: 'all:a[href*="/product/"] [class*="price"]',
+    all_images: 'all:a[href*="/product/"] img@src',
+  },
+};
+
+export const blackwellsCategory: ScrapePreset = {
+  id: 'blackwells-category',
+  name: 'Blackwell\'s Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Blackwell\'s category page.',
+  matchDomains: [],
+  strategy: 'http',
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:a[href*="/product/"] [class*="title"], all:.book-item h3 a',
+    all_urls:   'all:a[href*="/product/"]@href, all:.book-item h3 a@href',
+    all_prices: 'all:a[href*="/product/"] [class*="price"], all:.book-item .price',
+    all_images: 'all:a[href*="/product/"] img@src, all:.book-item img@src',
+  },
+};
+
+// ─── UK Pets category listings ────────────────────────────────────────────────
+
+export const zooplusCategory: ScrapePreset = {
+  id: 'zooplus-category',
+  name: 'Zooplus Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Zooplus category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-item"] [class*="product-name"], all:[class*="product-card"] h3',
+    all_urls:   'all:[class*="product-item"] a@href, all:[class*="product-card"] a@href',
+    all_prices: 'all:[class*="product-item"] [class*="price"], all:[class*="product-card"] [class*="price"]',
+    all_images: 'all:[class*="product-item"] img@src, all:[class*="product-card"] img@src',
+  },
+};
+
+export const jollyesCategory: ScrapePreset = {
+  id: 'jollyes-category',
+  name: 'Jollyes Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Jollyes category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-card"] [class*="product-name"], all:[class*="product-tile"] h3',
+    all_urls:   'all:[class*="product-card"] a@href, all:[class*="product-tile"] a@href',
+    all_prices: 'all:[class*="product-card"] [class*="price"], all:[class*="product-tile"] [class*="price"]',
+    all_images: 'all:[class*="product-card"] img@src, all:[class*="product-tile"] img@src',
+  },
+};
+
+export const viovetCategory: ScrapePreset = {
+  id: 'viovet-category',
+  name: 'VioVet Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a VioVet category page.',
+  matchDomains: [],
+  strategy: 'http',
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:.product-listing .product-name a, all:[class*="product-item"] h3 a',
+    all_urls:   'all:.product-listing .product-name a@href, all:[class*="product-item"] h3 a@href',
+    all_prices: 'all:.product-listing .price, all:[class*="product-item"] .price',
+    all_images: 'all:.product-listing img@src, all:[class*="product-item"] img@src',
+  },
+};
+
+// ─── UK Home & Garden additional category listings ────────────────────────────
+
+export const homebaseCategory: ScrapePreset = {
+  id: 'homebase-category',
+  name: 'Homebase Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Homebase category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-card"] [class*="product-name"], all:[class*="product-tile"] h3',
+    all_urls:   'all:[class*="product-card"] a@href, all:[class*="product-tile"] a@href',
+    all_prices: 'all:[class*="product-card"] [class*="price"], all:[class*="product-tile"] [class*="price"]',
+    all_images: 'all:[class*="product-card"] img@src, all:[class*="product-tile"] img@src',
+  },
+};
+
+export const oakFurniturelandCategory: ScrapePreset = {
+  id: 'oak-furnitureland-category',
+  name: 'Oak Furnitureland Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from an Oak Furnitureland category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-card"] [class*="product-name"], all:[class*="product-tile"] h3',
+    all_urls:   'all:[class*="product-card"] a@href, all:[class*="product-tile"] a@href',
+    all_prices: 'all:[class*="product-card"] [class*="price"], all:[class*="product-tile"] [class*="price"]',
+    all_images: 'all:[class*="product-card"] img@src, all:[class*="product-tile"] img@src',
+  },
+};
+
+export const coxAndCoxCategory: ScrapePreset = {
+  id: 'cox-and-cox-category',
+  name: 'Cox & Cox Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Cox & Cox category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-card"] [class*="product-name"], all:[class*="product-tile"] h3',
+    all_urls:   'all:[class*="product-card"] a@href, all:[class*="product-tile"] a@href',
+    all_prices: 'all:[class*="product-card"] [class*="price"], all:[class*="product-tile"] [class*="price"]',
+    all_images: 'all:[class*="product-card"] img@src, all:[class*="product-tile"] img@src',
+  },
+};
+
+export const gardenTradingCategory: ScrapePreset = {
+  id: 'garden-trading-category',
+  name: 'Garden Trading Category Listing',
+  category: 'ecommerce',
+  description: 'Discovers products from a Garden Trading category page.',
+  matchDomains: [],
+  strategy: 'auto',
+  waitFor: { type: 'networkidle' },
+  outputFormats: ['structured'],
+  selectors: {
+    all_titles: 'all:[class*="product-card"] [class*="product-name"], all:[class*="product-tile"] h3',
+    all_urls:   'all:[class*="product-card"] a@href, all:[class*="product-tile"] a@href',
+    all_prices: 'all:[class*="product-card"] [class*="price"], all:[class*="product-tile"] [class*="price"]',
+    all_images: 'all:[class*="product-card"] img@src, all:[class*="product-tile"] img@src',
+  },
+};

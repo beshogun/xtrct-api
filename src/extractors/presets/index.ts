@@ -139,6 +139,68 @@ import {
   dunelmCategory,
   wayfairUkCategory,
   bAndQCategory,
+  // UK tech/electronics category presets
+  overclockersCategoryUk,
+  boxCategory,
+  cclComputersCategory,
+  novatechCategory,
+  backMarketCategory,
+  musicMagpieCategory,
+  richerSoundsCategory,
+  gameUkCategory,
+  shoptoCategory,
+  zavviCategory,
+  gamesCategory,
+  halfordsCategory,
+  appliancesDirectCategory,
+  lakelandCategory,
+  // UK fashion category presets
+  boohooCategory,
+  prettylittlethingCategory,
+  newLookCategory,
+  riverIslandCategory,
+  houseOfFraserCategory,
+  flannelsCategory,
+  mainlineMenswearCategory,
+  fatFaceCategory,
+  whiteStuffCategory,
+  joulesCategory,
+  tedBakerCategory,
+  reissCategory,
+  superdryCategory,
+  matalanCategory,
+  quizCategory,
+  georgeAsdaCategory,
+  // UK sports/outdoor category presets
+  goOutdoorsCategory,
+  mountainWarehouseCategory,
+  cotswoldOutdoorCategory,
+  chainReactionCategory,
+  sweatyBettyCategory,
+  lululemonUkCategory,
+  // UK beauty category presets (additional)
+  beautyBayCategory,
+  spaceNkCategory,
+  theBodyShopCategory,
+  hollandBarrettCategory,
+  fragranceDirectCategory,
+  // UK toys category presets (additional)
+  theEntertainerCategory,
+  hamleysCategory,
+  // UK books category presets
+  whsmithCategory,
+  theBookPeopleCategory,
+  hiveCategory,
+  blackwellsCategory,
+  // UK pets category presets (additional)
+  zooplusCategory,
+  jollyesCategory,
+  viovetCategory,
+  // UK home/garden additional category presets
+  homebaseCategory,
+  oakFurniturelandCategory,
+  coxAndCoxCategory,
+  gardenTradingCategory,
 } from './ecommerce.ts';
 import { indeedJob, linkedinJob, glassdoorJob, remoteokListing } from './jobs.ts';
 import { rightmoveProperty, zillowListing, zooplaProperty } from './realestate.ts';
@@ -285,6 +347,76 @@ export const PRESETS: Record<string, ScrapePreset> = {
   'dunelm-category':      dunelmCategory,
   'wayfair-uk-category':  wayfairUkCategory,
   'b-and-q-category':     bAndQCategory,
+
+  // ecommerce — UK tech/electronics category pages
+  'overclockers-category':      overclockersCategoryUk,
+  'box-category':               boxCategory,
+  'ccl-computers-category':     cclComputersCategory,
+  'novatech-category':          novatechCategory,
+  'back-market-category':       backMarketCategory,
+  'music-magpie-category':      musicMagpieCategory,
+  'richer-sounds-category':     richerSoundsCategory,
+  'game-uk-category':           gameUkCategory,
+  'shopto-category':            shoptoCategory,
+  'zavvi-category':             zavviCategory,
+  '365games-category':          gamesCategory,
+  'halfords-category':          halfordsCategory,
+  'appliances-direct-category': appliancesDirectCategory,
+  'lakeland-category':          lakelandCategory,
+
+  // ecommerce — UK fashion category pages
+  'boohoo-category':            boohooCategory,
+  'prettylittlething-category': prettylittlethingCategory,
+  'new-look-category':          newLookCategory,
+  'river-island-category':      riverIslandCategory,
+  'house-of-fraser-category':   houseOfFraserCategory,
+  'flannels-category':          flannelsCategory,
+  'mainline-menswear-category': mainlineMenswearCategory,
+  'fat-face-category':          fatFaceCategory,
+  'white-stuff-category':       whiteStuffCategory,
+  'joules-category':            joulesCategory,
+  'ted-baker-category':         tedBakerCategory,
+  'reiss-category':             reissCategory,
+  'superdry-category':          superdryCategory,
+  'matalan-category':           matalanCategory,
+  'quiz-category':              quizCategory,
+  'george-asda-category':       georgeAsdaCategory,
+
+  // ecommerce — UK sports/outdoor category pages
+  'go-outdoors-category':        goOutdoorsCategory,
+  'mountain-warehouse-category': mountainWarehouseCategory,
+  'cotswold-outdoor-category':   cotswoldOutdoorCategory,
+  'chain-reaction-category':     chainReactionCategory,
+  'sweaty-betty-category':       sweatyBettyCategory,
+  'lululemon-uk-category':       lululemonUkCategory,
+
+  // ecommerce — UK beauty category pages (additional)
+  'beauty-bay-category':         beautyBayCategory,
+  'space-nk-category':           spaceNkCategory,
+  'the-body-shop-category':      theBodyShopCategory,
+  'holland-barrett-category':    hollandBarrettCategory,
+  'fragrance-direct-category':   fragranceDirectCategory,
+
+  // ecommerce — UK toys category pages (additional)
+  'the-entertainer-category':    theEntertainerCategory,
+  'hamleys-category':            hamleysCategory,
+
+  // ecommerce — UK books category pages
+  'whsmith-category':            whsmithCategory,
+  'the-book-people-category':    theBookPeopleCategory,
+  'hive-category':               hiveCategory,
+  'blackwells-category':         blackwellsCategory,
+
+  // ecommerce — UK pets category pages (additional)
+  'zooplus-category':            zooplusCategory,
+  'jollyes-category':            jollyesCategory,
+  'viovet-category':             viovetCategory,
+
+  // ecommerce — UK home/garden additional category pages
+  'homebase-category':           homebaseCategory,
+  'oak-furnitureland-category':  oakFurniturelandCategory,
+  'cox-and-cox-category':        coxAndCoxCategory,
+  'garden-trading-category':     gardenTradingCategory,
 
   // jobs
   'indeed-job':        indeedJob,
