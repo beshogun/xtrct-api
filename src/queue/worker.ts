@@ -12,6 +12,42 @@ const POLL_INTERVAL_MS = 1_000;
 // Map of job IDs awaiting sync resolution
 export const syncWaiters = new Map<string, (job: ScrapeJob) => void>();
 
+// ─── Per-domain concurrency cap ───────────────────────────────────────────────
+// Hard sites get cap 1 (sequential); everything else cap 2.
+// This prevents all workers piling onto the same domain simultaneously,
+// which triggers rate limiting and looks like a bot attack.
+
+const HARD_DOMAINS = new Set([
+  'therealreal.com', 'stockx.com', 'zalando.co.uk', 'zalando.com',
+  'farfetch.com', 'net-a-porter.com', 'ssense.com',
+  'wayfair.co.uk', 'wayfair.com', 'wine-auctioneer.com', 'asos.com',
+]);
+const DEFAULT_DOMAIN_CAP = 2;
+const HARD_DOMAIN_CAP    = 1;
+
+const domainActive = new Map<string, number>();
+
+function jobDomain(url: string): string {
+  try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url; }
+}
+
+function domainCap(domain: string): number {
+  return HARD_DOMAINS.has(domain) ? HARD_DOMAIN_CAP : DEFAULT_DOMAIN_CAP;
+}
+
+function acquireDomain(domain: string): boolean {
+  const n = domainActive.get(domain) ?? 0;
+  if (n >= domainCap(domain)) return false;
+  domainActive.set(domain, n + 1);
+  return true;
+}
+
+function releaseDomain(domain: string): void {
+  const n = (domainActive.get(domain) ?? 1) - 1;
+  if (n <= 0) domainActive.delete(domain);
+  else domainActive.set(domain, n);
+}
+
 async function processJob(job: ScrapeJob): Promise<void> {
   const started = Date.now();
 
@@ -137,20 +173,32 @@ export async function startWorkers(concurrency = 4): Promise<void> {
     if (active >= concurrency) return;
 
     let job: ScrapeJob | undefined;
+    let domain = '';
     try {
-      // Atomically claim a pending job
+      // Fetch the top pending candidates (by priority + age) and pick the
+      // first one whose domain isn't at its concurrency cap.
+      const candidates = await sql<Pick<ScrapeJob, 'id' | 'url'>[]>`
+        SELECT id, url FROM scrape_jobs
+        WHERE status = 'pending'
+        ORDER BY priority DESC, created_at ASC
+        LIMIT 20
+      `;
+
+      const eligible = candidates.find(c => {
+        const d = jobDomain(c.url);
+        return (domainActive.get(d) ?? 0) < domainCap(d);
+      });
+      if (!eligible) return;
+
+      domain = jobDomain(eligible.url);
+
+      // Atomically claim it — another worker may have grabbed it first
       const rows = await sql<ScrapeJob[]>`
         UPDATE scrape_jobs
         SET status     = 'running',
             started_at = NOW(),
             worker_id  = ${WORKER_ID}
-        WHERE id = (
-          SELECT id FROM scrape_jobs
-          WHERE status = 'pending'
-          ORDER BY priority DESC, created_at ASC
-          LIMIT 1
-          FOR UPDATE SKIP LOCKED
-        )
+        WHERE id = ${eligible.id} AND status = 'pending'
         RETURNING *
       `;
       job = rows[0];
@@ -158,10 +206,12 @@ export async function startWorkers(concurrency = 4): Promise<void> {
       return; // DB not available — skip this poll cycle
     }
 
-    if (!job) return;
+    if (!job) return; // claimed by another worker — try next poll
 
+    acquireDomain(domain);
     active++;
-    const jobTimeout = ((job.options as Record<string, unknown>)?.timeout as number ?? 30_000) + 120_000; // job timeout + 2 min buffer
+
+    const jobTimeout = ((job.options as Record<string, unknown>)?.timeout as number ?? 30_000) + 120_000;
     const timeoutPromise = new Promise<void>((_, reject) =>
       setTimeout(() => reject(new Error('Job exceeded maximum allowed duration')), jobTimeout)
     );
@@ -171,7 +221,10 @@ export async function startWorkers(concurrency = 4): Promise<void> {
         process.stderr.write(`  [worker] job ${job!.id} hard-killed: ${errMsg}\n`);
         await sql`UPDATE scrape_jobs SET status = 'failed', error = ${errMsg}, completed_at = NOW() WHERE id = ${job!.id} AND status = 'running'`.catch(() => {});
       })
-      .finally(() => { active--; });
+      .finally(() => {
+        releaseDomain(domain);
+        active--;
+      });
   };
 
   setInterval(poll, POLL_INTERVAL_MS);
