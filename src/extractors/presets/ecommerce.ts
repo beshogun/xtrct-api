@@ -225,28 +225,31 @@ export const aoProduct: ScrapePreset = {
   outputFormats: ['structured'],
   selectors: {
     title:          'h1[itemprop="name"], h1[class*="ProductTitle"], h1[class*="product-title"]',
-    price:               '[class*="ProductPrice"] [class*="current"], [class*="price-now"]',
-    price_attr:          '[id="wsi-sticky-banner"]@data-now-price',
-    original_price:      '[class*="ProductPrice"] [class*="was"], [class*="price-was"], del[class*="price"]',
-    original_price_attr: '[id="wsi-sticky-banner"]@data-was-price',
+    // AO stores price in data attributes on the sticky banner — standalone @attr selectors work
+    price:          '[data-now-price]@data-now-price',
+    original_price: '[data-recommended-retail-price]@data-recommended-retail-price',
     in_stock:       'button[class*="AddToBasket"]:not([disabled]), [class*="add-to-basket"]:not([disabled]), [class*="InStock"]',
     brand:          '[itemprop="brand"] [itemprop="name"], [class*="BrandName"], a[href*="/brand/"]',
     mpn:            '[itemprop="mpn"], [class*="ModelNumber"], td[data-label="Model Number"]',
-    // AO appliance pages include an EU/UK energy rating badge
     energy_rating:  '[class*="EnergyRating"] [class*="grade"], [class*="energy-rating"] span, [aria-label*="Energy Rating"]',
-    rating:         '[class*="RatingScore"], [itemprop="ratingValue"]@content, [class*="star-rating"] [class*="score"]',
-    review_count:   '[class*="RatingCount"], [itemprop="reviewCount"]@content, [class*="review-count"]',
+    rating:         '[class*="RatingScore"]',
+    review_count:   '[class*="RatingCount"]',
     images:         'all:[class*="ProductImages"] img@src, all:[class*="Gallery"] img@src, all:[class*="product-image"] img@src',
   },
   postProcess(raw) {
-    const { price_attr, original_price_attr, ...rest } = raw as Record<string, unknown>;
+    // Keys may be camelCased (postgres.camel transform) or snake_case — handle both
+    const r = raw as Record<string, unknown>;
     return {
-      ...rest,
-      price:          parsePrice(((price_attr ?? raw.price) as string | null)),
-      original_price: parsePrice(((original_price_attr ?? raw.original_price) as string | null)),
-      rating:         parseRating(raw.rating as string | null),
-      review_count:   parseCount(raw.review_count as string | null),
-      in_stock:       !!(raw.in_stock),
+      title:          r.title ?? null,
+      price:          parsePrice((r.price) as string | null),
+      original_price: parsePrice((r.original_price ?? r.originalPrice) as string | null),
+      in_stock:       !!((r.in_stock ?? r.inStock)),
+      brand:          r.brand ?? null,
+      mpn:            r.mpn ?? null,
+      energy_rating:  r.energy_rating ?? r.energyRating ?? null,
+      rating:         parseRating((r.rating) as string | null),
+      review_count:   parseCount((r.review_count ?? r.reviewCount) as string | null),
+      images:         r.images ?? [],
     };
   },
 };
