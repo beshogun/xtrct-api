@@ -164,15 +164,24 @@ export function extractStructured(html: string, selectors: SelectorMap): Structu
     if (all) {
       result[key] = extractAll(root, rawSelector);
     } else {
-      const attrMatch = rawSelector.match(/^(.+?)@([a-zA-Z0-9_-]+)$/);
-      const css  = attrMatch ? attrMatch[1] : rawSelector;
-      const attr = attrMatch ? attrMatch[2] : null;
-      try {
-        const node = root.querySelector(css);
-        result[key] = node
-          ? (attr ? (node.getAttribute(attr) ?? null) : node.text.trim() || null)
-          : null;
-      } catch { result[key] = null; }
+      // Support comma-separated fallback selectors, each optionally with @attr suffix.
+      // Try each in order and return the first non-empty match.
+      const parts = rawSelector.split(/,\s*(?![^[]*])/); // split on commas not inside []
+      let found: string | null = null;
+      for (const part of parts) {
+        const trimmed = part.trim();
+        const attrMatch = trimmed.match(/^(.+?)@([a-zA-Z0-9_-]+)$/);
+        const css  = attrMatch ? attrMatch[1] : trimmed;
+        const attr = attrMatch ? attrMatch[2] : null;
+        try {
+          const node = root.querySelector(css);
+          if (node) {
+            const v = attr ? (node.getAttribute(attr) ?? null) : node.text.trim() || null;
+            if (v) { found = v; break; }
+          }
+        } catch { /* ignore invalid selectors, try next */ }
+      }
+      result[key] = found;
     }
   }
 
