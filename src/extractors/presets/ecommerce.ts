@@ -226,9 +226,9 @@ export const aoProduct: ScrapePreset = {
   selectors: {
     title:          'h1[itemprop="name"], h1[class*="ProductTitle"], h1[class*="product-title"]',
     price:               '[class*="ProductPrice"] [class*="current"], [class*="price-now"]',
-    price_attr:          '#wsi-sticky-banner@data-now-price',
+    price_attr:          '[id="wsi-sticky-banner"]@data-now-price',
     original_price:      '[class*="ProductPrice"] [class*="was"], [class*="price-was"], del[class*="price"]',
-    original_price_attr: '#wsi-sticky-banner@data-was-price',
+    original_price_attr: '[id="wsi-sticky-banner"]@data-was-price',
     in_stock:       'button[class*="AddToBasket"]:not([disabled]), [class*="add-to-basket"]:not([disabled]), [class*="InStock"]',
     brand:          '[itemprop="brand"] [itemprop="name"], [class*="BrandName"], a[href*="/brand/"]',
     mpn:            '[itemprop="mpn"], [class*="ModelNumber"], td[data-label="Model Number"]',
