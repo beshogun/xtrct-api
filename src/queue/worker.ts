@@ -5,6 +5,7 @@ import { deductCredits } from '../billing/credits.ts';
 import { deductProxyCredit } from '../billing/proxy-credits.ts';
 import { fireJobWebhooks } from './webhook.ts';
 import type { ProxyTier } from '../proxy/manager.ts';
+import { PRESETS } from '../extractors/presets/index.ts';
 
 const WORKER_ID = `worker-${process.pid}-${Math.random().toString(36).slice(2, 6)}`;
 const POLL_INTERVAL_MS = 1_000;
@@ -89,6 +90,15 @@ async function processJob(job: ScrapeJob): Promise<void> {
       page: strategyResult.playwright?.page,
       jobId: job.id,
     });
+
+    // Apply preset postProcess if available (e.g. to parse prices, merge extra selector fields)
+    const presetId = (options as { presetApplied?: string }).presetApplied;
+    if (presetId && result.structured) {
+      const preset = PRESETS[presetId];
+      if (preset?.postProcess) {
+        result.structured = preset.postProcess(result.structured as Record<string, string | string[] | null>);
+      }
+    }
 
     // Clean up Playwright page/context if used
     if (strategyResult.playwright) {
