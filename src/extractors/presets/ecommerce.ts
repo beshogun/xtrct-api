@@ -225,8 +225,10 @@ export const aoProduct: ScrapePreset = {
   outputFormats: ['structured'],
   selectors: {
     title:          'h1[itemprop="name"], h1[class*="ProductTitle"], h1[class*="product-title"]',
-    price:          '#wsi-sticky-banner@data-now-price, [class*="ProductPrice"] [class*="current"], [itemprop="price"]@content, [class*="price-now"]',
-    original_price: '#wsi-sticky-banner@data-recommended-retail-price, #wsi-sticky-banner@data-was-price, [class*="ProductPrice"] [class*="was"], [class*="price-was"], del[class*="price"]',
+    price:               '[class*="ProductPrice"] [class*="current"], [class*="price-now"]',
+    price_attr:          '#wsi-sticky-banner@data-now-price',
+    original_price:      '[class*="ProductPrice"] [class*="was"], [class*="price-was"], del[class*="price"]',
+    original_price_attr: '#wsi-sticky-banner@data-was-price',
     in_stock:       'button[class*="AddToBasket"]:not([disabled]), [class*="add-to-basket"]:not([disabled]), [class*="InStock"]',
     brand:          '[itemprop="brand"] [itemprop="name"], [class*="BrandName"], a[href*="/brand/"]',
     mpn:            '[itemprop="mpn"], [class*="ModelNumber"], td[data-label="Model Number"]',
@@ -237,10 +239,11 @@ export const aoProduct: ScrapePreset = {
     images:         'all:[class*="ProductImages"] img@src, all:[class*="Gallery"] img@src, all:[class*="product-image"] img@src',
   },
   postProcess(raw) {
+    const { price_attr, original_price_attr, ...rest } = raw as Record<string, unknown>;
     return {
-      ...raw,
-      price:          parsePrice(raw.price as string | null),
-      original_price: parsePrice(raw.original_price as string | null),
+      ...rest,
+      price:          parsePrice(((price_attr ?? raw.price) as string | null)),
+      original_price: parsePrice(((original_price_attr ?? raw.original_price) as string | null)),
       rating:         parseRating(raw.rating as string | null),
       review_count:   parseCount(raw.review_count as string | null),
       in_stock:       !!(raw.in_stock),
