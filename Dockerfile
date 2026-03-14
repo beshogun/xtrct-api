@@ -6,8 +6,8 @@ WORKDIR /app
 # Install unzip (required by bun installer) + curl
 RUN apt-get update && apt-get install -y unzip curl && rm -rf /var/lib/apt/lists/*
 
-# Install Bun
-RUN curl -fsSL https://bun.sh/install | bash
+# Install Bun (pin version to avoid Bun 1.3.x segfault under memory pressure)
+RUN curl -fsSL https://bun.sh/install | bash -s -- bun-v1.2.5
 ENV PATH="/root/.bun/bin:$PATH"
 
 # Install dependencies
