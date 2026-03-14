@@ -1460,7 +1460,7 @@ export const amazonUkCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers product listings from an Amazon UK category or search results page.',
   matchDomains: [],
-  strategy: 'auto',
+  strategy: 'playwright',
   waitFor: { type: 'selector', value: '[data-asin]' },
   outputFormats: ['structured'],
   selectors: {

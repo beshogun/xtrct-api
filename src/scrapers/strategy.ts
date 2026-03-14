@@ -50,6 +50,8 @@ const RESIDENTIAL_ONLY_DOMAINS = new Set([
   'wayfair.com',
   'wine-auctioneer.com',
   'waterstones.com',
+  'amazon.co.uk',
+  'amazon.com',
 ]);
 
 // Sites protected by Akamai Bot Manager / Datadome / similar that block at the
