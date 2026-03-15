@@ -51,8 +51,10 @@ export class PlaywrightScraper {
 
     // ── XHR/fetch capture ──────────────────────────────────────────────────
     // Capture JSON API responses so structured extractors can use xhr: selectors.
+    // IMPORTANT: store as named function so it can be removed — dangling listeners
+    // on closed pages accumulate over time and cause Bun's GC to segfault.
     const xhrCaptures: Record<string, unknown> = {};
-    page.on('response', async res => {
+    const onResponse = async (res: import('playwright').Response) => {
       try {
         if (res.url() === page.url()) statusCode = res.status();
         const ct = res.headers()['content-type'] ?? '';
@@ -62,7 +64,15 @@ export class PlaywrightScraper {
           if (json !== null) xhrCaptures[pathname] = json;
         }
       } catch {}
-    });
+    };
+    page.on('response', onResponse);
+
+    // Helper: remove the response listener and unroute before closing.
+    // Must be called on every exit path to prevent listener accumulation.
+    const cleanup = () => {
+      page.off('response', onResponse);
+      page.unroute('**/*').catch(() => {});
+    };
 
     // Block images, media and fonts — saves bandwidth and speeds up load.
     // JS and CSS must be allowed so Cloudflare challenge scripts can run.
@@ -89,6 +99,7 @@ export class PlaywrightScraper {
       if (proxy && isNetworkError) {
         proxyManager.markFailed(proxy);
       }
+      cleanup();
       await page.close().catch(() => {});
       await context.close().catch(() => {});
       release();
@@ -101,6 +112,7 @@ export class PlaywrightScraper {
     // Wait up to 15s for it to resolve rather than giving up immediately.
     const cfResolved = await this.waitForCFChallenge(page, 15_000);
     if (!cfResolved) {
+      cleanup();
       await page.close();
       await context.close();
       release();
@@ -121,12 +133,16 @@ export class PlaywrightScraper {
     const finalUrl = page.url();
     let html = await page.content();
 
+    // Remove the response listener now — we have the HTML, no more needed.
+    // Do this before the final CF check so the listener is always cleaned up.
+    cleanup();
+
     // Final check — if still showing CF challenge after waiting, escalate
     if (this.isCloudflareChallenge(html)) {
       await page.close();
       await context.close();
       release();
-      throw new CloudflareJSError(url);
+      throw new CloudflareJSError(url); // cleanup() already called above
     }
 
     // Inject XHR captures into HTML so structured extractors can access them
