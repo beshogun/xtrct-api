@@ -9,7 +9,9 @@ export const amazonProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price, rating, availability, images and bullet points from an Amazon product page.',
   matchDomains: ['amazon.co.uk', 'amazon.com', 'amazon.de', 'amazon.fr', 'amazon.es', 'amazon.it', 'amazon.ca', 'amazon.com.au'],
-  strategy: 'playwright',
+  // 'auto' so runAuto() applies FLARESOLVERR_FIRST_DOMAINS → real Chrome + residential proxy.
+  // waitFor kept for the Playwright fallback path (when FlareSolverr is unavailable).
+  strategy: 'auto',
   waitFor: { type: 'selector', value: 'span#productTitle' },
   outputFormats: ['structured'],
   selectors: {
@@ -1082,7 +1084,7 @@ export const amazonEsProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price, rating, availability and images from an Amazon Spain product page.',
   matchDomains: ['amazon.es'],
-  strategy: 'http',
+  strategy: 'auto',
   currency: 'EUR',
   outputFormats: ['structured'],
   selectors: {
@@ -1202,7 +1204,7 @@ export const amazonItProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price, rating, availability and images from an Amazon Italy product page.',
   matchDomains: ['amazon.it'],
-  strategy: 'http',
+  strategy: 'auto',
   currency: 'EUR',
   outputFormats: ['structured'],
   selectors: {
@@ -1261,7 +1263,7 @@ export const amazonInProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price, rating, availability and images from an Amazon India product page.',
   matchDomains: ['amazon.in'],
-  strategy: 'http',
+  strategy: 'auto',
   currency: 'INR',
   outputFormats: ['structured'],
   selectors: {
@@ -1321,7 +1323,7 @@ export const amazonJpProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price, rating, availability and images from an Amazon Japan product page.',
   matchDomains: ['amazon.co.jp'],
-  strategy: 'http',
+  strategy: 'auto',
   currency: 'JPY',
   outputFormats: ['structured'],
   selectors: {
@@ -1466,7 +1468,7 @@ export const amazonUkCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers product listings from an Amazon UK category or search results page.',
   matchDomains: [],
-  strategy: 'playwright',
+  strategy: 'auto',
   waitFor: { type: 'selector', value: '[data-asin]' },
   outputFormats: ['structured'],
   selectors: {
@@ -1556,10 +1558,11 @@ export const ebuyerCategory: ScrapePreset = {
   strategy: 'http',
   outputFormats: ['structured'],
   selectors: {
-    all_titles: 'all:li.grid-item .item-title a, all:.product-listing .item-title a',
-    all_urls:   'all:li.grid-item .item-title a@href, all:.product-listing .item-title a@href',
-    all_prices: 'all:li.grid-item .price-inc-vat, all:.product-listing .price',
-    all_images: 'all:li.grid-item img.product-image@src, all:.product-listing img@src',
+    // Ebuyer renders product data as data attributes on <li> elements
+    all_titles: 'all:li[li-url]@li-name',
+    all_urls:   'all:li[li-url]@li-url',
+    all_prices: 'all:li[li-url]@li-price',
+    all_images: 'all:li[li-url]@li-imageurl',
   },
 };
 

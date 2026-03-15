@@ -50,20 +50,42 @@ const RESIDENTIAL_ONLY_DOMAINS = new Set([
   'wayfair.com',
   'wine-auctioneer.com',
   'waterstones.com',
+  // All Amazon TLDs — also in FLARESOLVERR_FIRST_DOMAINS; this acts as fallback
+  // when FlareSolverr is unavailable so we still skip no-proxy/datacenter steps.
   'amazon.co.uk',
   'amazon.com',
+  'amazon.de',
+  'amazon.fr',
+  'amazon.es',
+  'amazon.it',
+  'amazon.ca',
+  'amazon.com.au',
+  'amazon.in',
+  'amazon.co.jp',
 ]);
 
-// Sites protected by Akamai Bot Manager / Datadome / similar that block at the
-// TCP/TLS level — even residential HTTP fails because they fingerprint the TLS
-// handshake. Only real Chrome (FlareSolverr) + residential proxy gets through.
-// Skip HTTP and Playwright steps entirely and go straight to FlareSolverr.
+// Sites that require real Chrome (not headless Playwright) to pass bot detection.
+// FlareSolverr uses a real Chrome binary — proper fingerprint, JS execution,
+// and cookie handling. Skip HTTP and Playwright steps entirely.
 const FLARESOLVERR_FIRST_DOMAINS = new Set([
   'asos.com',
   'linkedin.com',
   'ticketmaster.co.uk',
   'ticketmaster.com',
   'livenation.co.uk',
+  // Amazon uses its own bot detection — real Chrome fingerprint is required.
+  // Even residential Playwright gets blocked; FlareSolverr + residential proxy
+  // is the most reliable path.
+  'amazon.co.uk',
+  'amazon.com',
+  'amazon.de',
+  'amazon.fr',
+  'amazon.es',
+  'amazon.it',
+  'amazon.ca',
+  'amazon.com.au',
+  'amazon.in',
+  'amazon.co.jp',
 ]);
 
 function getEffectiveProxyTier(url: string, requested: 'auto' | ProxyTier): 'auto' | ProxyTier {
