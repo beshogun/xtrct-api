@@ -2,6 +2,7 @@ import { httpScraper, CloudflareError } from './http.ts';
 import { playwrightScraper, CloudflareJSError, type PlaywrightOptions } from './playwright.ts';
 import { flareScraper } from './flaresolverr.ts';
 import { proxyManager, selectProxy, type ProxyTier } from '../proxy/manager.ts';
+import { getSession, markSuccess, markFailed, isAmazonBotPage } from './amazon-session.ts';
 import { randomBytes } from 'crypto';
 import type { Strategy } from '../db/index.ts';
 
@@ -104,6 +105,14 @@ function isFlareSolverrFirst(url: string): boolean {
   try {
     const hostname = new URL(url).hostname.replace(/^www\./, '');
     return FLARESOLVERR_FIRST_DOMAINS.has(hostname);
+  } catch {
+    return false;
+  }
+}
+
+function isAmazonUrl(url: string): boolean {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '').startsWith('amazon.');
   } catch {
     return false;
   }
@@ -275,6 +284,43 @@ async function runAuto(url: string, opts: RunOptions): Promise<StrategyResult> {
   // Akamai/Datadome sites: skip HTTP+Playwright entirely, go straight to FlareSolverr
   if (isFlareSolverrFirst(url) && (opts.proxyTier == null || opts.proxyTier === 'auto')) {
     process.stderr.write(`  [strategy] domain hint: FlareSolverr-first for ${new URL(url).hostname}\n`);
+
+    // ── Amazon session pool: try pre-warmed cached cookies first ──────────────
+    // Pre-warmed sessions dramatically reduce bot-detection hits vs cold requests.
+    if (isAmazonUrl(url)) {
+      const session = getSession();
+      if (session) {
+        process.stderr.write(`  [strategy] Amazon session pool: trying cached session\n`);
+        const sessionCookies = session.cookies.map(c => ({ name: c.name, value: c.value, domain: c.domain }));
+        const pwResult = await tryPlaywright(url, session.proxyUrl, {
+          ...opts,
+          cookies: [...(opts.cookies ?? []), ...sessionCookies],
+        });
+        if (pwResult) {
+          if (!isAmazonBotPage(pwResult.result.html)) {
+            markSuccess(session);
+            process.stderr.write(`  [strategy] Amazon session pool: clean page — success\n`);
+            return {
+              ...pwResult.result,
+              strategyUsed: 'playwright',
+              proxyUsed: session.proxyUrl,
+              proxyTier: 'residential',
+              playwright: { page: pwResult.page, context: pwResult.context, release: pwResult.release },
+            };
+          }
+          // Bot page — evict session and fall through to FlareSolverr
+          markFailed(session);
+          pwResult.release();
+          process.stderr.write(`  [strategy] Amazon session pool: bot page — session evicted, falling back to FlareSolverr\n`);
+        } else {
+          markFailed(session);
+          process.stderr.write(`  [strategy] Amazon session pool: Playwright failed — falling back to FlareSolverr\n`);
+        }
+      } else {
+        process.stderr.write(`  [strategy] Amazon session pool: no sessions available — using FlareSolverr\n`);
+      }
+    }
+
     const resProxy = proxyManager.getResidentialProxy();
     const dcProxy  = proxyManager.getDatacenterProxy();
     const sessionId = randomBytes(8).toString('hex');
@@ -284,6 +330,12 @@ async function runAuto(url: string, opts: RunOptions): Promise<StrategyResult> {
     if (await flareScraper.isAvailable()) {
       const flareResult = await flareScraper.fetch(url, opts.timeout, stickyProxy);
       const proxyTier: ProxyTier = stickyProxyTier(stickyProxy, resProxy);
+      // Detect Amazon bot/CAPTCHA pages — these are large HTML pages but contain no product data.
+      // Treating them as success causes garbage price extraction, so we fail fast instead.
+      if (isAmazonBotPage(flareResult.html)) {
+        process.stderr.write(`  [strategy] Amazon bot/CAPTCHA page detected — failing job\n`);
+        throw new Error('Amazon bot detection page returned (CAPTCHA)');
+      }
       if (flareResult.html.length > 15_000) {
         return { ...flareResult, strategyUsed: 'flaresolverr', proxyUsed: stickyProxy, proxyTier };
       }

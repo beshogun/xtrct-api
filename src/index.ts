@@ -3,6 +3,7 @@ import { pool } from './browser/pool.ts';
 import { startWorkers } from './queue/worker.ts';
 import { startCleanup } from './cron/cleanup.ts';
 import { proxyManager } from './proxy/manager.ts';
+import { startAmazonSessionPool } from './scrapers/amazon-session.ts';
 
 const PORT = parseInt(process.env.PORT ?? '3000', 10);
 const CONCURRENCY = parseInt(process.env.WORKER_CONCURRENCY ?? '4', 10);
@@ -49,3 +50,6 @@ if (process.env.WEBSHARE_API_KEY) {
     console.error('[proxy] Webshare refresh failed:', err)
   );
 }
+
+// ── 5. Amazon session pool — pre-warm cookies to reduce bot detection ────────
+startAmazonSessionPool();
