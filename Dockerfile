@@ -6,8 +6,8 @@ WORKDIR /app
 # Install unzip (required by bun installer) + curl
 RUN apt-get update && apt-get install -y unzip curl && rm -rf /var/lib/apt/lists/*
 
-# Install Bun (pin to 1.1.38 — 1.2.x and 1.3.x segfault under memory pressure)
-RUN curl -fsSL https://bun.sh/install | bash -s -- bun-v1.1.38
+# Install Bun (pin to 1.2.5 — 1.3.x segfaults under memory pressure; 1.1.x incompatible with Elysia 1.4)
+RUN curl -fsSL https://bun.sh/install | bash -s -- bun-v1.2.5
 ENV PATH="/root/.bun/bin:$PATH"
 
 # Install dependencies
