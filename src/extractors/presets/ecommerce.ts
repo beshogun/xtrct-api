@@ -418,7 +418,7 @@ export const ebuyerProduct: ScrapePreset = {
     price:          '.pdpPrice, [itemprop="price"]@content, span.curprice',
     original_price: '.originalprice, del.price, span.rrp',
     in_stock:       '.addToBasketContainer a:not([disabled]), button.add-to-basket:not([disabled])',
-    brand:          '#lblProductBrand, [itemprop="brand"] span, .manufacturer a',
+    brand:          '[itemprop="brand"] span, [itemprop="brand"] [itemprop="name"]',
     mpn:            '[itemprop="mpn"], .product-mpn, td:contains("Part No") + td',
     ean:            '[itemprop="gtin13"], td:contains("EAN") + td',
     rating:         '[itemprop="ratingValue"]@content, .product-rating .score',
