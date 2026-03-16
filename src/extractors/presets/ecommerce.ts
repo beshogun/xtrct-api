@@ -1505,7 +1505,7 @@ export const argosCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers product listings from an Argos category page.',
   matchDomains: [],
-  strategy: 'auto',
+  strategy: 'playwright',
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
@@ -1522,7 +1522,7 @@ export const johnLewisCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers product listings from a John Lewis category page.',
   matchDomains: [],
-  strategy: 'auto',
+  strategy: 'playwright',
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
