@@ -1526,10 +1526,12 @@ export const johnLewisCategory: ScrapePreset = {
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
-    all_titles: 'all:a[data-testid="product-card-anchor"] h2, all:a[data-testid="product-card-anchor"] [class*="title"]',
-    all_urls:   'all:a[data-testid="product-card-anchor"]@href',
-    all_prices: 'all:a[data-testid="product-card-anchor"] [data-testid="price"], all:a[data-testid="product-card-anchor"] [class*="price"]',
-    all_images: 'all:a[data-testid="product-card-anchor"] img@src',
+    // JL product URLs are stable: /[product-name]/p[8-digit-id]
+    // Target by URL pattern — immune to CSS class/testid changes
+    all_urls:   'all:a[href*="/p1"]@href, all:a[href*="/p2"]@href',
+    all_titles: 'all:a[data-testid="product-card-anchor"] h2, all:a[data-testid="product-card-anchor"] [class*="title"], all:a[href*="/p1"] img@alt, all:a[href*="/p2"] img@alt',
+    all_prices: 'all:a[data-testid="product-card-anchor"] [data-testid="price"], all:a[href*="/p1"] [class*="price"], all:a[href*="/p2"] [class*="price"]',
+    all_images: 'all:a[data-testid="product-card-anchor"] img@src, all:a[href*="/p1"] img@src, all:a[href*="/p2"] img@src',
   },
 };
 
