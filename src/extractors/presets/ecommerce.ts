@@ -414,16 +414,16 @@ export const ebuyerProduct: ScrapePreset = {
   strategy: 'http',
   outputFormats: ['structured'],
   selectors: {
-    title:          'h1[itemprop="name"], h1.product-name, .product-intro h1',
-    price:          '[itemprop="price"]@content, span.price, .price-inc-vat span',
-    original_price: 'del.price, span.rrp, [class*="was-price"]',
-    in_stock:       'button.add-to-basket:not([disabled]), #add_to_basket:not([disabled]), .product-availability.in-stock',
-    brand:          '[itemprop="brand"] span, .manufacturer a, a[class*="brand"]',
-    mpn:            '[itemprop="mpn"], .product-mpn, td:contains("Part No") + td, td:contains("MPN") + td',
-    ean:            '[itemprop="gtin13"], td:contains("EAN") + td, .product-ean',
-    rating:         '[itemprop="ratingValue"]@content, .product-rating .score, .star-rating span',
-    review_count:   '[itemprop="reviewCount"]@content, .review-count, a[href*="reviews"] span',
-    images:         'all:[itemprop="image"]@src, all:.product-images img@src, all:#product-image-gallery img@src',
+    title:          '#lblProductName, h1[itemprop="name"], h1.product-name',
+    price:          '.pdpPrice, [itemprop="price"]@content, span.curprice',
+    original_price: '.originalprice, del.price, span.rrp',
+    in_stock:       '.addToBasketContainer a:not([disabled]), button.add-to-basket:not([disabled])',
+    brand:          '#lblProductBrand, [itemprop="brand"] span, .manufacturer a',
+    mpn:            '[itemprop="mpn"], .product-mpn, td:contains("Part No") + td',
+    ean:            '[itemprop="gtin13"], td:contains("EAN") + td',
+    rating:         '[itemprop="ratingValue"]@content, .product-rating .score',
+    review_count:   '[itemprop="reviewCount"]@content, .review-count',
+    images:         'all:.pdpThumbImages img@src, all:[itemprop="image"]@src, all:.product-images img@src',
   },
   postProcess(raw) {
     return {
@@ -1490,11 +1490,12 @@ export const currysCategory: ScrapePreset = {
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
-    // Currys product cards — use container class to avoid picking up nav links
-    all_titles: 'all:[class*="ProductCardstyles"] [class*="Title"], all:[class*="ProductCard"] [class*="Title"]',
-    all_urls:   'all:[class*="ProductCardstyles"] a@href, all:[class*="ProductCard"] a@href',
-    all_prices: 'all:[class*="ProductCardstyles"] [class*="price"], all:[class*="ProductCard"] [class*="price"]',
-    all_images: 'all:[class*="ProductCardstyles"] img@src, all:[class*="ProductCard"] img@src',
+    // Target by URL pattern — stable regardless of CSS class changes (Currys rewrites classes on every deploy)
+    // Product URLs always follow /products/[name]-[sku].html
+    all_urls:   'all:a[href*="/products/"]@href',
+    all_titles: 'all:a[href*="/products/"] img@alt, all:a[href*="/products/"] [class*="itle"], all:a[href*="/products/"] h2, all:a[href*="/products/"] h3',
+    all_prices: 'all:a[href*="/products/"] [class*="rice"], all:a[href*="/products/"] [class*="Price"]',
+    all_images: 'all:a[href*="/products/"] img@src',
   },
 };
 
@@ -1679,23 +1680,28 @@ export const marksAndSpencerProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price, availability and images from a Marks & Spencer product page.',
   matchDomains: ['marksandspencer.com'],
-  strategy: 'auto',
-  waitFor: { type: 'selector', value: 'h1[data-testid="product-title"], [class*="ProductTitle"]' },
+  strategy: 'http',  // M&S SSR HTML has JSON-LD with all product data — no JS rendering needed
   outputFormats: ['structured'],
   selectors: {
-    title:          'h1[data-testid="product-title"], h1[class*="ProductTitle"], h1[itemprop="name"]',
-    price:          '[data-testid="product-selling-price"], [class*="price__selling"], [itemprop="price"]@content',
-    original_price: '[data-testid="product-rrp"], del[class*="price"], [class*="price__original"]',
-    brand:          '[data-testid="product-brand"], [class*="brand-name"]',
-    in_stock:       'button[data-testid="add-to-bag"]:not([disabled]), [class*="add-to-bag"]:not([disabled])',
-    images:         'all:[data-testid="product-image"] img@src, all:[class*="product-gallery"] img@src',
+    title:          'jsonld:name',
+    price:          'jsonld:offers.priceSpecification.price',
+    original_price: 'jsonld:offers.priceSpecification.maxPrice',
+    brand:          'jsonld:brand.name',
+    in_stock:       'jsonld:offers.availability',
+    images:         'jsonld[]:image',
   },
   postProcess(raw) {
+    const price = parsePrice(raw.price as string | null);
+    // maxPrice === minPrice means no sale — don't treat as original
+    const minPrice = parsePrice(raw.price as string | null);
+    const maxPriceRaw = parsePrice(raw.original_price as string | null);
+    const originalPrice = maxPriceRaw && minPrice && maxPriceRaw > minPrice ? maxPriceRaw : null;
+    const availability = String(raw.in_stock ?? '');
     return {
       ...raw,
-      price:          parsePrice(raw.price as string | null),
-      original_price: parsePrice(raw.original_price as string | null),
-      in_stock:       !!(raw.in_stock),
+      price,
+      original_price: originalPrice,
+      in_stock: availability.includes('InStock'),
     };
   },
 };
