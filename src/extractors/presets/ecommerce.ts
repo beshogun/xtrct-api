@@ -1526,12 +1526,13 @@ export const johnLewisCategory: ScrapePreset = {
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
-    // JL product URLs are stable: /[product-name]/p[8-digit-id]
-    // Target by URL pattern — immune to CSS class/testid changes
-    all_urls:   'all:a[href*="/p1"]@href, all:a[href*="/p2"]@href',
-    all_titles: 'all:a[data-testid="product-card-anchor"] h2, all:a[data-testid="product-card-anchor"] [class*="title"], all:a[href*="/p1"] img@alt, all:a[href*="/p2"] img@alt',
-    all_prices: 'all:a[data-testid="product-card-anchor"] [data-testid="price"], all:a[href*="/p1"] [class*="price"], all:a[href*="/p2"] [class*="price"]',
-    all_images: 'all:a[data-testid="product-card-anchor"] img@src, all:a[href*="/p1"] img@src, all:a[href*="/p2"] img@src',
+    // JL product URLs: /[product-name]/p[id] — exclude "-view-N" alternate image links
+    // and "-altN" gallery links. Use the product card anchor directly.
+    all_urls:   'all:a[data-testid="product-card-anchor"]@href',
+    all_titles: 'all:a[data-testid="product-card-anchor"] h2',
+    // No price selector — JL search shows instalment prices in [class*="price"] elements
+    // which are ~100x lower than actual retail price. Let scheduler scrape product pages.
+    all_images: 'all:a[data-testid="product-card-anchor"] img@src',
   },
 };
 
