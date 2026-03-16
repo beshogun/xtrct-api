@@ -155,11 +155,10 @@ export const johnLewisProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price (including Was/Now), availability, brand, MPN, rating and images from a John Lewis product page.',
   matchDomains: ['johnlewis.com'],
-  strategy: 'auto',
-  waitFor: { type: 'selector', value: 'h1[data-testid="product-title"], h1[class*="ProductDetails"], script[type="application/ld+json"]' },
+  strategy: 'http',
   outputFormats: ['structured'],
   selectors: {
-    // JSON-LD Product schema is server-rendered and always present — prefer it over React-rendered DOM
+    // JSON-LD Product schema is server-rendered and always present — no browser needed
     title:          'jsonld:name',
     price:          'jsonld:offers.price',
     original_price: 'jsonld:offers.highPrice',

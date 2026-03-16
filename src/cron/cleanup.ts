@@ -1,6 +1,6 @@
 import { sql } from '../db/index.ts';
 
-const HOUR_MS = 60 * 60 * 1000;
+const CLEANUP_INTERVAL_MS = 10 * 60 * 1000; // every 10 minutes
 
 async function runCleanup(): Promise<void> {
   try {
@@ -70,8 +70,8 @@ async function runCleanup(): Promise<void> {
 }
 
 export function startCleanup(): void {
-  // Run once shortly after startup, then every hour
+  // Run once shortly after startup, then every 10 minutes
   setTimeout(() => runCleanup(), 30_000);
-  setInterval(() => runCleanup(), HOUR_MS);
+  setInterval(() => runCleanup(), CLEANUP_INTERVAL_MS);
   console.log('[cleanup] Hourly cleanup scheduled');
 }
