@@ -1486,7 +1486,7 @@ export const currysCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers product listings from a Currys category page.',
   matchDomains: [],
-  strategy: 'auto',
+  strategy: 'playwright',
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
