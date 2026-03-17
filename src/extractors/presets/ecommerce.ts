@@ -122,11 +122,11 @@ export const currysProduct: ScrapePreset = {
   description: 'Extracts product title, price, availability, brand, MPN, rating and images from a Currys product page.',
   matchDomains: ['currys.co.uk'],
   strategy: 'auto',
-  waitFor: { type: 'selector', value: 'h1.product-name, h1[class*="product-title"]' },
+  waitFor: { type: 'selector', value: 'script[type="application/ld+json"]' },
   outputFormats: ['structured'],
   selectors: {
     // Currys server-renders JSON-LD with all critical data — prices are React client-side so we pull from JSON-LD
-    title:          'h1.product-name, h1[class*="product-title"]',
+    title:          'jsonld:name',
     price:          'jsonld:offers.price',
     original_price: 'jsonld:offers.highPrice',
     in_stock:       'jsonld:offers.availability',
