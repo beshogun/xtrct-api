@@ -175,8 +175,34 @@ async function processJob(job: ScrapeJob): Promise<void> {
   }
 }
 
+/** On startup, reset any jobs left in 'running' state by a previous process. */
+async function resetStuckJobs(): Promise<void> {
+  const { count } = await sql`
+    UPDATE scrape_jobs SET status = 'pending', started_at = NULL, worker_id = NULL
+    WHERE status = 'running'
+  `.then(r => ({ count: r.count }));
+  if (count > 0) {
+    process.stdout.write(`[workers] reset ${count} stuck running jobs → pending\n`);
+  }
+}
+
+/** Periodically reset jobs that have been in 'running' state for too long. */
+async function watchdogTick(): Promise<void> {
+  const { count } = await sql`
+    UPDATE scrape_jobs SET status = 'pending', started_at = NULL, worker_id = NULL
+    WHERE status = 'running'
+      AND started_at < NOW() - INTERVAL '3 minutes'
+  `.then(r => ({ count: r.count })).catch(() => ({ count: 0 }));
+  if (count > 0) {
+    process.stderr.write(`  [watchdog] reset ${count} timed-out running jobs → pending\n`);
+  }
+}
+
 /** Poll for pending jobs and process them. Run N workers concurrently. */
 export async function startWorkers(concurrency = 4): Promise<void> {
+  await resetStuckJobs();
+  setInterval(watchdogTick, 60_000);
+
   let active = 0;
 
   const poll = async () => {
