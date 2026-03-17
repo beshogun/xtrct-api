@@ -51,6 +51,7 @@ const RESIDENTIAL_ONLY_DOMAINS = new Set([
   'wayfair.com',
   'wine-auctioneer.com',
   'waterstones.com',
+  'johnlewis.com',
   // All Amazon TLDs — also in FLARESOLVERR_FIRST_DOMAINS; this acts as fallback
   // when FlareSolverr is unavailable so we still skip no-proxy/datacenter steps.
   'amazon.co.uk',
@@ -70,6 +71,7 @@ const RESIDENTIAL_ONLY_DOMAINS = new Set([
 // and cookie handling. Skip HTTP and Playwright steps entirely.
 const FLARESOLVERR_FIRST_DOMAINS = new Set([
   'asos.com',
+  'flannels.com',
   'linkedin.com',
   'ticketmaster.co.uk',
   'ticketmaster.com',
@@ -339,7 +341,7 @@ async function runAuto(url: string, opts: RunOptions): Promise<StrategyResult> {
       if (flareResult.html.length > 15_000) {
         return { ...flareResult, strategyUsed: 'flaresolverr', proxyUsed: stickyProxy, proxyTier };
       }
-      // SPA shell — hand off to Playwright
+      // SPA shell — hand off to Playwright with CF clearance cookies
       const cfCookies = flareResult.cookies.map(c => ({ name: c.name, value: c.value, domain: c.domain }));
       const pwResult = await tryPlaywright(url, stickyProxy, { ...opts, cookies: [...(opts.cookies ?? []), ...cfCookies] });
       if (pwResult) {
