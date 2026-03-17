@@ -193,7 +193,7 @@ export const scrapeRoutes = new Elysia()
       priority:    t.Optional(t.Union([t.Literal(0), t.Literal(1), t.Literal(2)])),
       webhook_url: t.Optional(t.String()),
       wait:        t.Optional(t.Boolean()),
-      timeout:     t.Optional(t.Number({ minimum: 1000, maximum: 60_000 })),
+      timeout:     t.Optional(t.Number({ minimum: 1000, maximum: 120_000 })),
       proxy_tier:  t.Optional(t.Union([
         t.Literal('auto'), t.Literal('none'),
         t.Literal('datacenter'), t.Literal('residential'),
