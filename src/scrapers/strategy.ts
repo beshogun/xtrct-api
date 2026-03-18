@@ -574,12 +574,24 @@ async function runAuto(url: string, opts: RunOptions, steps: StepAttempt[]): Pro
       : (dcProxy ?? null);
     if (await flareScraper.isAvailable()) {
       const flareFirstT0 = Date.now();
-      const flareResult = await flareScraper.fetch(url, opts.timeout, stickyProxy);
-      steps.push({ stepIndex: steps.length, strategy: 'flaresolverr',
-                   proxyTier: stickyProxy ? 'residential' : 'none',
-                   success: true, blocked: false, timeMs: Date.now() - flareFirstT0,
-                   costCredits: stepCost('flaresolverr', stickyProxy ? 'residential' : 'none'),
-                   errorType: null });
+      let flareResult: Awaited<ReturnType<typeof flareScraper.fetch>>;
+      try {
+        flareResult = await flareScraper.fetch(url, opts.timeout, stickyProxy);
+        steps.push({ stepIndex: steps.length, strategy: 'flaresolverr',
+                     proxyTier: stickyProxy ? 'residential' : 'none',
+                     success: true, blocked: false, timeMs: Date.now() - flareFirstT0,
+                     costCredits: stepCost('flaresolverr', stickyProxy ? 'residential' : 'none'),
+                     errorType: null });
+      } catch (err) {
+        const errorType = classifyError(err);
+        steps.push({ stepIndex: steps.length, strategy: 'flaresolverr',
+                     proxyTier: stickyProxy ? 'residential' : 'none',
+                     success: false, blocked: errorType === 'cloudflare',
+                     timeMs: Date.now() - flareFirstT0,
+                     costCredits: stepCost('flaresolverr', stickyProxy ? 'residential' : 'none'),
+                     errorType });
+        throw err;
+      }
       const proxyTier: ProxyTier = stickyProxyTier(stickyProxy, resProxy);
       // Detect Amazon bot/CAPTCHA pages — these are large HTML pages but contain no product data.
       // Treating them as success causes garbage price extraction, so we fail fast instead.
@@ -723,12 +735,24 @@ async function runAuto(url: string, opts: RunOptions, steps: StepAttempt[]): Pro
     : (dcProxy ?? null);
 
   const flareT0 = Date.now();
-  const flareResult = await flareScraper.fetch(url, opts.timeout, stickyProxy);
-  steps.push({ stepIndex: steps.length, strategy: 'flaresolverr',
-               proxyTier: stickyProxy ? 'residential' : 'none',
-               success: true, blocked: false, timeMs: Date.now() - flareT0,
-               costCredits: stepCost('flaresolverr', stickyProxy ? 'residential' : 'none'),
-               errorType: null });
+  let flareResult: Awaited<ReturnType<typeof flareScraper.fetch>>;
+  try {
+    flareResult = await flareScraper.fetch(url, opts.timeout, stickyProxy);
+    steps.push({ stepIndex: steps.length, strategy: 'flaresolverr',
+                 proxyTier: stickyProxy ? 'residential' : 'none',
+                 success: true, blocked: false, timeMs: Date.now() - flareT0,
+                 costCredits: stepCost('flaresolverr', stickyProxy ? 'residential' : 'none'),
+                 errorType: null });
+  } catch (err) {
+    const errorType = classifyError(err);
+    steps.push({ stepIndex: steps.length, strategy: 'flaresolverr',
+                 proxyTier: stickyProxy ? 'residential' : 'none',
+                 success: false, blocked: errorType === 'cloudflare',
+                 timeMs: Date.now() - flareT0,
+                 costCredits: stepCost('flaresolverr', stickyProxy ? 'residential' : 'none'),
+                 errorType });
+    throw err;
+  }
 
   // If the page looks fully rendered and not a Chrome error page, return directly
   if (flareResult.html.length > 50_000 && !flareResult.html.includes("This site can't be reached")) {
