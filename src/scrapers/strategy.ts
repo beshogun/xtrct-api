@@ -54,7 +54,7 @@ const RESIDENTIAL_ONLY_DOMAINS = new Set([
   'wine-auctioneer.com',
   'waterstones.com',
   'johnlewis.com',
-  'currys.co.uk',
+  // 'currys.co.uk', -- slipstream handles it at 100% success rate; auto-learning takes over
   'flannels.com',
   // All Amazon TLDs — also in FLARESOLVERR_FIRST_DOMAINS; this acts as fallback
   // when FlareSolverr is unavailable so we still skip no-proxy/datacenter steps.
