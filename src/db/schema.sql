@@ -125,3 +125,40 @@ CREATE TABLE IF NOT EXISTS proxy_stats (
   recorded_at  TIMESTAMPTZ DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS proxy_stats_host_idx ON proxy_stats (proxy_host, recorded_at DESC);
+
+-- ─── Scrape Telemetry ─────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS scrape_telemetry (
+  id            UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  domain        VARCHAR     NOT NULL,
+  step_index    INT         NOT NULL,
+  strategy      VARCHAR     NOT NULL,
+  proxy_tier    VARCHAR     NOT NULL,
+  success       BOOLEAN     NOT NULL,
+  blocked       BOOLEAN     NOT NULL DEFAULT false,
+  time_ms       INT         NOT NULL,
+  cost_credits  INT         NOT NULL DEFAULT 0,
+  error_type    VARCHAR,
+  api_key_id    UUID,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS scrape_telemetry_domain_created
+  ON scrape_telemetry (domain, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS scrape_telemetry_created
+  ON scrape_telemetry (created_at DESC);
+
+-- ─── Domain Strategies ────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS domain_strategies (
+  domain           VARCHAR     PRIMARY KEY,
+  optimal_strategy VARCHAR     NOT NULL,
+  proxy_tier       VARCHAR     NOT NULL,
+  success_rate     FLOAT       NOT NULL,
+  avg_time_ms      INT         NOT NULL,
+  avg_cost_credits FLOAT       NOT NULL,
+  sample_count     INT         NOT NULL,
+  computed_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  locked           BOOLEAN     NOT NULL DEFAULT false
+);
