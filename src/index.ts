@@ -2,6 +2,7 @@ import { createServer } from './server.ts';
 import { pool } from './browser/pool.ts';
 import { startWorkers } from './queue/worker.ts';
 import { startCleanup } from './cron/cleanup.ts';
+import { startStrategyAnalyser } from './cron/strategy-analyser.ts';
 import { proxyManager } from './proxy/manager.ts';
 import { startAmazonSessionPool } from './scrapers/amazon-session.ts';
 
@@ -53,3 +54,6 @@ if (process.env.WEBSHARE_API_KEY) {
 
 // ── 5. Amazon session pool — pre-warm cookies to reduce bot detection ────────
 startAmazonSessionPool();
+
+// ── 6. Strategy analyser — learns optimal scrape path per domain ─────────────
+startStrategyAnalyser();

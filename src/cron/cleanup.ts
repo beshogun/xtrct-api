@@ -61,6 +61,19 @@ async function runCleanup(): Promise<void> {
       WHERE window_start < NOW() - INTERVAL '2 minutes'
     `;
 
+    // Delete scrape_telemetry older than 30 days
+    await sql`
+      DELETE FROM scrape_telemetry
+      WHERE created_at < NOW() - INTERVAL '30 days'
+    `;
+
+    // Delete stale domain_strategies for domains not seen in 14 days (locked rows exempt)
+    await sql`
+      DELETE FROM domain_strategies
+      WHERE computed_at < NOW() - INTERVAL '14 days'
+        AND NOT locked
+    `;
+
     console.log(
       `[cleanup] scrape_jobs=${jobsDeleted} webhook_deliveries=${deliveriesDeleted} usage_events=${usageDeleted}`
     );
