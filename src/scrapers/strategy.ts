@@ -292,7 +292,7 @@ async function tryPlaywright(
 
 // ─── Forced-strategy paths ────────────────────────────────────────────────────
 
-async function runForced(url: string, opts: RunOptions, strategy: Strategy): Promise<StrategyResult> {
+async function runForcedInner(url: string, opts: RunOptions, strategy: Strategy): Promise<StrategyResult> {
   if (strategy === 'http') {
     try {
       const proxy = proxyManager.getProxy();
@@ -346,12 +346,143 @@ async function runForced(url: string, opts: RunOptions, strategy: Strategy): Pro
   throw new Error(`[strategy] Unknown strategy: ${strategy}`);
 }
 
+async function runForced(url: string, opts: RunOptions, strategy: Strategy, steps: StepAttempt[]): Promise<StrategyResult> {
+  const t0 = Date.now();
+  try {
+    const result = await runForcedInner(url, opts, strategy);
+    steps.push({
+      stepIndex: 0,
+      strategy: result.strategyUsed,
+      proxyTier: result.proxyTier === 'none' ? 'none' : result.proxyTier as StepAttempt['proxyTier'],
+      success: true, blocked: false,
+      timeMs: Date.now() - t0,
+      costCredits: stepCost(result.strategyUsed, result.proxyTier === 'none' ? 'none' : result.proxyTier as StepAttempt['proxyTier']),
+      errorType: null,
+    });
+    return result;
+  } catch (err) {
+    const errorType = classifyError(err);
+    steps.push({
+      stepIndex: 0, strategy: strategy as StepAttempt['strategy'],
+      proxyTier: 'none', success: false,
+      blocked: errorType === 'cloudflare',
+      timeMs: Date.now() - t0,
+      costCredits: stepCost(strategy as StepAttempt['strategy'], 'none'),
+      errorType,
+    });
+    throw err;
+  }
+}
+
 function stickyProxyTier(proxy: string | null, resProxy: string | null): ProxyTier {
   if (!proxy) return 'none';
   if (proxy === resProxy) return 'residential';
   const statics = [process.env.STATIC_RESIDENTIAL_PROXY_1, process.env.STATIC_RESIDENTIAL_PROXY_2].filter(Boolean);
   if (statics.includes(proxy)) return 'residential';
   return 'datacenter';
+}
+
+// ─── Learned strategy lookup ──────────────────────────────────────────────────
+
+interface DomainStrategy {
+  optimalStrategy: 'slipstream' | 'http' | 'playwright' | 'flaresolverr';
+  proxyTier: 'none' | 'datacenter' | 'residential' | 'isp';
+  successRate: number;
+  sampleCount: number;
+}
+
+/**
+ * Returns the learned optimal strategy for a domain if one exists and is fresh
+ * (computed within last 2 hours, ≥10 samples, ≥85% success rate).
+ * Returns null if no confident strategy is known — caller runs the full chain.
+ */
+async function getLearnedStrategy(domain: string): Promise<DomainStrategy | null> {
+  try {
+    const [row] = await sql<DomainStrategy[]>`
+      SELECT optimal_strategy, proxy_tier, success_rate, sample_count
+      FROM domain_strategies
+      WHERE domain = ${domain}
+        AND computed_at > NOW() - INTERVAL '2 hours'
+        AND sample_count >= 10
+        AND success_rate >= 0.85
+    `;
+    return row ?? null;
+  } catch {
+    return null; // never block a scrape due to telemetry DB issues
+  }
+}
+
+/**
+ * Attempts the learned strategy for a domain. Returns the result on success,
+ * or null if the strategy fails (caller falls through to the full chain).
+ * Logs one StepAttempt regardless of outcome.
+ */
+async function tryLearnedStrategy(
+  url: string,
+  opts: RunOptions,
+  learned: DomainStrategy,
+  steps: StepAttempt[],
+): Promise<StrategyResult | null> {
+  const strat = learned.optimalStrategy;
+  // Don't cast to ProxyTier here — DomainStrategy.proxyTier includes 'isp' (slipstream-internal).
+  // ProxyTier in manager.ts is 'none' | 'datacenter' | 'residential' only.
+  // We use learned.proxyTier directly; the http/playwright branches only match non-'isp' values.
+  const tier  = learned.proxyTier;
+  const cost  = stepCost(strat, learned.proxyTier);
+  const si    = steps.length;
+
+  try {
+    if (strat === 'slipstream') {
+      const html = await attempt(steps, si, 'slipstream', 'isp', cost,
+        () => trySlipstream(url, opts.timeout ?? 90_000));
+      if (html) return { html, statusCode: 200, finalUrl: url, strategyUsed: 'slipstream', proxyUsed: null, proxyTier: 'none' };
+    }
+
+    if (strat === 'http') {
+      // getResidentialProxy/getDatacenterProxy return string | null (never undefined)
+      const proxy = tier === 'residential' ? proxyManager.getResidentialProxy()
+                  : tier === 'datacenter'  ? proxyManager.getDatacenterProxy()
+                  : null;
+      if (proxy !== null) {
+        const r = await attempt(steps, si, 'http', tier, cost, () => tryHttp(url, proxy, opts));
+        if (r) return { ...r, strategyUsed: 'http', proxyUsed: proxy, proxyTier: tier as ProxyTier };
+      }
+    }
+
+    if (strat === 'playwright') {
+      const proxy = tier === 'residential' ? proxyManager.getResidentialProxy()
+                  : tier === 'datacenter'  ? proxyManager.getDatacenterProxy()
+                  : null;
+      if (proxy !== null) {
+        const r = await attempt(steps, si, 'playwright', tier, cost,
+          () => tryPlaywright(url, proxy, opts));
+        if (r) return { ...r.result, strategyUsed: 'playwright', proxyUsed: proxy, proxyTier: tier as ProxyTier,
+                        playwright: { page: r.page, context: r.context, release: r.release } };
+      }
+    }
+
+    if (strat === 'flaresolverr' && await flareScraper.isAvailable()) {
+      // flareScraper.fetch() throws on failure — wrap to log the step either way
+      const t0 = Date.now();
+      try {
+        const r = await flareScraper.fetch(url, opts.timeout);
+        steps.push({ stepIndex: si, strategy: 'flaresolverr', proxyTier: 'none',
+                     success: true, blocked: false, timeMs: Date.now() - t0,
+                     costCredits: cost, errorType: null });
+        return { ...r, strategyUsed: 'flaresolverr', proxyUsed: null, proxyTier: 'none' };
+      } catch (err) {
+        const errorType = classifyError(err);
+        steps.push({ stepIndex: si, strategy: 'flaresolverr', proxyTier: 'none',
+                     success: false, blocked: errorType === 'cloudflare',
+                     timeMs: Date.now() - t0, costCredits: cost, errorType });
+        // fall through to return null below
+      }
+    }
+  } catch {
+    // logged by attempt() or explicit push above; swallow — fall through to full chain
+  }
+
+  return null;
 }
 
 // ─── Auto-escalation chain ────────────────────────────────────────────────────
@@ -371,7 +502,20 @@ function stickyProxyTier(proxy: string | null, resProxy: string | null): ProxyTi
  * If opts.proxyTier is forced (not 'auto'), the chain starts at the
  * corresponding proxy tier and skips earlier proxy steps.
  */
-async function runAuto(url: string, opts: RunOptions): Promise<StrategyResult> {
+async function runAuto(url: string, opts: RunOptions, steps: StepAttempt[]): Promise<StrategyResult> {
+  const domain = new URL(url).hostname.replace(/^www\./, '');
+
+  // Try learned strategy first (skip for FlareSolverr-first domains — they have hardcoded requirements)
+  if (!isFlareSolverrFirst(url)) {
+    const learned = await getLearnedStrategy(domain);
+    if (learned) {
+      process.stderr.write(`  [strategy] learned: ${domain} → ${learned.optimalStrategy}+${learned.proxyTier} (rate=${learned.successRate.toFixed(2)} n=${learned.sampleCount})\n`);
+      const result = await tryLearnedStrategy(url, opts, learned, steps);
+      if (result) return result;
+      process.stderr.write(`  [strategy] learned strategy failed — running full chain\n`);
+    }
+  }
+
   // Akamai/Datadome sites: skip HTTP+Playwright entirely, go straight to FlareSolverr
   if (isFlareSolverrFirst(url) && (opts.proxyTier == null || opts.proxyTier === 'auto')) {
     process.stderr.write(`  [strategy] domain hint: FlareSolverr-first for ${new URL(url).hostname}\n`);
@@ -383,10 +527,8 @@ async function runAuto(url: string, opts: RunOptions): Promise<StrategyResult> {
       if (session) {
         process.stderr.write(`  [strategy] Amazon session pool: trying cached session\n`);
         const sessionCookies = session.cookies.map(c => ({ name: c.name, value: c.value, domain: c.domain }));
-        const pwResult = await tryPlaywright(url, session.proxyUrl, {
-          ...opts,
-          cookies: [...(opts.cookies ?? []), ...sessionCookies],
-        });
+        const pwResult = await attempt(steps, steps.length, 'playwright', 'residential', stepCost('playwright', 'residential'),
+          async () => tryPlaywright(url, session.proxyUrl, { ...opts, cookies: [...(opts.cookies ?? []), ...sessionCookies] }));
         if (pwResult) {
           if (!isAmazonBotPage(pwResult.result.html)) {
             markSuccess(session);
@@ -416,7 +558,8 @@ async function runAuto(url: string, opts: RunOptions): Promise<StrategyResult> {
     // 30s timeout so we don't delay the FlareSolverr fallback too long.
     if (isSlipstreamEnabled()) {
       process.stderr.write(`  [strategy] step 0: Slipstream Engine (FlareSolverr-first domain)\n`);
-      const html = await trySlipstream(url, 30_000);
+      const html = await attempt(steps, steps.length, 'slipstream', 'isp', 1,
+        () => trySlipstream(url, 30_000));
       if (html) {
         return { html, statusCode: 200, finalUrl: url, strategyUsed: 'slipstream', proxyUsed: null, proxyTier: 'none' };
       }
@@ -430,7 +573,13 @@ async function runAuto(url: string, opts: RunOptions): Promise<StrategyResult> {
       ? proxyManager.getStickyResidentialProxy(sessionId)
       : (dcProxy ?? null);
     if (await flareScraper.isAvailable()) {
+      const flareFirstT0 = Date.now();
       const flareResult = await flareScraper.fetch(url, opts.timeout, stickyProxy);
+      steps.push({ stepIndex: steps.length, strategy: 'flaresolverr',
+                   proxyTier: stickyProxy ? 'residential' : 'none',
+                   success: true, blocked: false, timeMs: Date.now() - flareFirstT0,
+                   costCredits: stepCost('flaresolverr', stickyProxy ? 'residential' : 'none'),
+                   errorType: null });
       const proxyTier: ProxyTier = stickyProxyTier(stickyProxy, resProxy);
       // Detect Amazon bot/CAPTCHA pages — these are large HTML pages but contain no product data.
       // Treating them as success causes garbage price extraction, so we fail fast instead.
@@ -503,7 +652,8 @@ async function runAuto(url: string, opts: RunOptions): Promise<StrategyResult> {
   let stepNum = 1;
   for (const step of httpSteps) {
     process.stderr.write(`  [strategy] step ${stepNum}: ${step.label}\n`);
-    const r = await tryHttp(url, step.proxyUrl, opts);
+    const r = await attempt(steps, steps.length, 'http', step.tier, stepCost('http', step.tier),
+      () => tryHttp(url, step.proxyUrl, opts));
     if (r) {
       return { ...r, strategyUsed: 'http', proxyUsed: step.proxyUrl, proxyTier: step.tier };
     }
@@ -517,7 +667,8 @@ async function runAuto(url: string, opts: RunOptions): Promise<StrategyResult> {
   // Skipped when strategy is forced or proxyTier is forced (user explicitly chose a path).
   if (slipstreamActive) {
     process.stderr.write(`  [strategy] step ${stepNum}: Slipstream Engine\n`);
-    const html = await trySlipstream(url, 90_000);
+    const html = await attempt(steps, steps.length, 'slipstream', 'isp', 1,
+      () => trySlipstream(url, 90_000));
     if (html) {
       return {
         html,
@@ -541,7 +692,8 @@ async function runAuto(url: string, opts: RunOptions): Promise<StrategyResult> {
     const isLastPw = i === playwrightSteps.length - 1;
     const stepTimeout = isLastPw ? totalTimeout : Math.min(totalTimeout, 20_000);
     process.stderr.write(`  [strategy] step ${stepNum}: ${step.label}\n`);
-    const r = await tryPlaywright(url, step.proxyUrl, { ...opts, timeout: stepTimeout });
+    const r = await attempt(steps, steps.length, 'playwright', step.tier, stepCost('playwright', step.tier),
+      () => tryPlaywright(url, step.proxyUrl, { ...opts, timeout: stepTimeout }));
     if (r) {
       return {
         ...r.result,
@@ -570,7 +722,13 @@ async function runAuto(url: string, opts: RunOptions): Promise<StrategyResult> {
     ? proxyManager.getStickyResidentialProxy(sessionId)
     : (dcProxy ?? null);
 
+  const flareT0 = Date.now();
   const flareResult = await flareScraper.fetch(url, opts.timeout, stickyProxy);
+  steps.push({ stepIndex: steps.length, strategy: 'flaresolverr',
+               proxyTier: stickyProxy ? 'residential' : 'none',
+               success: true, blocked: false, timeMs: Date.now() - flareT0,
+               costCredits: stepCost('flaresolverr', stickyProxy ? 'residential' : 'none'),
+               errorType: null });
 
   // If the page looks fully rendered and not a Chrome error page, return directly
   if (flareResult.html.length > 50_000 && !flareResult.html.includes("This site can't be reached")) {
@@ -615,10 +773,18 @@ async function runAuto(url: string, opts: RunOptions): Promise<StrategyResult> {
  */
 export async function runStrategy(url: string, opts: RunOptions = {}): Promise<StrategyResult> {
   const strategy = opts.strategy ?? 'auto';
+  const steps: StepAttempt[] = [];
+  let domain = 'unknown';
+  try {
+    domain = new URL(url).hostname.replace(/^www\./, '');
+  } catch {}
 
-  if (strategy !== 'auto') {
-    return runForced(url, opts, strategy);
+  try {
+    if (strategy !== 'auto') {
+      return await runForced(url, opts, strategy, steps);
+    }
+    return await runAuto(url, opts, steps);
+  } finally {
+    writeTelemetry(domain, steps, opts.apiKeyId ?? null).catch(() => {});
   }
-
-  return runAuto(url, opts);
 }
