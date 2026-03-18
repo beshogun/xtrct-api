@@ -1,16 +1,18 @@
 import { httpScraper, CloudflareError } from './http.ts';
 import { playwrightScraper, CloudflareJSError, type PlaywrightOptions } from './playwright.ts';
 import { flareScraper } from './flaresolverr.ts';
+import { trySlipstream, isSlipstreamEnabled } from './slipstream.ts';
 import { proxyManager, selectProxy, type ProxyTier } from '../proxy/manager.ts';
 import { getSession, markSuccess, markFailed, isAmazonBotPage } from './amazon-session.ts';
 import { randomBytes } from 'crypto';
 import type { Strategy } from '../db/index.ts';
+import { sql } from '../db/index.ts';
 
 export interface StrategyResult {
   html: string;
   statusCode: number;
   finalUrl: string;
-  strategyUsed: 'http' | 'playwright' | 'flaresolverr';
+  strategyUsed: 'http' | 'playwright' | 'flaresolverr' | 'slipstream';
   proxyUsed: string | null;
   proxyTier: ProxyTier;
   /** Only set when Playwright was used — caller must close + release when done */
@@ -138,6 +140,91 @@ function isNetworkError(e: Error): boolean {
     e.message.includes('TimeoutError') ||
     e.name === 'TimeoutError'
   );
+}
+
+// ─── Telemetry ────────────────────────────────────────────────────────────────
+
+export type StepAttempt = {
+  stepIndex: number;
+  strategy: 'slipstream' | 'http' | 'playwright' | 'flaresolverr';
+  proxyTier: 'none' | 'datacenter' | 'residential' | 'isp';
+  success: boolean;
+  blocked: boolean;
+  timeMs: number;
+  costCredits: number;
+  errorType: 'cloudflare' | 'timeout' | 'network' | 'parse' | null;
+};
+
+/** Cost in credits per strategy+tier combination, matching billing table */
+const STEP_CREDITS: Partial<Record<string, Partial<Record<string, number>>>> = {
+  slipstream:   { isp: 1 },
+  http:         { none: 1, datacenter: 2, residential: 5 },
+  playwright:   { none: 3, datacenter: 5, residential: 10 },
+  flaresolverr: { none: 8, datacenter: 8, residential: 8 },
+};
+
+export function stepCost(strategy: StepAttempt['strategy'], proxyTier: StepAttempt['proxyTier']): number {
+  return STEP_CREDITS[strategy]?.[proxyTier] ?? 1;
+}
+
+export function classifyError(err: unknown): StepAttempt['errorType'] {
+  const msg = err instanceof Error ? err.message : String(err);
+  if (/cloudflare|cf-ray|403|challenge/i.test(msg)) return 'cloudflare';
+  if (/timeout|timed out/i.test(msg)) return 'timeout';
+  if (/ECONNREFUSED|ENOTFOUND|network/i.test(msg)) return 'network';
+  return 'parse';
+}
+
+/**
+ * Wraps an escalation step: records timing and outcome into `steps`.
+ * - fn() returns null → success=false, no exception re-thrown
+ * - fn() throws → success=false, exception re-thrown (unexpected errors abort chain)
+ */
+export async function attempt<T extends object | string>(
+  steps: StepAttempt[],
+  stepIndex: number,
+  strategy: StepAttempt['strategy'],
+  proxyTier: StepAttempt['proxyTier'],
+  costCredits: number,
+  fn: () => Promise<T | null>,
+): Promise<T | null> {
+  const t0 = Date.now();
+  try {
+    const result = await fn();
+    steps.push({ stepIndex, strategy, proxyTier, success: result !== null,
+                 blocked: false, timeMs: Date.now() - t0, costCredits, errorType: null });
+    return result;
+  } catch (err) {
+    const errorType = classifyError(err);
+    steps.push({ stepIndex, strategy, proxyTier, success: false,
+                 blocked: errorType === 'cloudflare',
+                 timeMs: Date.now() - t0, costCredits, errorType });
+    throw err;
+  }
+}
+
+/**
+ * Batch-writes accumulated step attempts to scrape_telemetry.
+ * Fire-and-forget — never throws.
+ */
+export async function writeTelemetry(
+  domain: string,
+  steps: StepAttempt[],
+  apiKeyId: string | null,
+): Promise<void> {
+  if (steps.length === 0) return;
+  for (const s of steps) {
+    await sql`
+      INSERT INTO scrape_telemetry
+        (domain, step_index, strategy, proxy_tier, success, blocked,
+         time_ms, cost_credits, error_type, api_key_id)
+      VALUES (
+        ${domain}, ${s.stepIndex}, ${s.strategy}, ${s.proxyTier},
+        ${s.success}, ${s.blocked}, ${s.timeMs}, ${s.costCredits},
+        ${s.errorType}, ${apiKeyId}
+      )
+    `;
+  }
 }
 
 /**
@@ -325,6 +412,17 @@ async function runAuto(url: string, opts: RunOptions): Promise<StrategyResult> {
       }
     }
 
+    // Try Slipstream before FlareSolverr — cheaper and faster when it works.
+    // 30s timeout so we don't delay the FlareSolverr fallback too long.
+    if (isSlipstreamEnabled()) {
+      process.stderr.write(`  [strategy] step 0: Slipstream Engine (FlareSolverr-first domain)\n`);
+      const html = await trySlipstream(url, 30_000);
+      if (html) {
+        return { html, statusCode: 200, finalUrl: url, strategyUsed: 'slipstream', proxyUsed: null, proxyTier: 'none' };
+      }
+      process.stderr.write(`  [strategy] Slipstream failed — falling through to FlareSolverr\n`);
+    }
+
     const resProxy = proxyManager.getResidentialProxy();
     const dcProxy  = proxyManager.getDatacenterProxy();
     const sessionId = randomBytes(8).toString('hex');
@@ -369,14 +467,26 @@ async function runAuto(url: string, opts: RunOptions): Promise<StrategyResult> {
   const httpSteps: Step[] = [];
   const playwrightSteps: Step[] = [];
 
+  // When Slipstream is enabled, skip HTTP proxy steps — Slipstream handles proxy escalation
+  // internally with cheaper Webshare ISP proxies. Only run HTTP with no proxy first (free),
+  // then hand off to Slipstream. Proxjet only used as Playwright fallback for stubborn SPAs.
+  // Note: we only skip Slipstream if the USER explicitly forced a proxy tier via the API.
+  // Domain hints (RESIDENTIAL_ONLY_DOMAINS) should not suppress Slipstream — those domains
+  // still benefit from Slipstream's ISP proxy chain before falling through to Proxjet.
+  const userForcedTier = (opts.proxyTier && opts.proxyTier !== 'auto') ? opts.proxyTier : null;
+  const slipstreamActive = isSlipstreamEnabled() && !userForcedTier;
+
   if (!forcedTier || forcedTier === 'none') {
     httpSteps.push({ label: 'HTTP, no proxy', proxyUrl: null, tier: 'none' });
   }
-  if ((!forcedTier || forcedTier === 'datacenter') && hasDc) {
-    httpSteps.push({ label: 'HTTP + datacenter proxy', proxyUrl: dcProxy, tier: 'datacenter' });
-  }
-  if ((!forcedTier || forcedTier === 'residential') && hasRes) {
-    httpSteps.push({ label: 'HTTP + residential proxy', proxyUrl: resProxy, tier: 'residential' });
+  if (!slipstreamActive) {
+    // Only include Proxjet HTTP proxy steps when Slipstream is not available
+    if ((!forcedTier || forcedTier === 'datacenter') && hasDc) {
+      httpSteps.push({ label: 'HTTP + datacenter proxy', proxyUrl: dcProxy, tier: 'datacenter' });
+    }
+    if ((!forcedTier || forcedTier === 'residential') && hasRes) {
+      httpSteps.push({ label: 'HTTP + residential proxy', proxyUrl: resProxy, tier: 'residential' });
+    }
   }
 
   if (!forcedTier || forcedTier === 'none') {
@@ -397,6 +507,28 @@ async function runAuto(url: string, opts: RunOptions): Promise<StrategyResult> {
     if (r) {
       return { ...r, strategyUsed: 'http', proxyUsed: step.proxyUrl, proxyTier: step.tier };
     }
+    stepNum++;
+  }
+
+  // ── Slipstream Engine (after HTTP, before Playwright) ───────────────────────
+  // HTTP failed (CF block, bot detection, etc.) — try Slipstream's smart chain:
+  //   FastGear (rquest, Chrome TLS) → ISP proxy → CapSolver → Heavy Gear (real Chrome + SOCKS5)
+  // Much cheaper than spinning up Playwright/FlareSolverr for sites with CF JS challenges.
+  // Skipped when strategy is forced or proxyTier is forced (user explicitly chose a path).
+  if (slipstreamActive) {
+    process.stderr.write(`  [strategy] step ${stepNum}: Slipstream Engine\n`);
+    const html = await trySlipstream(url, 90_000);
+    if (html) {
+      return {
+        html,
+        statusCode: 200,
+        finalUrl: url,
+        strategyUsed: 'slipstream',
+        proxyUsed: null,
+        proxyTier: 'none',
+      };
+    }
+    process.stderr.write(`  [strategy] Slipstream failed — escalating to Playwright\n`);
     stepNum++;
   }
 
