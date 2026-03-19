@@ -155,7 +155,7 @@ export const johnLewisProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price (including Was/Now), availability, brand, MPN, rating and images from a John Lewis product page.',
   matchDomains: ['johnlewis.com'],
-  strategy: 'auto',
+  strategy: 'playwright',
   waitFor: { type: 'selector', value: 'script[type="application/ld+json"]' },
   outputFormats: ['structured'],
   selectors: {
