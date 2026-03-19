@@ -2515,13 +2515,13 @@ export const richerSoundsCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from a Richer Sounds category page.',
   matchDomains: [],
-  strategy: 'http',
+  strategy: 'auto',
   outputFormats: ['structured'],
   selectors: {
-    all_titles: 'all:.product-item .product-name a, all:li.product h3 a',
-    all_urls:   'all:.product-item .product-name a@href, all:li.product h3 a@href',
-    all_prices: 'all:.product-item .price, all:li.product .price',
-    all_images: 'all:.product-item img@src, all:li.product img@src',
+    all_titles: 'all:.product-item .product-name a, all:li.product h3 a, all:[class*="product"] [class*="name"] a, all:[class*="product"] h3 a',
+    all_urls:   'all:.product-item .product-name a@href, all:li.product h3 a@href, all:[class*="product"] [class*="name"] a@href, all:[class*="product"] h3 a@href',
+    all_prices: 'all:.product-item .price, all:li.product .price, all:[class*="product"] [class*="price"]',
+    all_images: 'all:.product-item img@src, all:li.product img@src, all:[class*="product"] img@src',
   },
 };
 
@@ -2614,13 +2614,14 @@ export const appliancesDirectCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers products from an Appliances Direct category page.',
   matchDomains: [],
-  strategy: 'http',
+  strategy: 'playwright',
+  waitFor: { type: 'selector', value: '.product-list-item, [class*="product-item"], [class*="product-card"]', timeout: 15000 },
   outputFormats: ['structured'],
   selectors: {
-    all_titles: 'all:.product-list-item .product-title a, all:[class*="product-item"] h3 a',
-    all_urls:   'all:.product-list-item .product-title a@href, all:[class*="product-item"] h3 a@href',
-    all_prices: 'all:.product-list-item [class*="price"], all:[class*="product-item"] [class*="price"]',
-    all_images: 'all:.product-list-item img@src, all:[class*="product-item"] img@src',
+    all_titles: 'all:.product-list-item .product-title a, all:[class*="product-item"] h3 a, all:[class*="product-card"] [class*="title"] a, all:[class*="product-card"] h3 a',
+    all_urls:   'all:.product-list-item .product-title a@href, all:[class*="product-item"] h3 a@href, all:[class*="product-card"] [class*="title"] a@href, all:[class*="product-card"] h3 a@href',
+    all_prices: 'all:.product-list-item [class*="price"], all:[class*="product-item"] [class*="price"], all:[class*="product-card"] [class*="price"]',
+    all_images: 'all:.product-list-item img@src, all:[class*="product-item"] img@src, all:[class*="product-card"] img@src',
   },
 };
 
