@@ -513,7 +513,9 @@ async function runAuto(url: string, opts: RunOptions, steps: StepAttempt[]): Pro
       log(`[strategy] learned: ${domain} → ${learned.optimalStrategy}+${learned.proxyTier} (rate=${learned.successRate.toFixed(2)} n=${learned.sampleCount})`);
       const result = await tryLearnedStrategy(url, opts, learned, steps);
       if (result) return result;
-      log(`[strategy] learned strategy failed — running full chain`);
+      // Invalidate stale cached strategy so it re-learns on next analyser run
+      sql`DELETE FROM domain_strategies WHERE domain = ${domain}`.catch(() => {});
+      log(`[strategy] learned strategy failed — invalidated cache, running full chain`);
     }
   }
 
