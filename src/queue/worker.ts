@@ -1,4 +1,5 @@
 import { sql, calculateCredits, type ScrapeJob, type OutputFormat } from '../db/index.ts';
+import { log } from '../log.ts';
 import { runStrategy } from '../scrapers/strategy.ts';
 import { extractAll } from '../extractors/index.ts';
 import { deductCredits } from '../billing/credits.ts';
@@ -116,14 +117,10 @@ async function processJob(job: ScrapeJob): Promise<void> {
       const { PROXY_CREDIT_COSTS } = await import('../billing/proxy-credits.ts');
       const proxyCost = PROXY_CREDIT_COSTS[proxyTier];
       const deducted = await deductProxyCredit(job.apiKeyId, proxyTier, proxyCost).catch(() => false);
-      process.stderr.write(
-        `  [worker] proxy credits: tier=${proxyTier} cost=${proxyCost} deducted=${deducted} job=${job.id}\n`,
-      );
+      log(`[worker] proxy credits: tier=${proxyTier} cost=${proxyCost} deducted=${deducted} job=${job.id}`);
     }
 
-    process.stderr.write(
-      `  [worker] job ${job.id} done: strategy=${strategyResult.strategyUsed} proxy=${proxyTier} credits=${credits}\n`,
-    );
+    log(`[worker] job ${job.id} done: strategy=${strategyResult.strategyUsed} proxy=${proxyTier} credits=${credits}`);
 
     // Mark job done
     const [updated] = await sql<ScrapeJob[]>`
@@ -171,7 +168,7 @@ async function processJob(job: ScrapeJob): Promise<void> {
     }
 
     await fireJobWebhooks(updated).catch(() => {});
-    process.stderr.write(`  [worker] job ${job.id} failed: ${errMsg}\n`);
+    log(`[worker] job ${job.id} failed: ${errMsg}`);
   }
 }
 
@@ -182,7 +179,7 @@ async function resetStuckJobs(): Promise<void> {
     WHERE status = 'running'
   `.then(r => ({ count: r.count }));
   if (count > 0) {
-    process.stdout.write(`[workers] reset ${count} stuck running jobs → pending\n`);
+    log(`[workers] reset ${count} stuck running jobs → pending`);
   }
 }
 
@@ -191,10 +188,10 @@ async function watchdogTick(): Promise<void> {
   const { count } = await sql`
     UPDATE scrape_jobs SET status = 'pending', started_at = NULL, worker_id = NULL
     WHERE status = 'running'
-      AND started_at < NOW() - INTERVAL '3 minutes'
+      AND started_at < NOW() - INTERVAL '10 minutes'
   `.then(r => ({ count: r.count })).catch(() => ({ count: 0 }));
   if (count > 0) {
-    process.stderr.write(`  [watchdog] reset ${count} timed-out running jobs → pending\n`);
+    log(`[watchdog] reset ${count} timed-out running jobs → pending`);
   }
 }
 
@@ -254,7 +251,7 @@ export async function startWorkers(concurrency = 4): Promise<void> {
     Promise.race([processJob(job), timeoutPromise])
       .catch(async (e) => {
         const errMsg = e instanceof Error ? e.message : String(e);
-        process.stderr.write(`  [worker] job ${job!.id} hard-killed: ${errMsg}\n`);
+        log(`[worker] job ${job!.id} hard-killed: ${errMsg}`);
         await sql`UPDATE scrape_jobs SET status = 'failed', error = ${errMsg}, completed_at = NOW() WHERE id = ${job!.id} AND status = 'running'`.catch(() => {});
       })
       .finally(() => {
@@ -264,5 +261,5 @@ export async function startWorkers(concurrency = 4): Promise<void> {
   };
 
   setInterval(poll, POLL_INTERVAL_MS);
-  process.stdout.write(`[workers] ${concurrency} workers started (${WORKER_ID})\n`);
+  log(`[workers] ${concurrency} workers started (${WORKER_ID})`);
 }

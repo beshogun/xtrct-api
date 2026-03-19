@@ -1526,13 +1526,14 @@ export const johnLewisCategory: ScrapePreset = {
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
-    // JL product URLs: /[product-name]/p[id] — exclude "-view-N" alternate image links
-    // and "-altN" gallery links. Use the product card anchor directly.
-    all_urls:   'all:a[data-testid="product-card-anchor"]@href',
-    all_titles: 'all:a[data-testid="product-card-anchor"] h2',
-    // No price selector — JL search shows instalment prices in [class*="price"] elements
-    // which are ~100x lower than actual retail price. Let scheduler scrape product pages.
-    all_images: 'all:a[data-testid="product-card-anchor"] img@src',
+    // JL updated markup (2026-03): product-card-anchor removed; title link now uses data-component="Title"
+    // 1:1 alignment guaranteed: one a[data-component="Title"] per product card.
+    // Use img@alt for titles — the h2 text concatenates brand+model spans without space (e.g. "SamsungQE48S90F"),
+    // while img alt has the full correctly-spaced name (e.g. "Samsung QE48S90F (2025) OLED HDR...").
+    all_urls:   'all:a[data-component="Title"]@href',
+    all_titles: 'all:a[data-testid="image-list"] div:first-child img@alt',
+    all_prices: 'all:[data-testid="product-card-price-now"]',
+    all_images: 'all:a[data-testid="image-list"] div:first-child img@src',
   },
 };
 
@@ -1543,13 +1544,15 @@ export const aoCategory: ScrapePreset = {
   description: 'Discovers product listings from an AO.com category page.',
   matchDomains: [],
   strategy: 'auto',
-  waitFor: { type: 'networkidle' },
+  // AO is fully client-side rendered — wait for at least one product card link to appear
+  waitFor: { type: 'selector', value: '[href^="/product/"]', timeout: 15000 },
   outputFormats: ['structured'],
   selectors: {
-    all_titles: 'all:[href^="/product/"] h2, all:[href^="/product/"] h3, all:[href^="/product/"] [class*="name"]',
-    all_urls:   'all:[href^="/product/"]@href',
-    all_prices: 'all:[href^="/product/"] [class*="price"]',
-    all_images: 'all:[href^="/product/"] img@src',
+    // Each product card is wrapped in an <a href="/product/..."> — extract from containers
+    all_titles: 'all:a[href^="/product/"] h2, all:a[href^="/product/"] h3, all:a[href^="/product/"] [class*="name"], all:a[href^="/product/"] [class*="title"]',
+    all_urls:   'all:a[href^="/product/"]@href',
+    all_prices: 'all:a[href^="/product/"] [class*="price"], all:a[href^="/product/"] [class*="Price"]',
+    all_images: 'all:a[href^="/product/"] img@src',
   },
 };
 

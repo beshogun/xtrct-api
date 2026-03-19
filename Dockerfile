@@ -20,5 +20,10 @@ COPY . .
 # Tell Playwright where Chromium lives (pre-installed in this image)
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
+# FlareSolverr instances (Railway services — override at runtime if needed)
+ENV FLARESOLVERR_URL=https://flaresolverr-production-4fa8.up.railway.app
+ENV FLARESOLVERR_URL_2=https://enthusiastic-hope-production.up.railway.app
+ENV FLARESOLVERR_URL_3=https://divine-elegance-production-3328.up.railway.app
+
 EXPOSE 3000
 CMD ["bun", "src/index.ts"]

@@ -2,6 +2,7 @@ import { httpScraper, CloudflareError } from './http.ts';
 import { playwrightScraper, CloudflareJSError, type PlaywrightOptions } from './playwright.ts';
 import { flareScraper } from './flaresolverr.ts';
 import { trySlipstream, isSlipstreamEnabled } from './slipstream.ts';
+import { log } from '../log.ts';
 import { proxyManager, selectProxy, type ProxyTier } from '../proxy/manager.ts';
 import { getSession, markSuccess, markFailed, isAmazonBotPage } from './amazon-session.ts';
 import { randomBytes } from 'crypto';
@@ -100,7 +101,7 @@ function getEffectiveProxyTier(url: string, requested: 'auto' | ProxyTier): 'aut
   try {
     const hostname = new URL(url).hostname.replace(/^www\./, '');
     if (RESIDENTIAL_ONLY_DOMAINS.has(hostname)) {
-      process.stderr.write(`  [strategy] domain hint: ${hostname} → residential only\n`);
+      log(`[strategy] domain hint: ${hostname} → residential only`);
       return 'residential';
     }
   } catch {}
@@ -300,7 +301,7 @@ async function runForcedInner(url: string, opts: RunOptions, strategy: Strategy)
       return { ...r, strategyUsed: 'http', proxyUsed: proxy, proxyTier: proxy ? 'datacenter' : 'none' };
     } catch (e) {
       if (e instanceof CloudflareError && await flareScraper.isAvailable()) {
-        process.stderr.write(`  [strategy] HTTP blocked by Cloudflare → trying FlareSolverr (forced http mode)\n`);
+        log(`[strategy] HTTP blocked by Cloudflare → trying FlareSolverr (forced http mode)`);
         const r = await flareScraper.fetch(url, opts.timeout);
         return { ...r, strategyUsed: 'flaresolverr', proxyUsed: null, proxyTier: 'none' };
       }
@@ -319,7 +320,7 @@ async function runForcedInner(url: string, opts: RunOptions, strategy: Strategy)
     }
     // All playwright attempts blocked by CF — escalate to FlareSolverr + sticky cookie handoff
     if (await flareScraper.isAvailable()) {
-      process.stderr.write(`  [strategy] Playwright blocked → FlareSolverr SPA handoff (forced playwright mode)\n`);
+      log(`[strategy] Playwright blocked → FlareSolverr SPA handoff (forced playwright mode)`);
       const sessionId = randomBytes(8).toString('hex');
       const stickyProxy = resProxy ? proxyManager.getStickyResidentialProxy(sessionId) : dcProxy ?? null;
       const flareResult = await flareScraper.fetch(url, opts.timeout, stickyProxy);
@@ -509,30 +510,30 @@ async function runAuto(url: string, opts: RunOptions, steps: StepAttempt[]): Pro
   if (!isFlareSolverrFirst(url)) {
     const learned = await getLearnedStrategy(domain);
     if (learned) {
-      process.stderr.write(`  [strategy] learned: ${domain} → ${learned.optimalStrategy}+${learned.proxyTier} (rate=${learned.successRate.toFixed(2)} n=${learned.sampleCount})\n`);
+      log(`[strategy] learned: ${domain} → ${learned.optimalStrategy}+${learned.proxyTier} (rate=${learned.successRate.toFixed(2)} n=${learned.sampleCount})`);
       const result = await tryLearnedStrategy(url, opts, learned, steps);
       if (result) return result;
-      process.stderr.write(`  [strategy] learned strategy failed — running full chain\n`);
+      log(`[strategy] learned strategy failed — running full chain`);
     }
   }
 
   // Akamai/Datadome sites: skip HTTP+Playwright entirely, go straight to FlareSolverr
   if (isFlareSolverrFirst(url) && (opts.proxyTier == null || opts.proxyTier === 'auto')) {
-    process.stderr.write(`  [strategy] domain hint: FlareSolverr-first for ${new URL(url).hostname}\n`);
+    log(`[strategy] domain hint: FlareSolverr-first for ${new URL(url).hostname}`);
 
     // ── Amazon session pool: try pre-warmed cached cookies first ──────────────
     // Pre-warmed sessions dramatically reduce bot-detection hits vs cold requests.
     if (isAmazonUrl(url)) {
       const session = getSession();
       if (session) {
-        process.stderr.write(`  [strategy] Amazon session pool: trying cached session\n`);
+        log(`[strategy] Amazon session pool: trying cached session`);
         const sessionCookies = session.cookies.map(c => ({ name: c.name, value: c.value, domain: c.domain }));
         const pwResult = await attempt(steps, steps.length, 'playwright', 'residential', stepCost('playwright', 'residential'),
           async () => tryPlaywright(url, session.proxyUrl, { ...opts, cookies: [...(opts.cookies ?? []), ...sessionCookies] }));
         if (pwResult) {
           if (!isAmazonBotPage(pwResult.result.html)) {
             markSuccess(session);
-            process.stderr.write(`  [strategy] Amazon session pool: clean page — success\n`);
+            log(`[strategy] Amazon session pool: clean page — success`);
             return {
               ...pwResult.result,
               strategyUsed: 'playwright',
@@ -544,26 +545,26 @@ async function runAuto(url: string, opts: RunOptions, steps: StepAttempt[]): Pro
           // Bot page — evict session and fall through to FlareSolverr
           markFailed(session);
           pwResult.release();
-          process.stderr.write(`  [strategy] Amazon session pool: bot page — session evicted, falling back to FlareSolverr\n`);
+          log(`[strategy] Amazon session pool: bot page — session evicted, falling back to FlareSolverr`);
         } else {
           markFailed(session);
-          process.stderr.write(`  [strategy] Amazon session pool: Playwright failed — falling back to FlareSolverr\n`);
+          log(`[strategy] Amazon session pool: Playwright failed — falling back to FlareSolverr`);
         }
       } else {
-        process.stderr.write(`  [strategy] Amazon session pool: no sessions available — using FlareSolverr\n`);
+        log(`[strategy] Amazon session pool: no sessions available — using FlareSolverr`);
       }
     }
 
     // Try Slipstream before FlareSolverr — cheaper and faster when it works.
     // 30s timeout so we don't delay the FlareSolverr fallback too long.
     if (isSlipstreamEnabled()) {
-      process.stderr.write(`  [strategy] step 0: Slipstream Engine (FlareSolverr-first domain)\n`);
+      log(`[strategy] step 0: Slipstream Engine (FlareSolverr-first domain)`);
       const html = await attempt(steps, steps.length, 'slipstream', 'isp', 1,
         () => trySlipstream(url, 30_000));
       if (html) {
         return { html, statusCode: 200, finalUrl: url, strategyUsed: 'slipstream', proxyUsed: null, proxyTier: 'none' };
       }
-      process.stderr.write(`  [strategy] Slipstream failed — falling through to FlareSolverr\n`);
+      log(`[strategy] Slipstream failed — falling through to FlareSolverr`);
     }
 
     const resProxy = proxyManager.getResidentialProxy();
@@ -596,7 +597,7 @@ async function runAuto(url: string, opts: RunOptions, steps: StepAttempt[]): Pro
       // Detect Amazon bot/CAPTCHA pages — these are large HTML pages but contain no product data.
       // Treating them as success causes garbage price extraction, so we fail fast instead.
       if (isAmazonBotPage(flareResult.html)) {
-        process.stderr.write(`  [strategy] Amazon bot/CAPTCHA page detected — failing job\n`);
+        log(`[strategy] Amazon bot/CAPTCHA page detected — failing job`);
         throw new Error('Amazon bot detection page returned (CAPTCHA)');
       }
       if (flareResult.html.length > 15_000) {
@@ -611,7 +612,7 @@ async function runAuto(url: string, opts: RunOptions, steps: StepAttempt[]): Pro
       return { ...flareResult, strategyUsed: 'flaresolverr', proxyUsed: stickyProxy, proxyTier };
     }
     // FlareSolverr unavailable — fall through to normal chain
-    process.stderr.write(`  [strategy] FlareSolverr unavailable — falling back to normal chain\n`);
+    log(`[strategy] FlareSolverr unavailable — falling back to normal chain`);
   }
 
   const effectiveTier = getEffectiveProxyTier(url, opts.proxyTier ?? 'auto');
@@ -663,7 +664,7 @@ async function runAuto(url: string, opts: RunOptions, steps: StepAttempt[]): Pro
   // ── HTTP steps ──────────────────────────────────────────────────────────────
   let stepNum = 1;
   for (const step of httpSteps) {
-    process.stderr.write(`  [strategy] step ${stepNum}: ${step.label}\n`);
+    log(`[strategy] step ${stepNum}: ${step.label}`);
     const r = await attempt(steps, steps.length, 'http', step.tier, stepCost('http', step.tier),
       () => tryHttp(url, step.proxyUrl, opts));
     if (r) {
@@ -678,7 +679,7 @@ async function runAuto(url: string, opts: RunOptions, steps: StepAttempt[]): Pro
   // Much cheaper than spinning up Playwright/FlareSolverr for sites with CF JS challenges.
   // Skipped when strategy is forced or proxyTier is forced (user explicitly chose a path).
   if (slipstreamActive) {
-    process.stderr.write(`  [strategy] step ${stepNum}: Slipstream Engine\n`);
+    log(`[strategy] step ${stepNum}: Slipstream Engine`);
     const html = await attempt(steps, steps.length, 'slipstream', 'isp', 1,
       () => trySlipstream(url, 90_000));
     if (html) {
@@ -691,7 +692,7 @@ async function runAuto(url: string, opts: RunOptions, steps: StepAttempt[]): Pro
         proxyTier: 'none',
       };
     }
-    process.stderr.write(`  [strategy] Slipstream failed — escalating to Playwright\n`);
+    log(`[strategy] Slipstream failed — escalating to Playwright`);
     stepNum++;
   }
 
@@ -703,7 +704,7 @@ async function runAuto(url: string, opts: RunOptions, steps: StepAttempt[]): Pro
     // Give the last Playwright step the full timeout.
     const isLastPw = i === playwrightSteps.length - 1;
     const stepTimeout = isLastPw ? totalTimeout : Math.min(totalTimeout, 20_000);
-    process.stderr.write(`  [strategy] step ${stepNum}: ${step.label}\n`);
+    log(`[strategy] step ${stepNum}: ${step.label}`);
     const r = await attempt(steps, steps.length, 'playwright', step.tier, stepCost('playwright', step.tier),
       () => tryPlaywright(url, step.proxyUrl, { ...opts, timeout: stepTimeout }));
     if (r) {
@@ -719,7 +720,7 @@ async function runAuto(url: string, opts: RunOptions, steps: StepAttempt[]): Pro
   }
 
   // ── Step 7: FlareSolverr (with residential proxy) → Playwright cookie handoff ─
-  process.stderr.write(`  [strategy] step ${stepNum}: FlareSolverr\n`);
+  log(`[strategy] step ${stepNum}: FlareSolverr`);
   if (!(await flareScraper.isAvailable())) {
     throw new Error(
       `[strategy] FlareSolverr not reachable at ${flareScraper.url} — install it: ` +
@@ -761,7 +762,7 @@ async function runAuto(url: string, opts: RunOptions, steps: StepAttempt[]): Pro
   }
 
   // SPA shell — hand CF cookies to Playwright using the SAME sticky proxy
-  process.stderr.write(`  [strategy] step ${stepNum}b: FlareSolverr→Playwright SPA handoff (sticky session ${sessionId})\n`);
+  log(`[strategy] step ${stepNum}b: FlareSolverr→Playwright SPA handoff (sticky session ${sessionId})`);
   const cfCookies = flareResult.cookies.map(c => ({ name: c.name, value: c.value, domain: c.domain }));
 
   const pwResult = await tryPlaywright(url, stickyProxy, {

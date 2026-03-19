@@ -9,7 +9,7 @@ export const sql = postgres(process.env.DATABASE_URL ?? '', {
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type Tier = 'free' | 'starter' | 'growth' | 'enterprise' | 'internal';
-export type Strategy = 'auto' | 'http' | 'playwright' | 'flaresolverr';
+export type Strategy = 'auto' | 'http' | 'playwright' | 'flaresolverr' | 'slipstream';
 export type JobStatus = 'pending' | 'running' | 'done' | 'failed';
 export type OutputFormat =
   | 'html' | 'cleaned_html' | 'markdown' | 'text'
