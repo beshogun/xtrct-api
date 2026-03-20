@@ -54,7 +54,7 @@ const RESIDENTIAL_ONLY_DOMAINS = new Set([
   'wayfair.com',
   'wine-auctioneer.com',
   'waterstones.com',
-  'johnlewis.com',
+  // johnlewis.com removed — try HTTP/slipstream first, let auto-learner find cheapest strategy
   // 'currys.co.uk', -- slipstream handles it at 100% success rate; auto-learning takes over
   'flannels.com',
   // All Amazon TLDs — also in FLARESOLVERR_FIRST_DOMAINS; this acts as fallback
@@ -320,7 +320,7 @@ async function runForcedInner(url: string, opts: RunOptions, strategy: Strategy)
     }
     // All playwright attempts blocked by CF — escalate to FlareSolverr + sticky cookie handoff
     if (await flareScraper.isAvailable()) {
-      log(`[strategy] Playwright blocked → FlareSolverr SPA handoff (forced playwright mode)`);
+      log(`[strategy] Playwright blocked → FlareSolverr SPA handoff (forced playwright mode) url=${url}`);
       const sessionId = randomBytes(8).toString('hex');
       const stickyProxy = resProxy ? proxyManager.getStickyResidentialProxy(sessionId) : dcProxy ?? null;
       const flareResult = await flareScraper.fetch(url, opts.timeout, stickyProxy);
