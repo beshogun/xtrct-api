@@ -414,25 +414,28 @@ export const ebuyerProduct: ScrapePreset = {
   strategy: 'http',
   outputFormats: ['structured'],
   selectors: {
-    title:          '#lblProductName, h1[itemprop="name"], h1.product-name',
-    price:          '.pdpPrice, [itemprop="price"]@content, span.curprice',
-    original_price: '.originalprice, del.price, span.rrp',
-    in_stock:       '.addToBasketContainer a:not([disabled]), button.add-to-basket:not([disabled])',
-    brand:          '[itemprop="brand"] span, [itemprop="brand"] [itemprop="name"]',
-    mpn:            '[itemprop="mpn"], .product-mpn, td:contains("Part No") + td',
-    ean:            '[itemprop="gtin13"], td:contains("EAN") + td',
-    rating:         '[itemprop="ratingValue"]@content, .product-rating .score',
-    review_count:   '[itemprop="reviewCount"]@content, .review-count',
-    images:         'all:.pdpThumbImages img@src, all:[itemprop="image"]@src, all:.product-images img@src',
+    title:          'jsonld:name, #lblProductName, h1[itemprop="name"], h1.product-name',
+    price:          'jsonld:offers.price, .pdpPrice, [itemprop="price"]@content, span.curprice',
+    original_price: 'jsonld:offers.highPrice, .originalprice, del.price, span.rrp',
+    in_stock:       'jsonld:offers.availability',
+    brand:          'jsonld:brand.name, [itemprop="brand"] span, [itemprop="brand"] [itemprop="name"]',
+    mpn:            'jsonld:mpn, [itemprop="mpn"], .product-mpn, td:contains("Part No") + td',
+    ean:            'jsonld:gtin13, [itemprop="gtin13"], td:contains("EAN") + td',
+    rating:         'jsonld:aggregateRating.ratingValue, [itemprop="ratingValue"]@content, .product-rating .score',
+    review_count:   'jsonld:aggregateRating.reviewCount, [itemprop="reviewCount"]@content, .review-count',
+    images:         'jsonld[]:image, all:.pdpThumbImages img@src, all:[itemprop="image"]@src, all:.product-images img@src',
   },
   postProcess(raw) {
+    const availability = raw.in_stock as string | null;
     return {
       ...raw,
       price:          parsePrice(raw.price as string | null),
       original_price: parsePrice(raw.original_price as string | null),
       rating:         parseRating(raw.rating as string | null),
       review_count:   parseCount(raw.review_count as string | null),
-      in_stock:       !!(raw.in_stock),
+      // JSON-LD availability is "https://schema.org/InStock" or similar.
+      // Default true when missing — category listing confirms product is listable/stocked.
+      in_stock:       availability ? availability.toLowerCase().includes('instock') : true,
     };
   },
 };
