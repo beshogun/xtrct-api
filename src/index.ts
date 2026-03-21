@@ -52,8 +52,8 @@ if (process.env.WEBSHARE_API_KEY) {
   );
 }
 
-// ── 5. Amazon session pool — pre-warm cookies to reduce bot detection ────────
-startAmazonSessionPool();
+// ── 5. Amazon session pool — disabled; Amazon is handled via DataForSEO API ──
+// startAmazonSessionPool();
 
 // ── 6. Strategy analyser — learns optimal scrape path per domain ─────────────
 startStrategyAnalyser();

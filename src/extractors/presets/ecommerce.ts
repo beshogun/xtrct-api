@@ -155,11 +155,13 @@ export const johnLewisProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price (including Was/Now), availability, brand, MPN, rating and images from a John Lewis product page.',
   matchDomains: ['johnlewis.com'],
-  strategy: 'playwright',
-  waitFor: { type: 'selector', value: 'script[type="application/ld+json"]' },
+  strategy: 'auto',
   outputFormats: ['structured'],
   selectors: {
-    // JSON-LD Product schema — present in both HTTP and browser renders
+    // JSON-LD only — jsonld: selectors cannot be comma-mixed with CSS fallbacks
+    // (the entire string after "jsonld:" is used as the dot-path, so CSS selectors
+    //  after a comma would corrupt the path and always return null).
+    // brand/rating/images work because they have no CSS fallbacks — same pattern here.
     title:          'jsonld:name',
     price:          'jsonld:offers.price',
     original_price: 'jsonld:offers.highPrice',
@@ -176,7 +178,9 @@ export const johnLewisProduct: ScrapePreset = {
       ...raw,
       price:          parsePrice(raw.price as string | null),
       original_price: parsePrice(raw.original_price as string | null),
-      in_stock:       availability ? availability.toLowerCase().includes('instock') : null,
+      in_stock:       availability
+        ? (availability.toLowerCase().includes('instock') || !availability.startsWith('http'))
+        : !!(raw.in_stock),
       rating:         parseRating(raw.rating as string | null),
       review_count:   parseCount(raw.review_count as string | null),
     };
@@ -222,8 +226,7 @@ export const aoProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price, availability, energy rating, brand, MPN and images from an AO.com product page.',
   matchDomains: ['ao.com'],
-  strategy: 'playwright',
-  waitFor: { type: 'selector', value: '[class*="ProductTitle"], h1[itemprop="name"]' },
+  strategy: 'auto',
   outputFormats: ['structured'],
   selectors: {
     title:          'h1[itemprop="name"], h1[class*="ProductTitle"], h1[class*="product-title"]',
@@ -411,7 +414,7 @@ export const ebuyerProduct: ScrapePreset = {
   category: 'ecommerce',
   description: 'Extracts product title, price, availability, MPN/EAN, brand, rating and images from an Ebuyer.com product page.',
   matchDomains: ['ebuyer.com'],
-  strategy: 'http',
+  strategy: 'auto',
   outputFormats: ['structured'],
   selectors: {
     title:          'jsonld:name, #lblProductName, h1[itemprop="name"], h1.product-name',
@@ -1508,7 +1511,7 @@ export const argosCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers product listings from an Argos category page.',
   matchDomains: [],
-  strategy: 'playwright',
+  strategy: 'auto',  // domain_strategies has flaresolverr for argos.co.uk
   waitFor: { type: 'networkidle' },
   outputFormats: ['structured'],
   selectors: {
@@ -5516,6 +5519,60 @@ export const jessopsCategory: ScrapePreset = {
     all_urls:   'all:[class*="product-card"] a@href',
     all_prices: 'all:[class*="product-card"] [class*="price"]',
     all_images: 'all:[class*="product-card"] img@src',
+  },
+};
+
+export const hughesDirect: ScrapePreset = {
+  id: 'hughes-direct',
+  name: 'Hughes Direct Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, availability and images from a Hughes Direct (hughes.co.uk) product page.',
+  matchDomains: ['hughes.co.uk'],
+  strategy: 'http',
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1.product-title, h1',
+    price:          '[itemprop="price"]@content, .price-now, .product-price .price',
+    original_price: '.price-was, .was-price, del.price',
+    in_stock:       '[itemprop="availability"]@content, .add-to-basket:not([disabled])',
+    brand:          '[itemprop="brand"], .product-brand',
+    images:         'all:[itemprop="image"]@src, all:.product-gallery img@src, all:.product-image img@src',
+  },
+  postProcess(raw) {
+    const avail = raw.in_stock as string | null;
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       avail ? (avail.toLowerCase().includes('instock') || !!(raw.in_stock)) : !!(raw.in_stock),
+    };
+  },
+};
+
+export const ninjaKitchenUk: ScrapePreset = {
+  id: 'ninja-kitchen-uk',
+  name: 'Ninja Kitchen UK Product',
+  category: 'ecommerce',
+  description: 'Extracts product title, price, availability and images from a Ninja Kitchen UK (ninjakitchen.co.uk) product page.',
+  matchDomains: ['ninjakitchen.co.uk'],
+  strategy: 'http',
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1.product-title, h1',
+    price:          '[itemprop="price"]@content, .price-sales, .product-price, .sales .value',
+    original_price: '.price-standard, del.price, .strike-through .value',
+    in_stock:       'button.add-to-cart:not([disabled]), button.add-to-basket:not([disabled])',
+    brand:          '[itemprop="brand"]',
+    description:    '.product-description, [itemprop="description"]',
+    images:         'all:.product-gallery img@src, all:[itemprop="image"]@src, all:.primary-images img@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+    };
   },
 };
 
