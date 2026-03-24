@@ -1511,7 +1511,7 @@ export const argosCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers product listings from an Argos category page.',
   matchDomains: [],
-  strategy: 'playwright',  // Argos is a React SPA — HTTP returns empty shell
+  strategy: 'auto',  // HTTP skipped via SKIP_HTTP_SPA_DOMAINS → Slipstream renders the React SPA
   // No waitFor: applyWait uses safe networkidle with try/catch (selector waitFor throws on timeout)
   outputFormats: ['structured'],
   selectors: {
@@ -1617,7 +1617,7 @@ export const veryCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers product listings from a Very.co.uk category page.',
   matchDomains: [],
-  strategy: 'playwright',  // Very is a React SPA — HTTP returns empty shell
+  strategy: 'auto',  // HTTP skipped via SKIP_HTTP_SPA_DOMAINS → Slipstream renders the React SPA
   // No waitFor: applyWait uses safe networkidle with try/catch (selector waitFor throws on timeout)
   outputFormats: ['structured'],
   selectors: {

@@ -71,6 +71,23 @@ const RESIDENTIAL_ONLY_DOMAINS = new Set([
   'amazon.co.jp',
 ]);
 
+// React SPAs where HTTP returns an empty shell (200 OK, no product data).
+// Skip HTTP entirely so the auto chain goes straight to Slipstream/Playwright.
+// Without this, HTTP "succeeds" with an empty page and Slipstream never runs.
+const SKIP_HTTP_SPA_DOMAINS = new Set([
+  'argos.co.uk',
+  'very.co.uk',
+]);
+
+function isSkipHttpSpa(url: string): boolean {
+  try {
+    const hostname = new URL(url).hostname.replace(/^www\./, '');
+    return SKIP_HTTP_SPA_DOMAINS.has(hostname);
+  } catch {
+    return false;
+  }
+}
+
 // Sites that require real Chrome (not headless Playwright) to pass bot detection.
 // FlareSolverr uses a real Chrome binary — proper fingerprint, JS execution,
 // and cookie handling. Skip HTTP and Playwright steps entirely.
@@ -664,15 +681,21 @@ async function runAuto(url: string, opts: RunOptions, steps: StepAttempt[]): Pro
   }
 
   // ── HTTP steps ──────────────────────────────────────────────────────────────
+  // Skip HTTP entirely for known React SPAs — they return empty 200 shells that
+  // look like success but have no content, blocking Slipstream from running.
   let stepNum = 1;
-  for (const step of httpSteps) {
-    log(`[strategy] step ${stepNum}: ${step.label}`);
-    const r = await attempt(steps, steps.length, 'http', step.tier, stepCost('http', step.tier),
-      () => tryHttp(url, step.proxyUrl, opts));
-    if (r) {
-      return { ...r, strategyUsed: 'http', proxyUsed: step.proxyUrl, proxyTier: step.tier };
+  if (isSkipHttpSpa(url)) {
+    log(`[strategy] skipping HTTP for known SPA domain: ${domain}`);
+  } else {
+    for (const step of httpSteps) {
+      log(`[strategy] step ${stepNum}: ${step.label}`);
+      const r = await attempt(steps, steps.length, 'http', step.tier, stepCost('http', step.tier),
+        () => tryHttp(url, step.proxyUrl, opts));
+      if (r) {
+        return { ...r, strategyUsed: 'http', proxyUsed: step.proxyUrl, proxyTier: step.tier };
+      }
+      stepNum++;
     }
-    stepNum++;
   }
 
   // ── Slipstream Engine (after HTTP, before Playwright) ───────────────────────
