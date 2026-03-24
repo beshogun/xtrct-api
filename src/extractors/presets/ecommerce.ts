@@ -1511,8 +1511,8 @@ export const argosCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers product listings from an Argos category page.',
   matchDomains: [],
-  strategy: 'auto',  // domain_strategies has flaresolverr for argos.co.uk
-  waitFor: { type: 'networkidle' },
+  strategy: 'playwright',  // Argos is a React SPA — HTTP returns empty shell
+  waitFor: { type: 'selector', value: '[href^="/product/"]', timeout: 20000 },
   outputFormats: ['structured'],
   selectors: {
     all_titles: 'all:[href^="/product/"] [data-test="product-title"], all:[href^="/product/"] h3, all:[href^="/product/"] [class*="Title"]',
@@ -1617,8 +1617,8 @@ export const veryCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers product listings from a Very.co.uk category page.',
   matchDomains: [],
-  strategy: 'auto',
-  waitFor: { type: 'selector', value: '[data-testid="product-block"], [class*="ProductBlock"]' },
+  strategy: 'playwright',  // Very is a React SPA — HTTP returns empty shell
+  waitFor: { type: 'selector', value: '[data-testid="product-block"], [class*="ProductBlock"]', timeout: 20000 },
   outputFormats: ['structured'],
   selectors: {
     all_titles: 'all:[data-testid="product-block"] [data-testid="product-name"], all:[class*="ProductBlock"] h3',
