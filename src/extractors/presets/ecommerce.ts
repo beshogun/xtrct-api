@@ -316,6 +316,33 @@ export const scanProduct: ScrapePreset = {
   },
 };
 
+export const woocommerceProduct: ScrapePreset = {
+  id: 'woocommerce-product',
+  name: 'WooCommerce Product (generic)',
+  category: 'ecommerce',
+  description: 'Generic extractor for WooCommerce stores — uses itemprop/schema.org price to correctly handle sale prices.',
+  strategy: 'http',
+  outputFormats: ['structured'],
+  selectors: {
+    title:          'h1[itemprop="name"], h1.product_title, h1.product-title',
+    price:          '[itemprop="price"]@content, ins .woocommerce-Price-amount.amount, .woocommerce-Price-amount.amount',
+    original_price: 'del .woocommerce-Price-amount.amount',
+    in_stock:       'button.single_add_to_cart_button:not([disabled]), .stock.in-stock, p.in-stock',
+    brand:          '[itemprop="brand"] [itemprop="name"], .product-brand a, a[class*="brand"]',
+    mpn:            '[itemprop="mpn"], .sku, span.sku',
+    ean:            '[itemprop="gtin13"]',
+    images:         'all:.woocommerce-product-gallery img@src, all:[itemprop="image"]@src',
+  },
+  postProcess(raw) {
+    return {
+      ...raw,
+      price:          parsePrice(raw.price as string | null),
+      original_price: parsePrice(raw.original_price as string | null),
+      in_stock:       !!(raw.in_stock),
+    };
+  },
+};
+
 export const overclockerProduct: ScrapePreset = {
   id: 'overclockers-product',
   name: 'Overclockers UK Product',
@@ -1511,8 +1538,8 @@ export const argosCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers product listings from an Argos category page.',
   matchDomains: [],
-  strategy: 'auto',  // HTTP skipped via SKIP_HTTP_SPA_DOMAINS → Slipstream renders the React SPA
-  // No waitFor: applyWait uses safe networkidle with try/catch (selector waitFor throws on timeout)
+  strategy: 'playwright',  // React SPA — must use Playwright to hydrate
+  waitFor: { type: 'selector', value: '[href^="/product/"]' },
   outputFormats: ['structured'],
   selectors: {
     all_titles: 'all:[href^="/product/"] [data-test="product-title"], all:[href^="/product/"] h3, all:[href^="/product/"] [class*="Title"]',
@@ -1617,8 +1644,8 @@ export const veryCategory: ScrapePreset = {
   category: 'ecommerce',
   description: 'Discovers product listings from a Very.co.uk category page.',
   matchDomains: [],
-  strategy: 'auto',  // HTTP skipped via SKIP_HTTP_SPA_DOMAINS → Slipstream renders the React SPA
-  // No waitFor: applyWait uses safe networkidle with try/catch (selector waitFor throws on timeout)
+  strategy: 'playwright',  // React SPA — must use Playwright to hydrate
+  waitFor: { type: 'selector', value: '[data-testid="product-block"], [class*="ProductBlock"]' },
   outputFormats: ['structured'],
   selectors: {
     all_titles: 'all:[data-testid="product-block"] [data-testid="product-name"], all:[class*="ProductBlock"] h3',
